@@ -1,0 +1,315 @@
+import { createClient } from '@/lib/supabase/server'
+import { MoodCheckIn } from '@/components/mood-check-in'
+import { PartnerMood } from '@/components/partner-mood'
+import { CouplePairing } from '@/components/couple-pairing'
+import { DailyContent } from '@/components/daily-content'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Heart, PenLine, ImageIcon, Gamepad2, Calendar, Sparkles } from 'lucide-react'
+import Link from 'next/link'
+import type { MoodType } from '@/lib/constants'
+import { cn } from '@/lib/utils'
+import { ScrollReveal } from '@/components/scroll-reveal'
+import { OnThisDay } from '@/components/on-this-day'
+
+export default async function DashboardPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return null
+
+  // Get user profile
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
+
+  // Get couple info separately if user has a couple_id
+  let couple = null
+  if (profile?.couple_id) {
+    const { data: coupleData } = await supabase
+      .from('couples')
+      .select('*')
+      .eq('id', profile.couple_id)
+      .single()
+    couple = coupleData
+  }
+
+  const hasPartner = !!couple?.user2_id
+
+  // Get partner info and mood
+  let partnerProfile = null
+  let partnerTodayMoods: any[] = []
+
+  if (hasPartner && couple) {
+    const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
+
+    if (partnerId) {
+      const { data: partner } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', partnerId)
+        .single()
+
+      partnerProfile = partner
+
+      // Get partner's moods today
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+
+      const { data: moods } = await supabase
+        .from('moods')
+        .select('*, mood:emoji, note:mood_text')
+        .eq('user_id', partnerId)
+        .gte('created_at', today.toISOString())
+        .order('created_at', { ascending: false })
+
+      partnerTodayMoods = moods || []
+    }
+  }
+
+  // Get counts for dashboard
+  let memoriesCount = 0
+  let lettersCount = 0
+
+  if (hasPartner && profile?.couple_id) {
+    const { count: mCount } = await supabase
+      .from('memories')
+      .select('*', { count: 'exact', head: true })
+      .eq('couple_id', profile.couple_id)
+
+    const { count: lCount } = await supabase
+      .from('love_letters')
+      .select('*', { count: 'exact', head: true })
+      .eq('couple_id', profile.couple_id)
+
+    memoriesCount = mCount || 0
+    lettersCount = lCount || 0
+  }
+
+  // Get "On This Day" memories
+  let onThisDayMemories = []
+  if (hasPartner && profile?.couple_id) {
+    const today = new Date()
+    const month = today.getMonth() + 1
+    const day = today.getDate()
+
+    // Note: Supsabase doesn't have a direct "month-day" extract in basic filter, 
+    // but we can fetch all and filter or use a raw query.
+    // Given the small number of memories usually, fetching all for the couple and filtering in JS is safe.
+    const { data: allMemories } = await supabase
+      .from('memories')
+      .select('*')
+      .eq('couple_id', profile.couple_id)
+
+    if (allMemories) {
+      onThisDayMemories = allMemories.filter(m => {
+        const d = new Date(m.memory_date)
+        return (d.getMonth() + 1) === month && d.getDate() === day
+      })
+    }
+  }
+
+  // Quick actions for dashboard
+  const quickActions = [
+    { href: '/dashboard/letters', icon: PenLine, label: 'Write Letter', color: 'text-pink-500' },
+    { href: '/dashboard/memories', icon: ImageIcon, label: 'Add Memory', color: 'text-amber-500' },
+    { href: '/dashboard/games', icon: Gamepad2, label: 'Play Game', color: 'text-emerald-500' },
+  ]
+
+  if (!hasPartner) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-8 py-8">
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-serif font-semibold">Welcome to Your Love Space</h1>
+          <p className="text-muted-foreground">
+            Connect with your partner to unlock all features
+          </p>
+        </div>
+        <CouplePairing userPairCode={couple?.couple_code} />
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-12 pt-12 pb-24 px-6 md:px-8">
+      {/* Refined Welcome Header */}
+      <ScrollReveal className="space-y-4 text-center lg:text-left">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-amber-200/90 text-[10px] uppercase tracking-[0.3em] font-bold backdrop-blur-md text-glow-gold">
+          <Sparkles className="w-3 h-3 text-amber-400/80" />
+          MoonBetweenUs
+        </div>
+        <h1 className="text-4xl md:text-7xl font-romantic text-rose-50 leading-[1.1] tracking-wide text-glow-rose">
+          Stay Connected
+          <br />
+          <span className="bg-gradient-to-r from-amber-200 via-rose-300 to-orange-300 bg-clip-text text-transparent drop-shadow-sm">
+            Every Single Day
+          </span>
+        </h1>
+        <div className="flex flex-col lg:flex-row items-center gap-4 pt-4">
+          <div className="flex -space-x-4">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-background bg-primary/20 flex items-center justify-center ring-2 ring-white/10 overflow-hidden shadow-xl">
+              <img src={profile?.avatar_url || '/images/profile.png'} className="w-full h-full object-cover" alt="You" />
+            </div>
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-background bg-secondary/20 flex items-center justify-center ring-2 ring-white/10 overflow-hidden shadow-xl">
+              <img src={partnerProfile?.avatar_url || '/images/profile2.jpg'} className="w-full h-full object-cover" alt="Partner" />
+            </div>
+
+          </div>
+          <p className="text-white/70 uppercase text-xs tracking-[0.2em] font-medium">
+            Connected with <span className="text-white font-bold">{partnerProfile?.display_name || 'Partner'}</span>
+          </p>
+        </div>
+      </ScrollReveal>
+
+      {/* Unified Bento Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-8 md:mt-12">
+
+        {/* Big Widget: Together Counter (Reference Weather Style) */}
+        <ScrollReveal className="lg:col-span-2" delay={0.1}>
+          <div className="glass-card p-6 md:p-10 flex flex-col md:flex-row gap-6 md:gap-10 items-center justify-center h-full relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 to-cyan-500 opacity-50" />
+            <div className="flex items-center gap-4 md:gap-6">
+              <div className="relative">
+                <div className="absolute inset-0 bg-rose-500/10 blur-3xl rounded-full" />
+                <Heart className="w-16 h-16 md:w-24 md:h-24 text-rose-300/80 relative z-10 animate-pulse-slow" fill="currentColor" />
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-end gap-1">
+                  <span className="text-6xl md:text-8xl font-bold leading-none text-white tracking-tighter">
+                    {couple?.paired_at
+                      ? Math.floor(
+                        (new Date().getTime() - new Date(couple.paired_at).getTime()) /
+                        (1000 * 60 * 60 * 24)
+                      )
+                      : 0}
+                  </span>
+                  <span className="text-xl md:text-2xl text-white/50 pb-1 md:pb-2 font-serif italic">Days</span>
+                </div>
+                <p className="text-white/60 flex items-center gap-2 uppercase tracking-[0.3em] text-[10px] font-bold pt-2">
+                  <Calendar className="w-3 h-3 text-amber-400/60" />
+                  Since {couple?.paired_at ? new Date(couple.paired_at).toLocaleDateString() : 'Today'}
+                </p>
+              </div>
+            </div>
+            <div className="h-20 w-px bg-white/10 hidden md:block" />
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center gap-4 group/item">
+                <div className="w-10 h-10 rounded-2xl bg-rose-500/5 flex items-center justify-center group-hover/item:bg-rose-500/10 transition-colors">
+                  <PenLine className="w-5 h-5 text-rose-300/70" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold leading-none text-white/90">{lettersCount}</p>
+                  <p className="text-[10px] uppercase text-white/30 tracking-widest font-bold mt-1">Letters</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 group/item">
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/5 flex items-center justify-center group-hover/item:bg-amber-500/10 transition-colors">
+                  <ImageIcon className="w-5 h-5 text-amber-300/70" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold leading-none text-white/90">{memoriesCount}</p>
+                  <p className="text-[10px] uppercase text-white/30 tracking-widest font-bold mt-1">Memories</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ScrollReveal>
+
+        {/* Daily Inspiration / Challenge */}
+        <ScrollReveal className="lg:col-span-2" delay={0.2}>
+          <div className="glass-card p-8 flex flex-col justify-between relative overflow-hidden group h-full">
+            <div className="absolute -top-24 -right-24 w-64 h-64 bg-amber-500/10 blur-[120px] rounded-full" />
+            <DailyContent />
+          </div>
+        </ScrollReveal>
+
+        {/* Current Mood (Partner) */}
+        <ScrollReveal className="lg:col-span-1" delay={0.3}>
+          <div className="glass-card p-2 relative group overflow-hidden h-full">
+            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-purple-500/10 blur-3xl rounded-full" />
+            <PartnerMood
+              partnerName={partnerProfile?.display_name || 'Partner'}
+              partnerAvatar={partnerProfile?.avatar_url}
+              moods={partnerTodayMoods}
+            />
+          </div>
+        </ScrollReveal>
+
+        {/* Quick Actions (Floating Pill Grid) */}
+        <ScrollReveal className="lg:col-span-1" delay={0.4}>
+          <div className="glass-card p-6 flex flex-col justify-between h-full bg-black/20">
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-white/50 uppercase tracking-[0.2em] text-[10px] font-bold">Quick Interaction</h3>
+              <Sparkles className="w-4 h-4 text-amber-400/30" />
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-1 gap-3">
+              {quickActions.map((action, i) => (
+                <Link
+                  key={action.href}
+                  href={action.href}
+                  className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all hover:translate-x-1 group"
+                >
+                  <div className={cn(
+                    "w-8 h-8 rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-110",
+                    action.color.replace('text-', 'bg-').replace('500', '500/20')
+                  )}>
+                    <action.icon className={cn("w-4 h-4", action.color)} />
+                  </div>
+                  <span className="text-[10px] font-bold text-white/70 uppercase tracking-wider">{action.label.split(' ')[1] || action.label}</span>
+                </Link>
+              ))}
+              <div className="flex items-center justify-center p-3 rounded-2xl border border-dashed border-white/10 hover:bg-white/5 transition-colors cursor-pointer group">
+                <span className="text-lg font-light text-white/20 group-hover:text-white/40 group-hover:scale-110 transition-all">+</span>
+              </div>
+            </div>
+          </div>
+        </ScrollReveal>
+
+        {/* Your Interaction Center */}
+        <ScrollReveal className={cn("lg:col-span-2", onThisDayMemories.length > 0 ? "lg:col-span-1" : "lg:col-span-2")} delay={0.5}>
+          <div className="glass-card p-2 h-full">
+            <MoodCheckIn hasPartner={hasPartner} />
+          </div>
+        </ScrollReveal>
+
+        {/* On This Day (Conditional) */}
+        {onThisDayMemories.length > 0 && (
+          <ScrollReveal className="lg:col-span-1" delay={0.55}>
+            <OnThisDay memories={onThisDayMemories} />
+          </ScrollReveal>
+        )}
+
+        {/* Hero Footer Widget: Games */}
+        <ScrollReveal className="lg:col-span-4" delay={0.6}>
+          <div className="glass-card p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden h-full min-h-[240px]">
+            <div className="absolute top-0 right-0 p-6">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+                <span className="text-[11px] text-green-400 font-bold uppercase tracking-[0.2em]">Active Connection</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-8 items-center text-center md:text-left">
+              <div className="w-28 h-28 rounded-[40px] bg-gradient-to-br from-amber-600 via-rose-700 to-orange-800 flex items-center justify-center shadow-2xl shadow-rose-900/40 rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                <Gamepad2 className="w-12 h-12 text-white/90" />
+              </div>
+              <div className="space-y-3">
+                <h4 className="text-3xl font-serif font-bold text-white leading-tight">Ready for a Challenge?</h4>
+                <p className="text-white/60 text-lg max-w-sm">Jump into Couple Games and spark some friendly competition!</p>
+              </div>
+            </div>
+
+            <Button variant="greenish" className="rounded-full px-12 py-8 font-bold text-lg transition-all">
+              Play Now
+            </Button>
+
+            <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-indigo-500/10 blur-[100px] rounded-full" />
+          </div>
+        </ScrollReveal>
+
+      </div>
+    </div>
+  )
+}

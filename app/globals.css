@@ -1,0 +1,411 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@layer base {
+  :root {
+    /* Ambient Romantic Mode (Sweet & Sexy) - Deep & Intimate */
+    --background: 355 25% 10%;
+    /* Deep Burgundy/Cocoa Base */
+    --foreground: 340 30% 98%;
+    /* Soft Pale Rose */
+
+    --card: 355 25% 12%;
+    --card-foreground: 340 30% 98%;
+
+    --popover: 355 25% 12%;
+    --popover-foreground: 340 30% 98%;
+
+    --primary: 340 70% 85%;
+    /* Vibrant Soft Rose */
+    --primary-foreground: 355 30% 15%;
+
+    --secondary: 35 60% 75%;
+    /* Rich Champagne Gold */
+    --secondary-foreground: 355 30% 15%;
+
+    --muted: 355 20% 20%;
+    --muted-foreground: 340 15% 85%;
+    /* High contrast rose-tinted gray */
+
+    --accent: 340 40% 60%;
+    /* Warm Rose Berry */
+    --accent-foreground: 340 30% 98%;
+
+    --destructive: 0 70% 40%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 355 20% 25%;
+    --input: 355 20% 25%;
+    --ring: 340 70% 85%;
+
+    --chart-1: 340 70% 85%;
+    --chart-2: 35 60% 75%;
+    --chart-3: 10 70% 70%;
+    --chart-4: 30 50% 50%;
+    --chart-5: 20 40% 40%;
+
+    --radius: 2rem;
+    /* Softer, fuller curves */
+
+    --sidebar: 355 25% 10%;
+    --sidebar-foreground: 20 20% 98%;
+    --sidebar-primary: 340 70% 85%;
+    --sidebar-primary-foreground: 355 30% 15%;
+    --sidebar-accent: 355 20% 20%;
+    --sidebar-accent-foreground: 20 20% 98%;
+    --sidebar-border: 355 20% 25%;
+    --sidebar-ring: 340 70% 85%;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Typography */
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-cormorant), ui-serif, Georgia, serif;
+
+  /* Animations */
+  --animate-float: float 8s ease-in-out infinite;
+  --animate-pulse-slow: pulse-slow 5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-glow: glow 3s ease-in-out infinite alternate;
+
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-15px);
+    }
+  }
+
+  @keyframes pulse-slow {
+
+    0%,
+    100% {
+      opacity: 0.4;
+      transform: scale(1);
+    }
+
+    50% {
+      opacity: 0.3;
+      transform: scale(1.03);
+    }
+  }
+
+  @keyframes glow {
+    from {
+      box-shadow: 0 0 10px -10px var(--primary);
+    }
+
+    to {
+      box-shadow: 0 0 20px 5px var(--primary);
+    }
+  }
+
+  @keyframes text-reveal {
+    0% {
+      opacity: 0;
+      transform: translateY(15px);
+      filter: blur(8px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: 0% 50%;
+    }
+
+    100% {
+      background-position: 200% 50%;
+    }
+  }
+
+  @keyframes heart-bounce-in {
+    0% {
+      opacity: 0;
+      transform: scale(0.3) translateY(40px);
+    }
+
+    50% {
+      opacity: 0.8;
+      transform: scale(1.1) translateY(-10px);
+    }
+
+    70% {
+      transform: scale(0.9) translateY(5px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  @keyframes heart-float {
+    0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 0;
+    }
+
+    10% {
+      opacity: 0.7;
+    }
+
+    90% {
+      opacity: 0.7;
+    }
+
+    100% {
+      transform: translateY(-120vh) rotate(360deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes heart-sway {
+
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+
+    50% {
+      transform: translateX(15px);
+    }
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html,
+  /* Fonts */
+  .font-romantic {
+    font-family: var(--font-pinyon), cursive;
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    color: var(--foreground);
+    /* Enforce globally */
+  }
+
+  /* Force headings to be visible */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply text-foreground;
+  }
+
+  /* Global Input/Text Enforcements for Visibility */
+  input,
+  textarea,
+  select {
+    @apply text-foreground bg-white/5 border-white/10 placeholder:text-muted-foreground/50;
+  }
+
+  /* Browser Autofill Fix - Keep it Dark & Romantic */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: hsl(20, 20%, 98%);
+    transition: background-color 5000s ease-in-out 0s;
+    box-shadow: inset 0 0 20px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Text Selection */
+  ::selection {
+    @apply bg-primary/30 text-white;
+  }
+
+  /* Liquid Glassmorphism - Refined for Romantic Clarity */
+  .glass {
+    @apply backdrop-blur-md border border-white/20 shadow-2xl bg-black/40;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .glass-card {
+    @apply backdrop-blur-xl border border-white/15 shadow-2xl transition-all duration-700 rounded-[3rem] overflow-hidden;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.03), rgba(0, 0, 0, 0.2));
+    box-shadow:
+      0 8px 32px -4px rgba(0, 0, 0, 0.3),
+      inset 0 0 30px rgba(255, 255, 255, 0.02);
+  }
+
+  .glass-card:hover {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(0, 0, 0, 0.2));
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow:
+      0 20px 50px -10px rgba(0, 0, 0, 0.5),
+      0 0 20px rgba(236, 209, 213, 0.1),
+      inset 0 0 20px rgba(255, 255, 255, 0.05);
+    transform: translateY(-5px);
+  }
+
+  /* Text Glow Effects - Enhanced Visibility */
+  .text-glow-gold {
+    text-shadow: 0 0 20px rgba(212, 195, 163, 0.6), 0 0 10px rgba(212, 195, 163, 0.3);
+  }
+
+  .text-glow-rose {
+    text-shadow: 0 0 25px rgba(244, 114, 182, 0.5), 0 0 12px rgba(244, 114, 182, 0.3);
+  }
+
+  .text-glow-white {
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+  }
+
+  .text-glow-green {
+    text-shadow: 0 0 10px rgba(34, 197, 94, 0.8), 0 0 20px rgba(34, 197, 94, 0.4);
+  }
+
+  .text-vibrant-animate {
+    background: linear-gradient(to right, #f9a8d4, #f472b6, #fbbf24, #fcd34d, #f9a8d4);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+    animation: text-reveal 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards, shimmer 3s linear infinite;
+  }
+
+  .animate-heart-bounce {
+    animation: heart-bounce-in 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  .bg-heart-red {
+    background-color: #ef4444;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+  }
+
+  .bg-heart-pink {
+    background-color: #f472b6;
+    box-shadow: 0 0 15px rgba(244, 114, 182, 0.4);
+  }
+
+  .bg-heart-colorful {
+    background: linear-gradient(135deg, #f472b6, #e2556f, #d98b75);
+    box-shadow: 0 0 15px rgba(226, 85, 111, 0.4);
+  }
+
+  /* Premium Buttons - High Contrast & Sweet Aesthetic */
+  .btn-premium {
+    @apply relative overflow-hidden transition-all duration-500 rounded-full font-medium tracking-wide;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: linear-gradient(to right, rgba(236, 209, 213, 0.1), rgba(212, 195, 163, 0.1));
+    color: #e5e5e5;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .btn-premium:hover {
+    background: linear-gradient(to right, #be185d, #b45309);
+    /* Rose to Gold/Amber */
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 30px rgba(190, 24, 93, 0.4);
+    transform: translateY(-2px) scale(1.02);
+    color: white !important;
+  }
+
+  .btn-premium:active {
+    transform: translateY(0);
+  }
+
+  /* Variant: Greenish (Active/Playful) */
+  .btn-greenish {
+    @apply relative overflow-hidden transition-all duration-500 rounded-full font-medium;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: linear-gradient(to right, rgba(34, 197, 94, 0.1), rgba(6, 95, 70, 0.1));
+    color: #86efac;
+  }
+
+  .btn-greenish:hover {
+    background: linear-gradient(to right, #15803d, #14532d);
+    border-color: #4ade80;
+    box-shadow: 0 0 30px rgba(34, 197, 94, 0.3);
+    color: white !important;
+  }
+
+  /* Variant: Rosy (Romantic) */
+  .btn-rosy {
+    @apply relative overflow-hidden transition-all duration-500 rounded-full font-medium;
+    border: 1px solid rgba(244, 114, 182, 0.3);
+    background: linear-gradient(to right, rgba(244, 114, 182, 0.1), rgba(157, 23, 77, 0.1));
+    color: #f9a8d4;
+  }
+
+  .btn-rosy:hover {
+    background: linear-gradient(to right, #db2777, #9d174d);
+    border-color: #fbcfe8;
+    box-shadow: 0 0 30px rgba(219, 39, 119, 0.4);
+    color: white !important;
+  }
+
+  /* Modal/Dialog Styles */
+  .glass-dialog-vibrant {
+    @apply backdrop-blur-xl border border-white/10 shadow-2xl overflow-hidden rounded-[2rem];
+    background: rgba(20, 10, 10, 0.85);
+    /* Darker backdrop for readability */
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.05);
+  }
+
+  /* Premium Card Styles */
+  .card-border-premium {
+    @apply border-transparent relative;
+    background-image: linear-gradient(rgba(20, 20, 20, 0.4), rgba(20, 20, 20, 0.4)),
+      linear-gradient(to right, rgba(236, 209, 213, 0.2), rgba(212, 195, 163, 0.2), rgba(236, 209, 213, 0.2));
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+  }
+}

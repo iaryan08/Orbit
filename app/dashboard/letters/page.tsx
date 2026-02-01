@@ -1,0 +1,417 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Heart, Plus, Calendar, Lock, Sparkles, Send, Mail, MailOpen } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+
+interface LoveLetter {
+  id: string;
+  title: string;
+  content: string;
+  sender_id: string;
+  receiver_id: string;
+  unlock_date: string | null;
+  is_read: boolean;
+  created_at: string;
+  sender_name?: string;
+}
+
+export default function LettersPage() {
+  const [letters, setLetters] = useState<LoveLetter[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isWriting, setIsWriting] = useState(false);
+  const [selectedLetter, setSelectedLetter] = useState<LoveLetter | null>(null);
+  const [newLetter, setNewLetter] = useState({
+    title: "",
+    content: "",
+    unlock_date: "",
+  });
+  const [generating, setGenerating] = useState(false);
+  const { toast } = useToast();
+  const supabase = createClient();
+
+  useEffect(() => {
+    fetchLetters();
+
+    // Set up Realtime listener
+    const setupRealtime = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("couple_id")
+        .eq("id", user.id)
+        .single();
+
+      if (profile?.couple_id) {
+        const channel = supabase
+          .channel('realtime-letters')
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'love_letters',
+              filter: `couple_id=eq.${profile.couple_id}`
+            },
+            () => {
+              fetchLetters();
+            }
+          )
+          .subscribe();
+
+        return () => {
+          supabase.removeChannel(channel);
+        };
+      }
+    };
+
+    const cleanup = setupRealtime();
+    return () => {
+      cleanup.then(fn => fn && fn());
+    };
+  }, []);
+
+  const fetchLetters = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get user's couple
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("couple_id")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile?.couple_id) {
+        setLoading(false);
+        return;
+      }
+
+      // Get letters for this couple - fetch raw data first
+      const { data: lettersData, error: lettersError } = await supabase
+        .from("love_letters")
+        .select('*')
+        .eq("couple_id", profile.couple_id)
+        .or(`unlock_date.is.null,unlock_date.lte.${new Date().toISOString()}`)
+        .order("created_at", { ascending: false });
+
+      if (lettersError) throw lettersError;
+
+      if (!lettersData || lettersData.length === 0) {
+        setLetters([]);
+        return;
+      }
+
+      // Get unique sender IDs
+      const senderIds = Array.from(new Set(lettersData.map(l => l.sender_id)));
+
+      // Fetch profiles for senders
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, display_name")
+        .in("id", senderIds);
+
+      if (profilesError) throw profilesError;
+
+      // Create a map of id -> display_name
+      const profileMap = new Map(profilesData?.map(p => [p.id, p.display_name]) || []);
+
+      const formattedLetters = lettersData.map(letter => ({
+        ...letter,
+        sender_name: profileMap.get(letter.sender_id) || "Your Love",
+      }));
+
+      setLetters(formattedLetters);
+    } catch (error) {
+      console.error("Error fetching letters:", JSON.stringify(error, null, 2));
+      toast({
+        title: "Error",
+        description: "Could not load letters. Please try refreshing.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sendLetter = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("couple_id")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile?.couple_id) {
+        toast({
+          title: "Not paired yet",
+          description: "You need to be paired with your partner first.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Get partner ID
+      const { data: couple } = await supabase
+        .from("couples")
+        .select("user1_id, user2_id")
+        .eq("id", profile.couple_id)
+        .single();
+
+      const partnerId = couple?.user1_id === user.id ? couple?.user2_id : couple?.user1_id;
+
+      const { error } = await supabase.from("love_letters").insert({
+        couple_id: profile.couple_id,
+        sender_id: user.id,
+        receiver_id: partnerId,
+        title: newLetter.title,
+        content: newLetter.content,
+        unlock_date: newLetter.unlock_date || null,
+        unlock_type: newLetter.unlock_date ? 'custom' : 'immediate'
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Letter sent!",
+        description: newLetter.unlock_date
+          ? "Your letter will be delivered on the scheduled date."
+          : "Your love letter has been delivered.",
+        variant: "success",
+      });
+
+      setNewLetter({ title: "", content: "", unlock_date: "" });
+      setIsWriting(false);
+      fetchLetters();
+    } catch (error) {
+      console.error("Error sending letter:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send letter. Please try again.",
+        variant: "failed",
+      });
+    }
+  };
+
+  const generateAILetter = async () => {
+    setGenerating(true);
+    try {
+      const response = await fetch("/api/generate-letter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: newLetter.title || "a romantic love letter" }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setNewLetter(prev => ({ ...prev, content: data.content }));
+      }
+    } catch (error) {
+      console.error("Error generating letter:", error);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const markAsRead = async (letterId: string) => {
+    try {
+      await supabase
+        .from("love_letters")
+        .update({ is_read: true })
+        .eq("id", letterId);
+
+      setLetters(prev =>
+        prev.map(l => (l.id === letterId ? { ...l, is_read: true } : l))
+      );
+    } catch (error) {
+      console.error("Error marking letter as read:", error);
+    }
+  };
+
+  const receivedLetters = letters.filter(l => l.receiver_id !== l.sender_id);
+  const sentLetters = letters.filter(l => l.sender_id === l.receiver_id);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-serif font-semibold text-white flex items-center gap-3 text-glow-white">
+            <Mail className="h-7 w-7 text-amber-200" />
+            Love Letters
+          </h1>
+          <p className="text-white/60 mt-1 uppercase tracking-widest text-[10px] font-bold">Write and cherish heartfelt messages</p>
+        </div>
+        <Dialog open={isWriting} onOpenChange={setIsWriting}>
+          <DialogTrigger asChild>
+            <Button className="gap-2" variant="rosy">
+              <Plus className="h-4 w-4" />
+              Write Letter
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[500px] border border-white/10 bg-[#1a0b10]/95 backdrop-blur-xl shadow-[0_0_50px_rgba(244,63,94,0.15)] text-white">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-3 font-serif text-2xl text-white text-glow-rose">
+                <Heart className="h-6 w-6 text-rose-500 fill-rose-500 animate-pulse" />
+                Write a Love Letter
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6 mt-6">
+              <div className="space-y-2">
+                <Label htmlFor="title" className="text-amber-100 font-medium tracking-wide uppercase text-xs">Title</Label>
+                <Input
+                  id="title"
+                  placeholder="My Dearest..."
+                  value={newLetter.title}
+                  onChange={(e) => setNewLetter(prev => ({ ...prev, title: e.target.value }))}
+                  className="bg-white/5 border-white/10 focus:border-rose-400/50 text-white placeholder:text-white/30 h-12 rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="content" className="text-amber-100 font-medium tracking-wide uppercase text-xs">Your Message</Label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={generateAILetter}
+                    disabled={generating}
+                    className="text-xs text-rose-300 hover:text-rose-200 hover:bg-rose-500/10 h-6 px-2"
+                  >
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    {generating ? "Writing..." : "AI Assist"}
+                  </Button>
+                </div>
+                <Textarea
+                  id="content"
+                  placeholder="Pour your heart out..."
+                  value={newLetter.content}
+                  onChange={(e) => setNewLetter(prev => ({ ...prev, content: e.target.value }))}
+                  rows={8}
+                  className="resize-none bg-white/5 border-white/10 focus:border-rose-400/50 text-white placeholder:text-white/30 rounded-xl leading-relaxed p-4"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="scheduled" className="flex items-center gap-2 text-amber-100 font-medium tracking-wide uppercase text-xs">
+                  <Calendar className="h-3.5 w-3.5" />
+                  Schedule Delivery (Optional)
+                </Label>
+                <Input
+                  id="scheduled"
+                  type="date"
+                  value={newLetter.unlock_date}
+                  onChange={(e) => setNewLetter(prev => ({ ...prev, unlock_date: e.target.value }))}
+                  min={new Date().toISOString().split("T")[0]}
+                  className="mt-1 bg-white/5 border-white/10 focus:border-rose-400/50 text-white/80 h-12 rounded-xl"
+                />
+              </div>
+              <Button onClick={sendLetter} className="w-full gap-2 h-12 text-lg font-bold shadow-lg shadow-rose-500/20" variant="rosy" disabled={!newLetter.content}>
+                <Send className="h-5 w-5" />
+                Send with Love
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <Heart className="h-8 w-8 animate-pulse text-primary" />
+        </div>
+      ) : letters.length === 0 ? (
+        <Card className="border-dashed border-primary/30">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Mail className="h-12 w-12 text-primary/40 mb-4" />
+            <h3 className="font-medium text-lg mb-2">No letters yet</h3>
+            <p className="text-white/50 text-center mb-6">
+              Start writing heartfelt messages to your partner
+            </p>
+            <Button onClick={() => setIsWriting(true)} variant="outline">
+              Write Your First Letter
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {letters.map((letter) => (
+            <Card
+              key={letter.id}
+              className={`cursor-pointer transition-all hover:translate-y-[-4px] card-border-premium group ${!letter.is_read ? "ring-2 ring-primary/40 bg-primary/10" : ""}`}
+              onClick={() => {
+                setSelectedLetter(letter);
+                if (!letter.is_read) markAsRead(letter.id);
+              }}
+            >
+              <CardHeader className="pb-2">
+                <div className="flex items-start justify-between">
+                  <CardTitle className="text-base font-bold text-white tracking-tight line-clamp-1">
+                    {letter.title || "Untitled Letter"}
+                  </CardTitle>
+                  {!letter.is_read ? (
+                    <Mail className="h-4 w-4 text-emerald-400 shrink-0 filter drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]" />
+                  ) : (
+                    <MailOpen className="h-4 w-4 text-white/40 shrink-0" />
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-white/70 line-clamp-3 mb-4 leading-relaxed italic">
+                  {letter.content}
+                </p>
+                <div className="flex items-center justify-between text-[10px] uppercase tracking-widest font-bold text-white/40 pt-4 border-t border-white/5">
+                  <span>From: <span className="text-white/60">{letter.sender_name}</span></span>
+                  <span>{format(new Date(letter.created_at), "MMM d, yyyy")}</span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Letter Detail Modal */}
+      <Dialog open={!!selectedLetter} onOpenChange={() => setSelectedLetter(null)}>
+        <DialogContent className="sm:max-w-[500px] glass-dialog-vibrant border-none">
+          {selectedLetter && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 font-serif">
+                  <Heart className="h-5 w-5 text-primary" />
+                  {selectedLetter.title || "Love Letter"}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="mt-4 space-y-4">
+                <div className="prose prose-sm max-w-none">
+                  <p className="whitespace-pre-wrap leading-relaxed text-foreground/90">
+                    {selectedLetter.content}
+                  </p>
+                </div>
+                <div className="flex items-center justify-between text-sm text-muted-foreground border-t pt-4">
+                  <span>With love, {selectedLetter.sender_name}</span>
+                  <span>{format(new Date(selectedLetter.created_at), "MMMM d, yyyy")}</span>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

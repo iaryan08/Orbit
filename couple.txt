@@ -1,0 +1,146 @@
+I want to create a couple website (Do not index it on Google or other search engine.) [
+    1. Couple Code / Invite System
+        One user generates a private couple code
+        Second user joins → permanently binds accounts
+        Prevents random logins
+    2. Password & Security
+        Hash passwords (bcrypt / argon2)
+        Add OTP or email verification (even basic)
+        Login sessions with JWT + refresh tokens
+    3. Role-Based Access
+        Only the paired partner can view private content
+        Zero public exposure by default
+        user can upload profile photo, can change password.
+],
+
+1. dashboard 
+    1. Daily Mood Check-In
+        Each selects mood (emoji + short text)
+        Show:
+            Mood streaks
+            Mood mismatch alerts (“You’re low, partner is happy”)
+    2. Pending dares (partner can mark it completed)
+    4. Both can post their photos, feelings & partner can see this, automatically delete after the Day ends.
+    5. Quiz Suggestions
+    6. “On This Day” Memories [available for the offline meeting days & for the other days hide this section. 14th July, 19th October, 2nd Feb , 22nd March, 27th September ]
+        Show old photos/messages from the same date last year
+        Huge emotional impact, very easy to build
+
+2. Game section - which includes games like [couples can play online together in realtime] 
+
+    Timer-Based Turns (Real-Time Feel)
+        60s to answer
+        If timeout → funny penalty
+
+    1. Turth & Dare (first will ask for the names, gender & then prompt the level of game) [scratch style & do] - (Levels- 1. Fun & Flirty,1. Hot & Wild , 3. Steamy & Extreme ], I'll provide list of dares in json file - 
+    I'll provide list of dares in json file -   ex - {
+    "categories": {
+        "Fun & Flirty": {
+        "truths": [
+            "What's your favorite romantic movie?",
+            "Have you ever sent a text message to someone without knowing what it says?",
+            ...
+        ],
+        "dares": [
+            "Sing a song loudly to your friends.",
+            "Wear your clothes inside out for the rest of the day.",
+            ...
+        ]
+        },
+        "Hot & Wild": {
+        "truths": [
+            "Have you ever been on a date where you didn't feel comfortable?",
+            "What's something you're not proud of?",
+            ...
+        ],
+        "dares": [
+            "Do something completely wild for the next hour.",
+            "Wear your clothes backwards for the day.",
+            ...
+        ]
+        },
+        "Steamy & Extreme": {
+        "truths": [
+            "Have you ever been in love?",
+            "What's something you're not ready to talk about?",
+            ...
+        ],
+        "dares": [
+            "Do something completely wild for the next hour.",
+            "Wear your clothes backwards for the day.",
+            ...
+        ]
+        }
+    }
+    }
+        partner will mark whether the truth or dare is done or not [if not will be available in the dashboard section yet to be completed for both]
+
+    2. Would You Rather (Couples Edition) [use gemini api key to generate at 00:00 daily, once per day. automatically call - & store in database, no need to ask used to generate Data, realtime play]
+
+    3. Compliment Challenge – One thoughtful compliment per turn, One will upload a photo & will flash on partner's display & he/she have to give compliment for the same - the person who has uploaded can see.
+
+    4. This or That – Fast, silly, revealing [use gemini api key to generate at 00:05 daily, once per day. automatically call - & store in database, no need to ask used to generate Data, realtime play]
+
+    5. Love Language Quiz Night [use gemini api key to generate at 00:10 daily, once per day. automatically call - & store in database, no need to ask used to generate Data, realtime play]
+
+    6. Answer a five-question quiz, then try to predict your partner’s answers. Compare results and give points to both [use gemini api key to generate at 00:30 & 12:00 daily, twice per day. automatically call - & store in database, no need to ask used to generate Data, realtime play]
+
+
+3. Memories Section - store photos 
+    - meet wise [total 5 meets - 14th July 2024, 19th October 2024, 2nd Feb 2025, 22nd march 2025, 27th September 2025]
+    - Online 
+    - Aditi 
+    - Aryan 
+    [use folder meet1-5, online, aditi, aryan in Cloud storage for photos (not public folder long-term) for photos]
+    /couples/{coupleId}/
+        ├── dashboard/
+        ├── memories/
+        │   ├── meet1/
+        │   ├── meet2/
+        │   ├── online/
+        │   ├── aryan/
+        │   └── aditi/
+
+
+
+4. Love Letter Vault
+    Write letters anytime
+        Partner can open only on:
+        Birthday
+        Anniversary
+        Manual unlock {Date will be decided by the the person who is sending}
+
+5. Apology Mode
+    One clicks “I messed up”
+    App prompts:
+        What happened?
+        How do you feel?
+        What do you need?
+    Partner gets a structured apology, not chaos.
+
+6. ⏰ Scheduled & Surprise Features
+
+    These create delight.
+
+    1. Random Love Notification
+        Once per day, random compliment or memory
+
+    2. Surprise Unlocks
+        “A surprise is waiting tonight at 9 PM”
+
+    3. Anniversary Auto-Mode
+        Special UI theme
+        Locked romantic content unlocks
+
+7. 🔥 Advanced
+    Relationship AI Insights
+        “You interact most on weekends”
+        “Compliments increased this month”
+
+    Private Voice Notes
+        Expire after listening once
+
+    Secret Questions
+        Anonymous questions answered privately
+
+Use Database to store the Content;
