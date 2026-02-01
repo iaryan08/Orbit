@@ -39,11 +39,14 @@ export function RomanticBackground() {
     }, []);
 
     return (
-        <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="fixed top-0 left-0 w-full h-[100lvh] z-0 overflow-hidden pointer-events-none">
             {/* Liquid Glass Background Base */}
             <div
                 className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000"
-                style={{ backgroundImage: bgImage ? `url(${bgImage})` : 'none' }}
+                style={{
+                    backgroundImage: bgImage ? `url(${bgImage})` : 'none',
+                    height: '100lvh'
+                }}
             >
                 {/* Dark overlay for readability and merging visual layers */}
                 <div
