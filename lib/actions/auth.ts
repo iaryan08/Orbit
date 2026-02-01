@@ -114,6 +114,124 @@ export async function getProfile() {
   return { ...profile, couple, partner }
 }
 
+export async function fetchUnreadCounts() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return { memories: 0, letters: 0 }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('couple_id, last_viewed_memories_at, last_viewed_letters_at')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile?.couple_id) return { memories: 0, letters: 0 }
+
+  // Count new memories
+  const { count: memoriesCount } = await supabase
+    .from('memories')
+    .select('*', { count: 'exact', head: true })
+    .eq('couple_id', profile.couple_id)
+    .gt('created_at', profile.last_viewed_memories_at || new Date(0).toISOString())
+
+  // Count new letters (from partner only)
+  // We need to verify if the letter is from the partner, but checking couple_id + sender != me is best
+  const { count: lettersCount } = await supabase
+    .from('love_letters')
+    .select('*', { count: 'exact', head: true })
+    .eq('couple_id', profile.couple_id)
+    .neq('sender_id', user.id)
+    .gt('created_at', profile.last_viewed_letters_at || new Date(0).toISOString())
+  // Ensure we don't count locked letters that shouldn't be visible yet? 
+  // Actually, notification should probably appear even if locked, "you have a letter waiting"
+  // But user requirement says "new entry". Let's stick to created_at logic.
+
+  return {
+    memories: memoriesCount || 0,
+    letters: lettersCount || 0
+  }
+}
+
+export async function markAsViewed(type: 'memories' | 'letters') {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return
+
+  const field = type === 'memories' ? 'last_viewed_memories_at' : 'last_viewed_letters_at'
+
+  await supabase
+    .from('profiles')
+    .update({
+      [field]: new Date().toISOString()
+    })
+    .eq('id', user.id)
+
+  revalidatePath('/dashboard', 'layout')
+}
+
+export async function refreshDashboard() {
+  revalidatePath('/dashboard', 'layout')
+}
+
+
+
+export async function deleteMemory(memoryId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return { error: 'Not authenticated' }
+
+  // 1. Fetch the memory to get image URLs for cleanup
+  const { data: memory, error: fetchError } = await supabase
+    .from('memories')
+    .select('image_urls, couple_id')
+    .eq('id', memoryId)
+    .single()
+
+  if (fetchError || !memory) {
+    return { error: fetchError?.message || 'Memory not found' }
+  }
+
+  // 2. Cleanup storage files if they exist
+  if (memory.image_urls && memory.image_urls.length > 0) {
+    try {
+      // Extract paths from URLs
+      // Supabase URLs are usually https://[project].supabase.co/storage/v1/object/public/memories/[path]
+      const paths = memory.image_urls.map((url: string) => {
+        const parts = url.split('/storage/v1/object/public/memories/');
+        return parts.length > 1 ? parts[1] : null;
+      }).filter(Boolean);
+
+      if (paths.length > 0) {
+        const { error: storageError } = await supabase.storage
+          .from('memories')
+          .remove(paths);
+
+        if (storageError) {
+          console.error('Error deleting storage files:', storageError);
+          // We continue anyway to delete the DB record, or should we stop?
+          // Usually better to delete DB record even if storage cleanup fails partially
+        }
+      }
+    } catch (err) {
+      console.error('Unexpected error during storage cleanup:', err);
+    }
+  }
+
+  // 3. Delete the database record
+  const { error } = await supabase
+    .from('memories')
+    .delete()
+    .eq('id', memoryId)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/dashboard', 'layout')
+  return { success: true }
+}
+
 export async function updateProfile(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

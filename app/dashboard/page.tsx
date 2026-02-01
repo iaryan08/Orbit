@@ -84,10 +84,13 @@ export default async function DashboardPage() {
       const memories = memoriesRes.data || []
 
       // Filter for On This Day (Memories & Milestones)
+      // Filter for On This Day (Memories & Milestones)
       const isToday = (dateStr: string) => {
         if (!dateStr) return false
-        const d = new Date(dateStr)
-        return (d.getMonth() + 1) === month && d.getDate() === day
+        // Handle YYYY-MM-DD string directly to avoid timezone issues with Date() parsing
+        const [y, m, d] = dateStr.split('T')[0].split('-').map(Number)
+        // Match Month and Day (m is 1-indexed from split)
+        return m === month && d === day
       }
 
       if (memories) {
@@ -106,6 +109,7 @@ export default async function DashboardPage() {
   const quickActions = [
     { href: '/dashboard/letters', icon: PenLine, label: 'Write Letter', color: 'text-pink-500' },
     { href: '/dashboard/memories', icon: ImageIcon, label: 'Add Memory', color: 'text-amber-500' },
+    { href: '/dashboard/intimacy', icon: Heart, label: 'Intimacy', color: 'text-rose-500' },
     { href: '/dashboard/games', icon: Gamepad2, label: 'Play Game', color: 'text-emerald-500' },
   ]
 
@@ -169,18 +173,23 @@ export default async function DashboardPage() {
               <div className="flex flex-col">
                 <div className="flex items-end gap-1">
                   <span className="text-6xl md:text-8xl font-bold leading-none text-rose-50 tracking-tighter">
-                    {couple?.paired_at
-                      ? Math.floor(
-                        (new Date().getTime() - new Date(couple.paired_at).getTime()) /
+                    {(() => {
+                      const startDate = couple?.anniversary_date || couple?.paired_at;
+                      if (!startDate) return 0;
+                      return Math.floor(
+                        (new Date().getTime() - new Date(startDate).getTime()) /
                         (1000 * 60 * 60 * 24)
-                      )
-                      : 0}
+                      );
+                    })()}
                   </span>
                   <span className="text-xl md:text-2xl text-rose-100/50 pb-1 md:pb-2 font-serif italic">Days</span>
                 </div>
                 <p className="text-white/60 flex items-center gap-2 uppercase tracking-[0.3em] text-[10px] font-bold pt-2">
                   <Calendar className="w-3 h-3 text-amber-400/60" />
-                  Since {couple?.paired_at ? new Date(couple.paired_at).toLocaleDateString() : 'Today'}
+                  Since {(() => {
+                    const startDate = couple?.anniversary_date || couple?.paired_at;
+                    return startDate ? new Date(startDate).toLocaleDateString() : 'Today';
+                  })()}
                 </p>
               </div>
             </div>

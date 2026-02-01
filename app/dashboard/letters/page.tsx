@@ -15,7 +15,9 @@ import {
 } from "@/components/ui/dialog";
 import { Heart, Plus, Calendar, Lock, Sparkles, Send, Mail, MailOpen } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { markAsViewed, refreshDashboard } from "@/lib/actions/auth";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Edit2 } from "lucide-react";
@@ -33,6 +35,7 @@ interface LoveLetter {
 }
 
 export default function LettersPage() {
+  const router = useRouter();
   const [letters, setLetters] = useState<LoveLetter[]>([]);
   const [loading, setLoading] = useState(true);
   const [isWriting, setIsWriting] = useState(false);
@@ -49,6 +52,7 @@ export default function LettersPage() {
 
   useEffect(() => {
     fetchLetters();
+    markAsViewed('letters');
 
     // Set up Realtime listener
     const setupRealtime = async () => {
@@ -227,6 +231,8 @@ export default function LettersPage() {
       setEditingLetter(null);
       setIsWriting(false);
       fetchLetters();
+      router.refresh();
+      await refreshDashboard();
     } catch (error) {
       console.error("Error sending letter:", error);
       toast({

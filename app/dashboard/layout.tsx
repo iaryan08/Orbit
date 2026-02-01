@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { RealtimeObserver } from '@/components/realtime-observer'
+import { fetchUnreadCounts } from '@/lib/actions/auth'
 
 export default async function DashboardLayout({
   children,
@@ -40,9 +41,10 @@ export default async function DashboardLayout({
     if (couple) {
       const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
 
-      const [partnerRes, daysRes] = await Promise.all([
+      const [partnerRes, daysRes, unreadCounts] = await Promise.all([
         partnerId ? supabase.from('profiles').select('*').eq('id', partnerId).single() : Promise.resolve({ data: null }),
-        Promise.resolve(couple.paired_at)
+        Promise.resolve(couple.paired_at),
+        fetchUnreadCounts()
       ]);
 
       partnerProfile = partnerRes.data;
@@ -67,6 +69,7 @@ export default async function DashboardLayout({
         userAvatar={profile?.avatar_url}
         partnerName={partnerProfile?.display_name}
         daysTogetherCount={daysTogetherCount}
+        unreadCounts={couple ? await fetchUnreadCounts() : undefined}
       />
       <main className="container mx-auto px-4 py-6 pt-32">
         {children}

@@ -15,9 +15,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Camera, Plus, Calendar, MapPin, Heart, Upload, X, ImageIcon } from "lucide-react";
+import { Camera, Plus, Calendar, MapPin, Heart, Upload, X, ImageIcon, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { markAsViewed, refreshDashboard, deleteMemory } from "@/lib/actions/auth";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -36,6 +38,7 @@ interface Memory {
 }
 
 export default function MemoriesPage() {
+  const router = useRouter();
   const [memories, setMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
@@ -43,6 +46,7 @@ export default function MemoriesPage() {
   const [uploading, setUploading] = useState(false);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [newMemory, setNewMemory] = useState({
@@ -57,6 +61,7 @@ export default function MemoriesPage() {
 
   useEffect(() => {
     fetchMemories();
+    markAsViewed('memories');
 
     // Set up Realtime listener
     const setupRealtime = async () => {
@@ -207,6 +212,10 @@ export default function MemoriesPage() {
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const removeExistingImage = (index: number) => {
+    setExistingImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const uploadImages = async (coupleId: string): Promise<string[]> => {
     const urls: string[] = [];
 
@@ -269,7 +278,7 @@ export default function MemoriesPage() {
           .update({
             title: newMemory.title,
             description: newMemory.description,
-            image_urls: [...editingMemory.image_urls, ...newImageUrls],
+            image_urls: [...existingImages, ...newImageUrls],
             location: newMemory.location || null,
             memory_date: newMemory.memory_date,
           })
@@ -310,9 +319,12 @@ export default function MemoriesPage() {
       });
       setSelectedFiles([]);
       setPreviewUrls([]);
+      setExistingImages([]);
       setIsAdding(false);
       setEditingMemory(null);
       fetchMemories();
+      router.refresh();
+      await refreshDashboard();
     } catch (error) {
       console.error("Error saving memory:", error);
       toast({
@@ -346,6 +358,7 @@ export default function MemoriesPage() {
             });
             setPreviewUrls([]);
             setSelectedFiles([]);
+            setExistingImages([]);
             setIsAdding(true);
           }}>
             <Plus className="h-4 w-4" />
@@ -372,34 +385,52 @@ export default function MemoriesPage() {
               <div>
                 <Label>Photos</Label>
                 <div className="mt-2 space-y-2">
-                  {previewUrls.length > 0 && (
-                    <div className="grid grid-cols-3 gap-2">
-                      {previewUrls.map((url, index) => (
-                        <div key={index} className="relative aspect-square">
-                          <Image
-                            src={url || "/placeholder.svg"}
-                            alt={`Preview ${index + 1}`}
-                            fill
-                            className="object-cover rounded-lg"
-                          />
-                          <button
-                            onClick={() => removeFile(index)}
-                            className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {previewUrls.length < 5 && (
+                  <div className="grid grid-cols-3 gap-2">
+                    {/* Existing Images */}
+                    {existingImages.map((url, index) => (
+                      <div key={`existing-${index}`} className="relative aspect-square">
+                        <Image
+                          src={url || "/placeholder.svg"}
+                          alt={`Existing ${index + 1}`}
+                          fill
+                          className="object-cover rounded-lg"
+                        />
+                        <button
+                          onClick={() => removeExistingImage(index)}
+                          className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 shadow-md hover:bg-red-600 transition-colors"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* New Previews */}
+                    {previewUrls.map((url, index) => (
+                      <div key={`new-${index}`} className="relative aspect-square">
+                        <Image
+                          src={url || "/placeholder.svg"}
+                          alt={`Preview ${index + 1}`}
+                          fill
+                          className="object-cover rounded-lg"
+                        />
+                        <button
+                          onClick={() => removeFile(index)}
+                          className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {(existingImages.length + previewUrls.length) < 5 && (
                     <Button
                       variant="outline"
                       className="w-full h-20 border-dashed bg-white/5 border-white/20 hover:bg-white/10 hover:border-white/40 transition-all text-white/70 hover:text-white"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <Upload className="h-5 w-5 mr-2" />
-                      Upload Photos ({previewUrls.length}/5)
+                      Upload Photos ({existingImages.length + previewUrls.length}/5)
                     </Button>
                   )}
                   <input
@@ -451,9 +482,32 @@ export default function MemoriesPage() {
                 </div>
               </div>
 
-              <Button onClick={saveMemory} className="w-full" variant="rosy" disabled={uploading}>
-                {uploading ? "Saving..." : (editingMemory ? "Save Changes" : "Save Memory")}
-              </Button>
+              <div className="flex gap-3">
+                {editingMemory && (
+                  <Button
+                    variant="destructive"
+                    className="flex-1"
+                    onClick={async () => {
+                      if (!confirm("Are you sure you want to delete this memory?")) return;
+                      setUploading(true);
+                      await deleteMemory(editingMemory.id);
+                      setUploading(false);
+                      setIsAdding(false);
+                      setEditingMemory(null);
+                      fetchMemories();
+                      router.refresh();
+                      await refreshDashboard();
+                      toast({ title: "Memory deleted" });
+                    }}
+                    disabled={uploading}
+                  >
+                    {uploading ? "Deleting..." : "Delete"}
+                  </Button>
+                )}
+                <Button onClick={saveMemory} className="flex-1" variant="rosy" disabled={uploading}>
+                  {uploading ? "Saving..." : (editingMemory ? "Save Changes" : "Save Memory")}
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
@@ -503,26 +557,45 @@ export default function MemoriesPage() {
                     </div>
                   )}
                   {memory.user_id === (supabase as any).auth?.user?.id && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="absolute top-2 right-2 h-8 w-8 bg-black/40 text-white/70 hover:text-white hover:bg-black/60 rounded-full opacity-0 group-hover/card:opacity-100 transition-opacity"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditingMemory(memory);
-                        setNewMemory({
-                          title: memory.title,
-                          description: memory.description || "",
-                          location: memory.location || "",
-                          memory_date: memory.memory_date,
-                        });
-                        setPreviewUrls([]);
-                        setSelectedFiles([]);
-                        setIsAdding(true);
-                      }}
-                    >
-                      <Edit2 className="h-3 w-3" />
-                    </Button>
+                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 bg-black/40 text-white/70 hover:text-white hover:bg-black/60 rounded-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingMemory(memory);
+                          setNewMemory({
+                            title: memory.title,
+                            description: memory.description || "",
+                            location: memory.location || "",
+                            memory_date: memory.memory_date,
+                          });
+                          setExistingImages(memory.image_urls || []);
+                          setPreviewUrls([]);
+                          setSelectedFiles([]);
+                          setIsAdding(true);
+                        }}
+                      >
+                        <Edit2 className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 bg-black/40 text-red-400/70 hover:text-red-400 hover:bg-black/60 rounded-full"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (!confirm("Are you sure you want to delete this memory?")) return;
+                          await deleteMemory(memory.id);
+                          fetchMemories();
+                          router.refresh();
+                          await refreshDashboard();
+                          toast({ title: "Memory deleted" });
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   )}
                 </div>
               ) : (
@@ -563,7 +636,56 @@ export default function MemoriesPage() {
           {selectedMemory && (
             <>
               <DialogHeader>
-                <DialogTitle className="font-serif">{selectedMemory.title}</DialogTitle>
+                <DialogTitle className="font-serif flex items-center justify-between">
+                  <span>{selectedMemory.title}</span>
+                  {selectedMemory.user_id === (supabase as any).auth?.user?.id && (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-white/50 hover:text-white"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Close detail and open edit
+                          const memoryToEdit = selectedMemory;
+                          setSelectedMemory(null);
+                          setEditingMemory(memoryToEdit);
+                          setNewMemory({
+                            title: memoryToEdit.title,
+                            description: memoryToEdit.description || "",
+                            location: memoryToEdit.location || "",
+                            memory_date: memoryToEdit.memory_date,
+                          });
+                          setExistingImages(memoryToEdit.image_urls || []);
+                          setPreviewUrls([]);
+                          setSelectedFiles([]);
+                          setIsAdding(true);
+                        }}
+                      >
+                        <Edit2 className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-400/50 hover:text-red-400 hover:bg-red-500/10"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (!confirm("Are you sure you want to delete this memory?")) return;
+                          await deleteMemory(selectedMemory.id);
+                          setSelectedMemory(null);
+                          fetchMemories();
+                          router.refresh();
+                          await refreshDashboard();
+                          toast({ title: "Memory deleted" });
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </Button>
+                    </div>
+                  )}
+                </DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 {selectedMemory.image_urls && selectedMemory.image_urls.length > 0 && (

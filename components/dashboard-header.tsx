@@ -38,13 +38,18 @@ interface DashboardHeaderProps {
   userAvatar?: string | null
   partnerName?: string | null
   daysTogetherCount?: number
+  unreadCounts?: {
+    memories: number
+    letters: number
+  }
 }
 
 export function DashboardHeader({
   userName,
   userAvatar,
   partnerName,
-  daysTogetherCount
+  daysTogetherCount,
+  unreadCounts = { memories: 0, letters: 0 }
 }: DashboardHeaderProps) {
   const pathname = usePathname()
   const [scrolled, setScrolled] = useState(false)
@@ -165,6 +170,14 @@ export function DashboardHeader({
                           "w-5 h-5 relative z-10 transition-transform group-hover:scale-110",
                           isActive && "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]"
                         )} />
+
+                        {/* Red Dot Notification */}
+                        {item.label === 'Memories' && unreadCounts.memories > 0 && (
+                          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />
+                        )}
+                        {item.label === 'Letters' && unreadCounts.letters > 0 && (
+                          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />
+                        )}
                       </div>
                     </Link>
                   </TooltipTrigger>
@@ -186,21 +199,6 @@ export function DashboardHeader({
               "w-px h-6 mx-2" // Mobile default
             )} />
 
-            {/* Settings / Notifications placeholder */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full text-white/40 hover:text-white hover:bg-white/5 w-10 h-10 group relative">
-                  <Bell className="w-5 h-5 relative z-10 transition-transform group-hover:scale-110" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent
-                side={scrolled ? "right" : "bottom"}
-                sideOffset={15}
-                className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl"
-              >
-                <p>Notifications</p>
-              </TooltipContent>
-            </Tooltip>
 
           </TooltipProvider>
         </nav>
