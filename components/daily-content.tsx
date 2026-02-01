@@ -65,7 +65,7 @@ export function DailyContent() {
 
   return (
     <Card className="border-none bg-transparent shadow-none" glassy={false}>
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-4 md:pb-2 p-0">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg font-serif text-white">
             <Sparkles className="h-5 w-5 text-cyan-400" />
@@ -84,7 +84,7 @@ export function DailyContent() {
             )} />
           </Button>
         </div>
-        <div className="flex gap-1 mt-2 p-1 bg-white/5 rounded-xl relative">
+        <div className="flex gap-1 mt-4 md:mt-2 p-1 bg-white/5 rounded-xl relative border border-white/5 overflow-x-auto">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -94,7 +94,7 @@ export function DailyContent() {
                 size="sm"
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex-1 text-[10px] uppercase tracking-wider font-bold transition-all duration-300 relative z-10",
+                  "flex-1 text-[9px] md:text-[10px] uppercase tracking-wider font-bold transition-all duration-300 relative z-10 h-9 md:h-10 px-2 md:px-4",
                   isActive ? "text-white" : "text-white/40 hover:text-white"
                 )}
               >
@@ -117,7 +117,7 @@ export function DailyContent() {
           })}
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-0 pt-6">
         <div className="min-h-[100px] flex items-center justify-center">
           {loading ? (
             <div className="flex items-center gap-2 text-rose-100/60">
@@ -125,7 +125,7 @@ export function DailyContent() {
               <span className="text-[10px] uppercase tracking-widest font-bold">Getting inspiration...</span>
             </div>
           ) : (
-            <p className="text-center text-rose-50 italic leading-relaxed text-sm md:text-base selection:bg-rose-500/30">
+            <p className="text-center text-rose-50 italic leading-relaxed text-sm md:text-base selection:bg-rose-500/30 px-4">
               {activeTab === "quote" && `"${content.quote}"`}
               {activeTab === "challenge" && content.challenge}
               {activeTab === "tip" && content.tip}

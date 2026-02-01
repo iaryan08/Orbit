@@ -97,18 +97,30 @@ export function DashboardHeader({
           onMouseLeave={() => setHoveredPath(null)}
           className={cn(
             "glass-card flex items-center gap-1 p-1.5 rounded-full border border-white/10 shadow-2xl ring-1 ring-white/5",
-            "backdrop-blur-3xl bg-black/60", // Increased blur and darkness for mobile
+            "backdrop-blur-[12px] md:backdrop-blur-3xl bg-black/60", // 12px blur for mobile per request
             scrolled ? "md:flex-col md:rounded-[40px] md:py-4 md:px-2" : "md:flex-row md:rounded-full md:p-1.5"
           )}
         >
           <TooltipProvider delayDuration={0}>
             {/* Search/Dashboard aesthetic from reference */}
-            <div className={cn(
-              "p-3 text-white/40 hover:text-white/60 cursor-not-allowed",
-              scrolled && "md:mb-2"
-            )}>
-              <Settings className="w-5 h-5 transition-colors" />
-            </div>
+            {/* Search/Dashboard aesthetic from reference */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link href="/dashboard/settings" className={cn(
+                  "p-3 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-colors",
+                  scrolled && "md:mb-2"
+                )}>
+                  <Settings className="w-5 h-5 transition-colors" />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent
+                side={scrolled ? "right" : "bottom"}
+                sideOffset={15}
+                className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl"
+              >
+                <p>Settings</p>
+              </TooltipContent>
+            </Tooltip>
 
             {navItems.map((item) => {
               const isActive = pathname === item.href
@@ -226,12 +238,6 @@ export function DashboardHeader({
               </div>
             </div>
             <DropdownMenuSeparator className="bg-white/10" />
-            <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-white rounded-xl cursor-pointer">
-              <Link href="/dashboard/profile">
-                <User className="mr-2 h-4 w-4" />
-                Profile
-              </Link>
-            </DropdownMenuItem>
             <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-white rounded-xl cursor-pointer">
               <Link href="/dashboard/settings">
                 <Settings className="mr-2 h-4 w-4" />

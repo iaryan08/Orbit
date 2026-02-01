@@ -17,6 +17,8 @@ import { Heart, Plus, Calendar, Lock, Sparkles, Send, Mail, MailOpen } from "luc
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Edit2 } from "lucide-react";
 
 interface LoveLetter {
   id: string;
@@ -41,6 +43,7 @@ export default function LettersPage() {
     unlock_date: "",
   });
   const [generating, setGenerating] = useState(false);
+  const [editingLetter, setEditingLetter] = useState<LoveLetter | null>(null);
   const { toast } = useToast();
   const supabase = createClient();
 
@@ -104,12 +107,12 @@ export default function LettersPage() {
         return;
       }
 
-      // Get letters for this couple - fetch raw data first
+      // Update the query to include letters where sender_id is current user OR (unlock_date is null or passed)
       const { data: lettersData, error: lettersError } = await supabase
         .from("love_letters")
         .select('*')
         .eq("couple_id", profile.couple_id)
-        .or(`unlock_date.is.null,unlock_date.lte.${new Date().toISOString()}`)
+        .or(`sender_id.eq.${user.id},unlock_date.is.null,unlock_date.lte.${new Date().toISOString()}`)
         .order("created_at", { ascending: false });
 
       if (lettersError) throw lettersError;
@@ -180,27 +183,48 @@ export default function LettersPage() {
 
       const partnerId = couple?.user1_id === user.id ? couple?.user2_id : couple?.user1_id;
 
-      const { error } = await supabase.from("love_letters").insert({
-        couple_id: profile.couple_id,
-        sender_id: user.id,
-        receiver_id: partnerId,
-        title: newLetter.title,
-        content: newLetter.content,
-        unlock_date: newLetter.unlock_date || null,
-        unlock_type: newLetter.unlock_date ? 'custom' : 'immediate'
-      });
+      if (editingLetter) {
+        const { error } = await supabase
+          .from("love_letters")
+          .update({
+            title: newLetter.title,
+            content: newLetter.content,
+            unlock_date: newLetter.unlock_date || null,
+            unlock_type: newLetter.unlock_date ? 'custom' : 'immediate'
+          })
+          .eq("id", editingLetter.id);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "Letter sent!",
-        description: newLetter.unlock_date
-          ? "Your letter will be delivered on the scheduled date."
-          : "Your love letter has been delivered.",
-        variant: "success",
-      });
+        toast({
+          title: "Letter updated!",
+          description: "Your changes have been saved.",
+          variant: "success",
+        });
+      } else {
+        const { error } = await supabase.from("love_letters").insert({
+          couple_id: profile.couple_id,
+          sender_id: user.id,
+          receiver_id: partnerId,
+          title: newLetter.title,
+          content: newLetter.content,
+          unlock_date: newLetter.unlock_date || null,
+          unlock_type: newLetter.unlock_date ? 'custom' : 'immediate'
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Letter sent!",
+          description: newLetter.unlock_date
+            ? "Your letter will be delivered on the scheduled date."
+            : "Your love letter has been delivered.",
+          variant: "success",
+        });
+      }
 
       setNewLetter({ title: "", content: "", unlock_date: "" });
+      setEditingLetter(null);
       setIsWriting(false);
       fetchLetters();
     } catch (error) {
@@ -262,17 +286,19 @@ export default function LettersPage() {
           <p className="text-white/60 mt-1 uppercase tracking-widest text-[10px] font-bold">Write and cherish heartfelt messages</p>
         </div>
         <Dialog open={isWriting} onOpenChange={setIsWriting}>
-          <DialogTrigger asChild>
-            <Button className="gap-2" variant="rosy">
-              <Plus className="h-4 w-4" />
-              Write Letter
-            </Button>
-          </DialogTrigger>
+          <Button className="gap-2" variant="rosy" onClick={() => {
+            setEditingLetter(null);
+            setNewLetter({ title: "", content: "", unlock_date: "" });
+            setIsWriting(true);
+          }}>
+            <Plus className="h-4 w-4" />
+            Write Letter
+          </Button>
           <DialogContent className="sm:max-w-[500px] border border-white/10 bg-[#1a0b10]/95 backdrop-blur-xl shadow-[0_0_50px_rgba(244,63,94,0.15)] text-white">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-3 font-serif text-2xl text-white text-glow-rose">
                 <Heart className="h-6 w-6 text-rose-500 fill-rose-500 animate-pulse" />
-                Write a Love Letter
+                {editingLetter ? "Edit Love Letter" : "Write a Love Letter"}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-6 mt-6">
@@ -325,7 +351,7 @@ export default function LettersPage() {
               </div>
               <Button onClick={sendLetter} className="w-full gap-2 h-12 text-lg font-bold shadow-lg shadow-rose-500/20" variant="rosy" disabled={!newLetter.content}>
                 <Send className="h-5 w-5" />
-                Send with Love
+                {editingLetter ? "Save Changes" : "Send with Love"}
               </Button>
             </div>
           </DialogContent>
@@ -365,11 +391,32 @@ export default function LettersPage() {
                   <CardTitle className="text-base font-bold text-white tracking-tight line-clamp-1">
                     {letter.title || "Untitled Letter"}
                   </CardTitle>
-                  {!letter.is_read ? (
-                    <Mail className="h-4 w-4 text-emerald-400 shrink-0 filter drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]" />
-                  ) : (
-                    <MailOpen className="h-4 w-4 text-white/40 shrink-0" />
-                  )}
+                  <div className="flex items-center gap-2">
+                    {letter.sender_id === (supabase as any).auth?.user?.id && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-white/20 hover:text-rose-300 hover:bg-rose-500/10 rounded-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingLetter(letter);
+                          setNewLetter({
+                            title: letter.title,
+                            content: letter.content,
+                            unlock_date: letter.unlock_date ? letter.unlock_date.split('T')[0] : "",
+                          });
+                          setIsWriting(true);
+                        }}
+                      >
+                        <Edit2 className="h-3 w-3" />
+                      </Button>
+                    )}
+                    {!letter.is_read ? (
+                      <Mail className="h-4 w-4 text-emerald-400 shrink-0 filter drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]" />
+                    ) : (
+                      <MailOpen className="h-4 w-4 text-white/40 shrink-0" />
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -388,24 +435,56 @@ export default function LettersPage() {
 
       {/* Letter Detail Modal */}
       <Dialog open={!!selectedLetter} onOpenChange={() => setSelectedLetter(null)}>
-        <DialogContent className="sm:max-w-[500px] glass-dialog-vibrant border-none">
+        <DialogContent className="sm:max-w-[600px] glass-dialog-vibrant border-none p-0 flex flex-col max-h-[85vh]">
           {selectedLetter && (
             <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2 font-serif">
-                  <Heart className="h-5 w-5 text-primary" />
+              <DialogHeader className="p-6 pb-0">
+                <DialogTitle className="flex items-center gap-3 font-serif text-2xl text-white text-glow-rose">
+                  <Heart className="h-6 w-6 text-rose-500 fill-rose-500" />
                   {selectedLetter.title || "Love Letter"}
                 </DialogTitle>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">From: <span className="text-rose-200/60">{selectedLetter.sender_name}</span></span>
+                  <span className="text-white/20">•</span>
+                  <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">{format(new Date(selectedLetter.created_at), "MMMM d, yyyy")}</span>
+                </div>
               </DialogHeader>
-              <div className="mt-4 space-y-4">
-                <div className="prose prose-sm max-w-none">
-                  <p className="whitespace-pre-wrap leading-relaxed text-foreground/90">
+
+              <ScrollArea className="flex-1 p-6 overflow-y-auto">
+                <div className="prose prose-pink max-w-none">
+                  <p className="whitespace-pre-wrap leading-relaxed text-rose-50/90 font-serif italic text-lg">
                     {selectedLetter.content}
                   </p>
                 </div>
-                <div className="flex items-center justify-between text-sm text-muted-foreground border-t pt-4">
-                  <span>With love, {selectedLetter.sender_name}</span>
-                  <span>{format(new Date(selectedLetter.created_at), "MMMM d, yyyy")}</span>
+              </ScrollArea>
+
+              <div className="p-6 bg-black/20 border-t border-white/5 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {selectedLetter.sender_id === (supabase as any).auth?.user?.id && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-rose-300 hover:text-rose-200 hover:bg-rose-500/10 rounded-full gap-2"
+                      onClick={() => {
+                        const letter = selectedLetter;
+                        setSelectedLetter(null);
+                        setEditingLetter(letter);
+                        setNewLetter({
+                          title: letter.title,
+                          content: letter.content,
+                          unlock_date: letter.unlock_date ? letter.unlock_date.split('T')[0] : "",
+                        });
+                        setIsWriting(true);
+                      }}
+                    >
+                      <Edit2 className="h-3 w-3" />
+                      Edit Letter
+                    </Button>
+                  )}
+                  <div className="flex items-center gap-2">
+                    <Heart className="h-4 w-4 text-rose-500/40" fill="currentColor" />
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-white/30 italic">With all my love</span>
+                  </div>
                 </div>
               </div>
             </>

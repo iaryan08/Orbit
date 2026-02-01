@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { Edit2 } from "lucide-react";
 
 
 interface Memory {
@@ -31,6 +32,7 @@ interface Memory {
   location: string | null;
   memory_date: string;
   created_at: string;
+  user_id: string;
 }
 
 export default function MemoriesPage() {
@@ -49,6 +51,7 @@ export default function MemoriesPage() {
     location: "",
     memory_date: new Date().toISOString().split("T")[0],
   });
+  const [editingMemory, setEditingMemory] = useState<Memory | null>(null);
   const { toast } = useToast();
   const supabase = createClient();
 
@@ -94,7 +97,6 @@ export default function MemoriesPage() {
       cleanup.then(fn => fn && fn());
     };
   }, []);
-
   const fetchMemories = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -128,7 +130,58 @@ export default function MemoriesPage() {
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = async (file: File): Promise<File> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new window.Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                resolve(file);
+              }
+            },
+            'image/jpeg',
+            0.7 // quality
+          );
+        };
+      };
+    });
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length + selectedFiles.length > 5) {
       toast({
@@ -139,9 +192,13 @@ export default function MemoriesPage() {
       return;
     }
 
-    const newPreviews = files.map((file) => URL.createObjectURL(file));
+    setUploading(true);
+    const compressedFiles = await Promise.all(files.map(file => compressImage(file)));
+    setUploading(false);
+
+    const newPreviews = compressedFiles.map((file) => URL.createObjectURL(file));
     setPreviewUrls((prev) => [...prev, ...newPreviews]);
-    setSelectedFiles((prev) => [...prev, ...files]);
+    setSelectedFiles((prev) => [...prev, ...compressedFiles]);
   };
 
   const removeFile = (index: number) => {
@@ -203,30 +260,50 @@ export default function MemoriesPage() {
         return;
       }
 
-      // Upload images to Firebase
-      const imageUrls = selectedFiles.length > 0 ? await uploadImages(profile.couple_id) : [];
+      // Upload images if any new ones selected
+      const newImageUrls = selectedFiles.length > 0 ? await uploadImages(profile.couple_id) : [];
 
-      const { error } = await supabase.from("memories").insert({
-        couple_id: profile.couple_id,
-        user_id: user.id,
-        title: newMemory.title,
-        description: newMemory.description,
-        image_urls: imageUrls,
-        location: newMemory.location || null,
-        memory_date: newMemory.memory_date,
-      });
+      if (editingMemory) {
+        const { error } = await supabase
+          .from("memories")
+          .update({
+            title: newMemory.title,
+            description: newMemory.description,
+            image_urls: [...editingMemory.image_urls, ...newImageUrls],
+            location: newMemory.location || null,
+            memory_date: newMemory.memory_date,
+          })
+          .eq("id", editingMemory.id);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "Memory saved!",
-        description: "Your precious moment has been captured.",
-      });
+        toast({
+          title: "Memory updated!",
+          description: "Your changes have been saved.",
+        });
+      } else {
+        const { error } = await supabase.from("memories").insert({
+          couple_id: profile.couple_id,
+          user_id: user.id,
+          title: newMemory.title,
+          description: newMemory.description,
+          image_urls: newImageUrls,
+          location: newMemory.location || null,
+          memory_date: newMemory.memory_date,
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Memory saved!",
+          description: "Your precious moment has been captured.",
+        });
+      }
 
       // Cleanup
       previewUrls.forEach((url) => URL.revokeObjectURL(url));
       setNewMemory({
-        title: "Our Special Day",
+        title: "",
         description: "",
         location: "",
         memory_date: new Date().toISOString().split("T")[0],
@@ -234,6 +311,7 @@ export default function MemoriesPage() {
       setSelectedFiles([]);
       setPreviewUrls([]);
       setIsAdding(false);
+      setEditingMemory(null);
       fetchMemories();
     } catch (error) {
       console.error("Error saving memory:", error);
@@ -255,20 +333,29 @@ export default function MemoriesPage() {
             <Camera className="h-7 w-7 text-amber-200" />
             Our Memories
           </h1>
-          <p className="text-white/60 mt-1 uppercase tracking-widest text-[10px] font-bold">Capture and cherish your special moments</p>
+          <p className="text-rose-100/70 mt-1 uppercase tracking-widest text-[10px] font-bold">Capture and cherish your special moments</p>
         </div>
         <Dialog open={isAdding} onOpenChange={setIsAdding}>
-          <DialogTrigger asChild>
-            <Button className="gap-2" variant="rosy">
-              <Plus className="h-4 w-4" />
-              Add Memory
-            </Button>
-          </DialogTrigger>
+          <Button className="gap-2" variant="rosy" onClick={() => {
+            setEditingMemory(null);
+            setNewMemory({
+              title: "",
+              description: "",
+              location: "",
+              memory_date: new Date().toISOString().split("T")[0],
+            });
+            setPreviewUrls([]);
+            setSelectedFiles([]);
+            setIsAdding(true);
+          }}>
+            <Plus className="h-4 w-4" />
+            Add Memory
+          </Button>
           <DialogContent className="sm:max-w-[500px] glass-card border-primary/10">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 font-serif">
                 <Heart className="h-5 w-5 text-primary" />
-                Capture a Memory
+                {editingMemory ? "Edit Memory" : "Capture a Memory"}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 mt-4">
@@ -365,7 +452,7 @@ export default function MemoriesPage() {
               </div>
 
               <Button onClick={saveMemory} className="w-full" variant="rosy" disabled={uploading}>
-                {uploading ? "Saving..." : "Save Memory"}
+                {uploading ? "Saving..." : (editingMemory ? "Save Changes" : "Save Memory")}
               </Button>
             </div>
           </DialogContent>
@@ -391,10 +478,10 @@ export default function MemoriesPage() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {memories.map((memory) => (
+          {memories.map((memory, index) => (
             <Card
               key={memory.id}
-              className="cursor-pointer overflow-hidden transition-all hover:shadow-lg hover:border-primary/40"
+              className="cursor-pointer overflow-hidden transition-all hover:shadow-lg hover:border-primary/40 group/card"
               onClick={() => {
                 setSelectedMemory(memory);
                 setCurrentImageIndex(0);
@@ -407,11 +494,35 @@ export default function MemoriesPage() {
                     alt={memory.title}
                     fill
                     className="object-cover"
+                    priority={index < 4}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                   {memory.image_urls.length > 1 && (
                     <div className="absolute bottom-2 right-2 bg-background/80 text-foreground text-xs px-2 py-1 rounded-full">
                       +{memory.image_urls.length - 1} more
                     </div>
+                  )}
+                  {memory.user_id === (supabase as any).auth?.user?.id && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-2 right-2 h-8 w-8 bg-black/40 text-white/70 hover:text-white hover:bg-black/60 rounded-full opacity-0 group-hover/card:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingMemory(memory);
+                        setNewMemory({
+                          title: memory.title,
+                          description: memory.description || "",
+                          location: memory.location || "",
+                          memory_date: memory.memory_date,
+                        });
+                        setPreviewUrls([]);
+                        setSelectedFiles([]);
+                        setIsAdding(true);
+                      }}
+                    >
+                      <Edit2 className="h-3 w-3" />
+                    </Button>
                   )}
                 </div>
               ) : (
@@ -420,15 +531,15 @@ export default function MemoriesPage() {
                 </div>
               )}
               <CardHeader className="pb-2 pt-3">
-                <CardTitle className="text-base font-bold text-white tracking-tight line-clamp-1">{memory.title}</CardTitle>
+                <CardTitle className="text-base font-serif font-bold text-white tracking-tight line-clamp-1 pb-1">{memory.title}</CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 {memory.description && (
-                  <p className="text-sm text-white/70 line-clamp-2 mb-3 leading-relaxed">
+                  <p className="text-sm text-rose-50/70 line-clamp-2 mb-3 leading-relaxed">
                     {memory.description}
                   </p>
                 )}
-                <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest font-bold text-white/40 pt-3 border-t border-white/5">
+                <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest font-bold text-rose-200/40 pt-3 border-t border-white/5 pb-1">
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
                     {format(new Date(memory.memory_date), "MMM d, yyyy")}
@@ -533,9 +644,9 @@ export default function MemoriesPage() {
                   </div>
                 )}
                 {selectedMemory.description && (
-                  <p className="text-foreground/90 leading-relaxed">{selectedMemory.description}</p>
+                  <p className="text-rose-50/90 leading-relaxed font-serif italic text-lg pb-1">{selectedMemory.description}</p>
                 )}
-                <div className="flex items-center gap-4 text-sm text-muted-foreground border-t pt-4">
+                <div className="flex items-center gap-4 text-sm text-rose-100/60 border-t border-white/10 pt-4 pb-1">
                   <span className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
                     {format(new Date(selectedMemory.memory_date), "MMMM d, yyyy")}
@@ -543,7 +654,7 @@ export default function MemoriesPage() {
                   {selectedMemory.location && (
                     <span className="flex items-center gap-1">
                       <MapPin className="h-4 w-4" />
-                      {selectedMemory.location}
+                      <span className="text-amber-200/80">{selectedMemory.location}</span>
                     </span>
                   )}
                 </div>

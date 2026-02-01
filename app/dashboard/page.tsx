@@ -1,8 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { MoodCheckIn } from '@/components/mood-check-in'
-import { PartnerMood } from '@/components/partner-mood'
-import { CouplePairing } from '@/components/couple-pairing'
-import { DailyContent } from '@/components/daily-content'
+import dynamic from 'next/dynamic'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Heart, PenLine, ImageIcon, Gamepad2, Calendar, Sparkles } from 'lucide-react'
@@ -10,7 +7,22 @@ import Link from 'next/link'
 import type { MoodType } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 import { ScrollReveal } from '@/components/scroll-reveal'
-import { OnThisDay } from '@/components/on-this-day'
+
+// Dynamic Imports with Loading Skeletons
+const MoodCheckIn = dynamic(() => import('@/components/mood-check-in').then(mod => mod.MoodCheckIn), {
+  ssr: true,
+  loading: () => <div className="h-64 rounded-3xl bg-white/5 animate-pulse" />
+})
+const PartnerMood = dynamic(() => import('@/components/partner-mood').then(mod => mod.PartnerMood), {
+  ssr: true,
+  loading: () => <div className="h-40 rounded-3xl bg-white/5 animate-pulse" />
+})
+const CouplePairing = dynamic(() => import('@/components/couple-pairing').then(mod => mod.CouplePairing), { ssr: true })
+const DailyContent = dynamic(() => import('@/components/daily-content').then(mod => mod.DailyContent), {
+  ssr: true,
+  loading: () => <div className="h-64 rounded-3xl bg-white/5 animate-pulse" />
+})
+const OnThisDay = dynamic(() => import('@/components/on-this-day').then(mod => mod.OnThisDay), { ssr: true })
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -18,98 +30,64 @@ export default async function DashboardPage() {
 
   if (!user) return null
 
-  // Get user profile
+  // 1. Initial Profile Fetch
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single()
 
-  // Get couple info separately if user has a couple_id
+  if (!profile) return null
+
+  // 2. Parallel fetching for couple-dependent data
   let couple = null
-  if (profile?.couple_id) {
+  let partnerProfile = null
+  let partnerTodayMoods: any[] = []
+  let memoriesCount = 0
+  let lettersCount = 0
+  let onThisDayMemories = []
+
+  if (profile.couple_id) {
+    // First get couple data
     const { data: coupleData } = await supabase
       .from('couples')
       .select('*')
       .eq('id', profile.couple_id)
       .single()
+
     couple = coupleData
+
+    if (couple) {
+      const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
+      const todayDate = new Date()
+      todayDate.setHours(0, 0, 0, 0)
+      const month = todayDate.getMonth() + 1
+      const day = todayDate.getDate()
+
+      // Fetch all dependent data in parallel
+      const [partnerRes, moodsRes, memCountRes, letCountRes, allMemRes] = await Promise.all([
+        partnerId ? supabase.from('profiles').select('*').eq('id', partnerId).single() : Promise.resolve({ data: null }),
+        partnerId ? supabase.from('moods').select('*, mood:emoji, note:mood_text').eq('user_id', partnerId).gte('created_at', todayDate.toISOString()).order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
+        supabase.from('memories').select('*', { count: 'exact', head: true }).eq('couple_id', profile.couple_id),
+        supabase.from('love_letters').select('*', { count: 'exact', head: true }).eq('couple_id', profile.couple_id),
+        supabase.from('memories').select('*').eq('couple_id', profile.couple_id)
+      ])
+
+      partnerProfile = partnerRes.data
+      partnerTodayMoods = moodsRes.data || []
+      memoriesCount = memCountRes.count || 0
+      lettersCount = letCountRes.count || 0
+
+      if (allMemRes.data) {
+        onThisDayMemories = allMemRes.data.filter(m => {
+          const d = new Date(m.memory_date)
+          return (d.getMonth() + 1) === month && d.getDate() === day
+        })
+      }
+    }
   }
 
   const hasPartner = !!couple?.user2_id
-
-  // Get partner info and mood
-  let partnerProfile = null
-  let partnerTodayMoods: any[] = []
-
-  if (hasPartner && couple) {
-    const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
-
-    if (partnerId) {
-      const { data: partner } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', partnerId)
-        .single()
-
-      partnerProfile = partner
-
-      // Get partner's moods today
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-
-      const { data: moods } = await supabase
-        .from('moods')
-        .select('*, mood:emoji, note:mood_text')
-        .eq('user_id', partnerId)
-        .gte('created_at', today.toISOString())
-        .order('created_at', { ascending: false })
-
-      partnerTodayMoods = moods || []
-    }
-  }
-
-  // Get counts for dashboard
-  let memoriesCount = 0
-  let lettersCount = 0
-
-  if (hasPartner && profile?.couple_id) {
-    const { count: mCount } = await supabase
-      .from('memories')
-      .select('*', { count: 'exact', head: true })
-      .eq('couple_id', profile.couple_id)
-
-    const { count: lCount } = await supabase
-      .from('love_letters')
-      .select('*', { count: 'exact', head: true })
-      .eq('couple_id', profile.couple_id)
-
-    memoriesCount = mCount || 0
-    lettersCount = lCount || 0
-  }
-
-  // Get "On This Day" memories
-  let onThisDayMemories = []
-  if (hasPartner && profile?.couple_id) {
-    const today = new Date()
-    const month = today.getMonth() + 1
-    const day = today.getDate()
-
-    // Note: Supsabase doesn't have a direct "month-day" extract in basic filter, 
-    // but we can fetch all and filter or use a raw query.
-    // Given the small number of memories usually, fetching all for the couple and filtering in JS is safe.
-    const { data: allMemories } = await supabase
-      .from('memories')
-      .select('*')
-      .eq('couple_id', profile.couple_id)
-
-    if (allMemories) {
-      onThisDayMemories = allMemories.filter(m => {
-        const d = new Date(m.memory_date)
-        return (d.getMonth() + 1) === month && d.getDate() === day
-      })
-    }
-  }
 
   // Quick actions for dashboard
   const quickActions = [
@@ -218,7 +196,7 @@ export default async function DashboardPage() {
         </ScrollReveal>
 
         {/* Daily Inspiration / Challenge */}
-        <ScrollReveal className="lg:col-span-2" delay={0.2}>
+        <ScrollReveal className="lg:col-span-2" delay={0.1}>
           <div className="glass-card p-8 flex flex-col justify-between relative overflow-hidden group h-full">
             <div className="absolute -top-24 -right-24 w-64 h-64 bg-amber-500/10 blur-[120px] rounded-full" />
             <DailyContent />
@@ -226,7 +204,7 @@ export default async function DashboardPage() {
         </ScrollReveal>
 
         {/* Current Mood (Partner) */}
-        <ScrollReveal className="lg:col-span-1" delay={0.3}>
+        <ScrollReveal className="lg:col-span-1" delay={0.2}>
           <div className="glass-card p-2 relative group overflow-hidden h-full">
             <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-purple-500/10 blur-3xl rounded-full" />
             <PartnerMood
@@ -238,13 +216,13 @@ export default async function DashboardPage() {
         </ScrollReveal>
 
         {/* Quick Actions (Floating Pill Grid) */}
-        <ScrollReveal className="lg:col-span-1" delay={0.4}>
-          <div className="glass-card p-6 flex flex-col justify-between h-full bg-black/20">
+        <ScrollReveal className="lg:col-span-1 glass-card" delay={0.3}>
+          <div className=" p-6 flex flex-col justify-between h-full bg-black/20">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-white/50 uppercase tracking-[0.2em] text-[10px] font-bold">Quick Interaction</h3>
               <Sparkles className="w-4 h-4 text-amber-400/30" />
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-1 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 glass-card">
               {quickActions.map((action, i) => (
                 <Link
                   key={action.href}

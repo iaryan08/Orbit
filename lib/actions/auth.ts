@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 
-export async function signUp(formData: FormData) {
+export async function signUp(prevState: any, formData: FormData) {
   const supabase = await createClient()
   const headersList = await headers()
   const origin = headersList.get('origin') || ''
@@ -29,10 +29,11 @@ export async function signUp(formData: FormData) {
     return { error: error.message }
   }
 
+  revalidatePath('/', 'layout')
   redirect('/auth/sign-up-success')
 }
 
-export async function signIn(formData: FormData) {
+export async function signIn(prevState: any, formData: FormData) {
   const supabase = await createClient()
 
   const email = formData.get('email') as string
@@ -54,6 +55,7 @@ export async function signIn(formData: FormData) {
     return { error: error.message }
   }
 
+  revalidatePath('/', 'layout')
   redirect('/dashboard')
 }
 
@@ -81,18 +83,35 @@ export async function getProfile() {
     .eq('id', user.id)
     .single()
 
-  // Fetch couple data separately if exists
+  if (!profile) return null
+
+  // Fetch couple and partner info in parallel if paired
   let couple = null
-  if (profile?.couple_id) {
+  let partner = null
+
+  if (profile.couple_id) {
     const { data: coupleData } = await supabase
       .from('couples')
       .select('*')
       .eq('id', profile.couple_id)
       .single()
+
     couple = coupleData
+
+    if (couple) {
+      const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
+      if (partnerId) {
+        const { data: partnerData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', partnerId)
+          .single()
+        partner = partnerData
+      }
+    }
   }
 
-  return { ...profile, couple }
+  return { ...profile, couple, partner }
 }
 
 export async function updateProfile(formData: FormData) {

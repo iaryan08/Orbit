@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useActionState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -12,23 +12,18 @@ import { signIn } from '@/lib/actions/auth'
 import { useToast } from '@/hooks/use-toast'
 
 export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
+  const [state, formAction, isPending] = useActionState(signIn, null)
   const { toast } = useToast()
 
-  async function handleSubmit(formData: FormData) {
-    setIsLoading(true)
-    const result = await signIn(formData)
-
-    if (result?.error) {
+  useEffect(() => {
+    if (state?.error) {
       toast({
         title: 'Error signing in',
-        description: result.error,
+        description: state.error,
         variant: 'destructive',
       })
-      setIsLoading(false)
     }
-  }
+  }, [state, toast])
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 bg-background">
@@ -64,7 +59,7 @@ export default function LoginPage() {
           </div>
         </CardHeader>
 
-        <form action={handleSubmit}>
+        <form action={formAction}>
           <CardContent className="space-y-6">
             <div className="space-y-3">
               <Label htmlFor="email" className="text-rose-50 font-medium tracking-wide">Email</Label>
@@ -98,8 +93,8 @@ export default function LoginPage() {
           </CardContent>
 
           <CardFooter className="flex flex-col gap-6 pt-2">
-            <Button type="submit" className="w-full h-12 text-base font-bold" disabled={isLoading}>
-              {isLoading ? (
+            <Button type="submit" className="w-full h-12 text-base font-bold" disabled={isPending}>
+              {isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Signing in...

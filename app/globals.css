@@ -244,6 +244,7 @@
   h5,
   h6 {
     @apply text-foreground;
+    color: white;
   }
 
   /* Global Input/Text Enforcements for Visibility */

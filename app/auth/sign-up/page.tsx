@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useActionState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,22 +11,18 @@ import { signUp } from '@/lib/actions/auth'
 import { useToast } from '@/hooks/use-toast'
 
 export default function SignUpPage() {
-  const [isLoading, setIsLoading] = useState(false)
+  const [state, formAction, isPending] = useActionState(signUp, null)
   const { toast } = useToast()
 
-  async function handleSubmit(formData: FormData) {
-    setIsLoading(true)
-    const result = await signUp(formData)
-
-    if (result?.error) {
+  useEffect(() => {
+    if (state?.error) {
       toast({
         title: 'Error signing up',
-        description: result.error,
+        description: state.error,
         variant: 'destructive',
       })
-      setIsLoading(false)
     }
-  }
+  }, [state, toast])
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 bg-background">
@@ -48,7 +44,7 @@ export default function SignUpPage() {
           </div>
         </CardHeader>
 
-        <form action={handleSubmit}>
+        <form action={formAction}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="displayName" className="text-rose-50/90 font-medium">Display Name</Label>
@@ -99,8 +95,8 @@ export default function SignUpPage() {
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full h-11 text-base font-bold shadow-lg shadow-primary/10" disabled={isLoading}>
-              {isLoading ? (
+            <Button type="submit" className="w-full h-11 text-base font-bold shadow-lg shadow-primary/10" disabled={isPending}>
+              {isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Creating account...

@@ -16,53 +16,52 @@ export default async function DashboardLayout({
     redirect('/auth/login')
   }
 
-  // Get user profile
+  // Initial profile fetch
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single()
 
-  // Get couple info separately
   let couple = null
+  let partnerProfile = null
+  let daysTogetherCount = 0
+
   if (profile?.couple_id) {
+    // Parallel fetch couple and partner info
     const { data: coupleData } = await supabase
       .from('couples')
       .select('*')
       .eq('id', profile.couple_id)
       .single()
+
     couple = coupleData
-  }
 
-  // Get partner info if paired
-  let partnerProfile = null
-  let daysTogetherCount = 0
+    if (couple) {
+      const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
 
-  if (profile?.couple_id && couple) {
-    // Find partner (the other user in the couple)
-    const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
+      const [partnerRes, daysRes] = await Promise.all([
+        partnerId ? supabase.from('profiles').select('*').eq('id', partnerId).single() : Promise.resolve({ data: null }),
+        Promise.resolve(couple.paired_at)
+      ]);
 
-    if (partnerId) {
-      const { data: partner } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', partnerId)
-        .single()
+      partnerProfile = partnerRes.data;
 
-      partnerProfile = partner
-    }
-
-    // Calculate days together
-    if (couple.paired_at) {
-      const startDate = new Date(couple.paired_at)
-      const today = new Date()
-      daysTogetherCount = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+      // Calculate days together
+      if (couple.paired_at) {
+        const startDate = new Date(couple.paired_at)
+        const today = new Date()
+        daysTogetherCount = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+      }
     }
   }
 
   return (
     <div className="min-h-screen bg-transparent pb-10 md:pb-0">
-      <RealtimeObserver coupleId={profile?.couple_id || null} />
+      <RealtimeObserver
+        coupleId={profile?.couple_id || null}
+        partnerId={couple ? (couple.user1_id === user.id ? couple.user2_id : couple.user1_id) : null}
+      />
       <DashboardHeader
         userName={profile?.display_name || user.email?.split('@')[0] || 'User'}
         userAvatar={profile?.avatar_url}

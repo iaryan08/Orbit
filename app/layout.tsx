@@ -43,18 +43,21 @@ export const metadata: Metadata = {
 }
 
 import { RomanticBackground } from '@/components/romantic-background'
-import BackgroundHearts from '@/components/background-hearts'
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  // Server-side randomization for performance
+  const bgIds = ["1", "2", "3", "4"];
+  const randomId = bgIds[Math.floor(Math.random() * bgIds.length)];
+  const initialImage = `/images/${randomId}.jpg`;
+
   return (
     <html lang="en" className="dark">
       <body className={`${_outfit.variable} ${_cormorant.variable} ${_pinyon.variable} font-sans antialiased min-h-screen relative overflow-x-hidden`}>
-        <RomanticBackground />
-        <BackgroundHearts />
+        <RomanticBackground initialImage={initialImage} />
         <div className="relative z-10">
           {children}
         </div>

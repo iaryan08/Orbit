@@ -1,18 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
-export function RomanticBackground() {
+interface RomanticBackgroundProps {
+    initialImage?: string;
+}
+
+export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticBackgroundProps) {
     // Generate random positions for stars and hearts
     const [elements, setElements] = useState<{ id: number; type: "star" | "heart"; style: React.CSSProperties }[]>([]);
-    const [bgImage, setBgImage] = useState<string>("");
 
     useEffect(() => {
-        // Pick a random background image on mount to avoid hydration mismatch
-        const bgImages = ["/images/1.jpg", "/images/2.jpg", "/images/3.jpg", "/images/4.png"];
-        const randomImage = bgImages[Math.floor(Math.random() * bgImages.length)];
-        setBgImage(randomImage);
-
         // Generate static hearts and stars
         const newElements = Array.from({ length: 30 }).map((_, i) => {
             const type = Math.random() > 0.6 ? "heart" : "star";
@@ -39,21 +38,25 @@ export function RomanticBackground() {
     }, []);
 
     return (
-        <div className="fixed top-0 left-0 w-full h-[100lvh] z-0 overflow-hidden pointer-events-none">
-            {/* Liquid Glass Background Base */}
-            <div
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000"
-                style={{
-                    backgroundImage: bgImage ? `url(${bgImage})` : 'none',
-                    height: '100lvh'
-                }}
-            >
-                {/* Dark overlay for readability and merging visual layers */}
-                <div
-                    className="absolute inset-0"
-                    style={{ background: 'linear-gradient(135deg, rgba(20, 16, 15, 0.4) 0%, rgba(45, 25, 42, 0.7) 100%)' }}
+        <div className="fixed top-0 left-0 w-full h-[100lvh] z-0 overflow-hidden pointer-events-none bg-black">
+            {/* Optimized Background Image */}
+            <div className="absolute inset-0">
+                <Image
+                    src={initialImage}
+                    alt="Background"
+                    fill
+                    priority
+                    className="object-cover opacity-80"
+                    quality={85}
+                    sizes="100vw"
                 />
             </div>
+
+            {/* Dark overlay for readability and merging visual layers */}
+            <div
+                className="absolute inset-0"
+                style={{ background: 'linear-gradient(135deg, rgba(20, 16, 15, 0.4) 0%, rgba(45, 25, 42, 0.7) 100%)' }}
+            />
 
             {/* Floating orbs for atmosphere */}
             <div className="absolute top-[-10%] left-[-10%] w-[50vh] h-[50vh] bg-primary/30 blur-[100px] rounded-full animate-pulse-slow mix-blend-overlay" />
@@ -79,7 +82,7 @@ export function RomanticBackground() {
             ))}
 
             {/* Grain texture for premium feel */}
-            <div className="absolute inset-0 opacity-[0.05] bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay"></div>
+            <div className="absolute inset-0 opacity-[0.15] bg-[url('https://www.transparenttextures.com/patterns/gray-floral.png')] mix-blend-overlay"></div>
         </div>
     );
 }
