@@ -60,15 +60,20 @@ export default async function DashboardPage() {
 
     if (couple) {
       const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
-      const todayDate = new Date()
-      todayDate.setHours(0, 0, 0, 0)
-      const month = todayDate.getMonth() + 1
-      const day = todayDate.getDate()
+      const now = new Date()
+      // Adjust for IST (India) timezone specifically for the server component
+      const istDate = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }))
+
+      const month = istDate.getMonth() + 1
+      const day = istDate.getDate()
+
+      const todayStart = new Date(istDate)
+      todayStart.setHours(0, 0, 0, 0)
 
       // Fetch all dependent data in parallel
       const [partnerRes, moodsRes, memCountRes, letCountRes, memoriesRes, milestonesRes] = await Promise.all([
         partnerId ? supabase.from('profiles').select('*').eq('id', partnerId).single() : Promise.resolve({ data: null }),
-        partnerId ? supabase.from('moods').select('*, mood:emoji, note:mood_text').eq('user_id', partnerId).gte('created_at', todayDate.toISOString()).order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
+        partnerId ? supabase.from('moods').select('*, mood:emoji, note:mood_text').eq('user_id', partnerId).gte('created_at', todayStart.toISOString()).order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
         supabase.from('memories').select('*', { count: 'exact', head: true }).eq('couple_id', profile.couple_id),
         supabase.from('love_letters').select('*', { count: 'exact', head: true }).eq('couple_id', profile.couple_id),
         supabase.from('memories').select('*').eq('couple_id', profile.couple_id),
