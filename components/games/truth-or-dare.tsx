@@ -106,6 +106,8 @@ export function TruthOrDare({ onBack }: TruthOrDareProps) {
   const [user, setUser] = useState<any>(null);
   const [coupleId, setCoupleId] = useState<string | null>(null);
   const [partnerId, setPartnerId] = useState<string | null>(null);
+  const [user1Id, setUser1Id] = useState<string | null>(null);
+  const [user2Id, setUser2Id] = useState<string | null>(null);
 
   const supabase = createClient();
   const { toast } = useToast();
@@ -133,7 +135,11 @@ export function TruthOrDare({ onBack }: TruthOrDareProps) {
           .single();
 
         if (couple) {
-          setPartnerId(couple.user1_id === user.id ? couple.user2_id : couple.user1_id);
+          const u1 = couple.user1_id.toLowerCase();
+          const u2 = couple.user2_id?.toLowerCase();
+          setUser1Id(u1);
+          setUser2Id(u2);
+          setPartnerId(u1 === user.id.toLowerCase() ? u2 : u1);
         }
 
         fetchGameState(profile.couple_id);
@@ -144,6 +150,53 @@ export function TruthOrDare({ onBack }: TruthOrDareProps) {
     }
     init();
   }, []);
+
+  // Automatic State Repair / Self-Healing
+  useEffect(() => {
+    if (!gameState || !user) return;
+
+    // Detect deadlock: Nobody's turn or turn is missing
+    const currentTurn = gameState.turnUserId?.toLowerCase();
+    const myId = user.id.toLowerCase();
+
+    // Define valid turn holders
+    const validIds = new Set<string>();
+    validIds.add(myId);
+    if (partnerId) validIds.add(partnerId.toLowerCase());
+    if (user1Id) validIds.add(user1Id);
+    if (user2Id) validIds.add(user2Id);
+
+    const isInvalidTurn = !currentTurn || !validIds.has(currentTurn);
+
+    if (isInvalidTurn) {
+      console.log("Deadlock detected, repairing turn state...");
+
+      // Determine who should take the turn
+      // Default: Initiator takes it. If initiator is invalid/missing, I take it.
+      const currentInitiator = gameState.initiatorId?.toLowerCase();
+      const initiatorIsMember = currentInitiator && validIds.has(currentInitiator);
+
+      // Only one person should perform the repair to avoid write conflicts
+      // We prioritize the initiator (if valid member), otherwise we prioritize user1, otherwise alphabet sort
+      const shouldIRepair =
+        (initiatorIsMember && currentInitiator === myId) ||
+        (!initiatorIsMember && (!partnerId || myId < partnerId.toLowerCase()));
+
+      if (shouldIRepair) {
+        toast({
+          title: "Syncing Game...",
+          description: "Recovering game session.",
+        });
+        const repairedState = {
+          ...gameState,
+          turnUserId: myId,
+          initiatorId: myId // Reset initiator if needed to ensure future stability
+        };
+        setGameState(repairedState);
+        updateRemoteState(repairedState);
+      }
+    }
+  }, [gameState, user, user1Id, user2Id, partnerId]);
 
   const fetchGameState = async (cid: string) => {
     const { data } = await supabase
@@ -194,17 +247,17 @@ export function TruthOrDare({ onBack }: TruthOrDareProps) {
       category: "romantic",
       mode: null,
       currentPrompt: null,
-      turnUserId: user.id,
-      initiatorId: user.id,
+      turnUserId: user.id.toLowerCase(),
+      initiatorId: user.id.toLowerCase(),
     };
     setGameState(newState);
     updateRemoteState(newState);
   };
 
   const handleChoice = async (selectedMode: Mode) => {
-    if (!gameState || user?.id !== gameState.turnUserId || !coupleId) return;
+    if (!gameState || user?.id.toLowerCase() !== gameState.turnUserId?.toLowerCase() || !coupleId) return;
 
-    // Fetch latest state
+    // Fetch latest state to prevent race conditions
     const { data } = await supabase
       .from("game_sessions")
       .select("state")
@@ -227,7 +280,7 @@ export function TruthOrDare({ onBack }: TruthOrDareProps) {
   };
 
   const handleNextRound = async () => {
-    if (!gameState || !partnerId || !coupleId) return;
+    if (!gameState || !user1Id || !coupleId) return;
 
     // Fetch latest state
     const { data } = await supabase
@@ -239,11 +292,15 @@ export function TruthOrDare({ onBack }: TruthOrDareProps) {
 
     const latestState = data?.state ? (data.state as GameState) : gameState;
 
+    // Deterministic Turn Toggling
+    const currentTurn = latestState.turnUserId?.toLowerCase();
+    const nextTurnUserId = currentTurn === user1Id ? (user2Id || user1Id) : user1Id;
+
     const newState: GameState = {
       ...latestState,
       mode: null,
       currentPrompt: null,
-      turnUserId: partnerId,
+      turnUserId: nextTurnUserId,
     };
     setGameState(newState);
     await updateRemoteState(newState);
@@ -272,7 +329,7 @@ export function TruthOrDare({ onBack }: TruthOrDareProps) {
     await updateRemoteState(newState);
   };
 
-  const isMyTurn = user?.id === gameState?.turnUserId;
+  const isMyTurn = user?.id.toLowerCase() === gameState?.turnUserId?.toLowerCase();
 
   if (loading) {
     return (

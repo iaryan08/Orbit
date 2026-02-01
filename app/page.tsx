@@ -22,12 +22,12 @@ export default function HomePage() {
               <span className="text-amber-400">Private & Secure</span>
             </div>
 
-            <h1 className="text-5xl md:text-8xl font-serif font-black text-white balance leading-[1] tracking-tight text-glow-white">
+            <h1 className="text-5xl md:text-8xl font-serif font-black text-rose-50 balance leading-[1] tracking-tight text-glow-white">
               Moon Between Us
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary via-rose-300 to-secondary mt-2 italic animate-pulse-slow"> Love & Connection</span>
+              <span className="block text-vibrant-animate mt-2 italic"> Love & Connection</span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto leading-relaxed font-light">
+            <p className="text-xl md:text-2xl text-rose-100/70 max-w-2xl mx-auto leading-relaxed font-light">
               A beautiful, private website just for the two of you. Share moods, write love letters,
               store memories, and play fun games together.
             </p>
@@ -51,11 +51,11 @@ export default function HomePage() {
       <section className="py-24">
         <div className="container mx-auto px-4">
           <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-6xl font-serif font-bold text-white mb-6 text-glow-rose">
+            <h2 className="text-4xl md:text-6xl font-serif font-bold text-rose-50 mb-6 text-glow-rose">
               Everything You Need
             </h2>
             <div className="w-24 h-1 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto mb-8 rounded-full opacity-50 " />
-            <p className="text-muted-foreground max-w-2xl mx-auto text-lg leading-relaxed font-light">
+            <p className="text-rose-100/70 max-w-2xl mx-auto text-lg leading-relaxed font-light">
               Designed with love to help you stay connected with your partner,
               no matter the distance.
             </p>
@@ -94,10 +94,10 @@ export default function HomePage() {
             <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-secondary/10 blur-[100px] rounded-full group-hover:bg-secondary/20 transition-all duration-1000" />
 
             <Heart className="w-24 h-24 text-primary mx-auto filter drop-shadow-[0_0_25px_rgba(244,114,182,0.4)] animate-heart-bounce" fill="currentColor" />
-            <h2 className="text-4xl md:text-6xl font-serif font-bold text-white leading-[1] text-glow-white">
+            <h2 className="text-4xl md:text-6xl font-serif font-bold text-rose-50 leading-[1] text-glow-white">
               Start Your Love Story Today
             </h2>
-            <p className="text-muted-foreground text-xl max-w-xl mx-auto leading-relaxed font-light">
+            <p className="text-rose-100/70 text-xl max-w-xl mx-auto leading-relaxed font-light">
               Create your private couple's space in seconds. It's free, secure, and made with love.
             </p>
             <Button size="lg" variant="premium" className="text-xl px-16 py-10 rounded-full shadow-[0_0_40px_rgba(244,114,182,0.3)] hover:shadow-[0_0_60px_rgba(244,114,182,0.5)] transition-all transform hover:scale-105" asChild>
@@ -117,7 +117,7 @@ export default function HomePage() {
               <Heart className="w-6 h-6 text-primary" fill="currentColor" />
               <span className="font-serif font-bold text-xl text-white tracking-tight">MoonBetweenUs</span>
             </div>
-            <p className="text-muted-foreground font-medium text-sm">
+            <p className="text-rose-100/70 font-medium text-sm">
               Made with love for couples everywhere
             </p>
             <div className="flex gap-6 text-sm font-bold uppercase tracking-widest text-muted-foreground/60">
@@ -146,8 +146,8 @@ function FeatureCard({
       <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/10 text-rose-300 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-500 shadow-[0_0_20px_rgba(244,114,182,0.15)] ring-1 ring-white/10">
         {icon}
       </div>
-      <h3 className="font-bold text-2xl text-white mb-4 leading-tight group-hover:text-rose-300 transition-colors">{title}</h3>
-      <p className="text-white/70 leading-relaxed font-medium group-hover:text-white/90 transition-colors">{description}</p>
+      <h3 className="font-bold text-2xl text-rose-50 mb-4 leading-tight group-hover:text-rose-300 transition-colors">{title}</h3>
+      <p className="text-rose-100/70 leading-relaxed font-medium group-hover:text-rose-50 transition-colors">{description}</p>
     </div>
   )
 }

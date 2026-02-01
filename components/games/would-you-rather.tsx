@@ -50,6 +50,8 @@ export function WouldYouRather({ onBack }: WouldYouRatherProps) {
   const [user, setUser] = useState<any>(null);
   const [coupleId, setCoupleId] = useState<string | null>(null);
   const [partnerId, setPartnerId] = useState<string | null>(null);
+  const [user1Id, setUser1Id] = useState<string | null>(null);
+  const [user2Id, setUser2Id] = useState<string | null>(null);
 
   const supabase = createClient();
   const { toast } = useToast();
@@ -77,7 +79,11 @@ export function WouldYouRather({ onBack }: WouldYouRatherProps) {
           .single();
 
         if (couple) {
-          setPartnerId(couple.user1_id === user.id ? couple.user2_id : couple.user1_id);
+          const u1 = couple.user1_id.toLowerCase();
+          const u2 = couple.user2_id?.toLowerCase();
+          setUser1Id(u1);
+          setUser2Id(u2);
+          setPartnerId(u1 === user.id.toLowerCase() ? u2 : u1);
         }
 
         fetchGameState(profile.couple_id);
@@ -89,16 +95,38 @@ export function WouldYouRather({ onBack }: WouldYouRatherProps) {
     init();
   }, []);
 
+  // Automatic State Repair / Self-Healing for WYR
+  useEffect(() => {
+    if (!gameState || !user) return;
+
+    // Detect deadlock: Both waiting for partner
+    // In WYR, deadlock means revealed=false but I have made a choice, and partner has NOT made a choice?
+    // No, "Waiting for partner" appears when !revealed && myChoice.
+    // Use case: I chose. Partner chose. But state didn't update to revealed=true?
+    // OR: I chose. Partner hasn't chose.
+
+    // If both have chosen in the `choices` object but `revealed` is false, fix it.
+    const myId = user.id.toLowerCase();
+    const pId = partnerId?.toLowerCase();
+
+    if (myId && pId && gameState.choices[myId] && gameState.choices[pId] && !gameState.revealed) {
+      console.log("Deadlock detected (Both answered but not revealed), repairing...");
+      const repairedState = { ...gameState, revealed: true };
+      setGameState(repairedState);
+      updateRemoteState(repairedState);
+    }
+  }, [gameState, user, partnerId]);
+
   const fetchGameState = async (cid: string) => {
     const { data } = await supabase
       .from("game_sessions")
-      .select("state")
+      .select("game_data")
       .eq("couple_id", cid)
       .eq("game_type", "would-you-rather")
       .single();
 
-    if (data && data.state) {
-      setGameState(data.state as GameState);
+    if (data && data.game_data) {
+      setGameState(data.game_data as GameState);
     }
     setLoading(false);
   };
@@ -116,7 +144,7 @@ export function WouldYouRather({ onBack }: WouldYouRatherProps) {
         },
         (payload: any) => {
           if (payload.new && payload.new.game_type === "would-you-rather") {
-            setGameState(payload.new.state as GameState);
+            setGameState(payload.new.game_data as GameState);
           }
         }
       )
@@ -132,7 +160,7 @@ export function WouldYouRather({ onBack }: WouldYouRatherProps) {
     await supabase.from("game_sessions").upsert({
       couple_id: coupleId,
       game_type: "would-you-rather",
-      state: newState,
+      game_data: newState,
       updated_at: new Date().toISOString(),
     }, { onConflict: "couple_id, game_type" });
   };
@@ -143,7 +171,7 @@ export function WouldYouRather({ onBack }: WouldYouRatherProps) {
       currentIndex: 0,
       choices: {},
       revealed: false,
-      initiatorId: user.id,
+      initiatorId: user.id.toLowerCase(),
     };
     setGameState(newState);
     updateRemoteState(newState);
@@ -152,28 +180,35 @@ export function WouldYouRather({ onBack }: WouldYouRatherProps) {
   const handleSelect = async (option: "a" | "b") => {
     if (!gameState || !user || gameState.revealed || !coupleId) return;
 
-    // Fetch latest state to avoid overwriting partner's choice if they just chose
-    const { data } = await supabase
-      .from("game_sessions")
-      .select("state")
-      .eq("couple_id", coupleId)
-      .eq("game_type", "would-you-rather")
-      .single();
+    // Optimistic UI update
+    const myId = user.id.toLowerCase();
+    const optimisticChoices = { ...gameState.choices, [myId]: option };
+    const optimisticState = { ...gameState, choices: optimisticChoices };
+    setGameState(optimisticState);
 
-    const latestState = data?.state ? (data.state as GameState) : gameState;
-    const newChoices: Record<string, "a" | "b"> = { ...latestState.choices, [user.id]: option };
+    try {
+      // Call atomic RPC function
+      const { data: newState, error } = await supabase.rpc('submit_wyr_answer', {
+        p_couple_id: coupleId,
+        p_user_id: user.id,
+        p_choice: option
+      });
 
-    // Check if both have answered now
-    const allAnswered = partnerId && newChoices[user.id] && newChoices[partnerId];
+      if (error) throw error;
 
-    const newState: GameState = {
-      ...latestState,
-      choices: newChoices,
-      revealed: !!allAnswered,
-    };
-
-    setGameState(newState);
-    await updateRemoteState(newState);
+      if (newState) {
+        setGameState(newState as GameState);
+      }
+    } catch (err: any) {
+      console.error("Error submitting answer:", err);
+      toast({
+        title: "Error",
+        description: "Failed to submit answer. Please try again.",
+        variant: "destructive",
+      });
+      // Revert optimistic update (optional, or just re-fetch)
+      fetchGameState(coupleId);
+    }
   };
 
   const nextQuestion = () => {
@@ -182,7 +217,7 @@ export function WouldYouRather({ onBack }: WouldYouRatherProps) {
       currentIndex: (gameState.currentIndex + 1) % questions.length,
       choices: {},
       revealed: false,
-      initiatorId: user?.id || gameState.initiatorId,
+      initiatorId: user?.id.toLowerCase() || gameState.initiatorId.toLowerCase(),
     };
     setGameState(newState);
     updateRemoteState(newState);
@@ -223,8 +258,8 @@ export function WouldYouRather({ onBack }: WouldYouRatherProps) {
     );
   }
 
-  const myChoice = gameState.choices[user?.id] || null;
-  const partnersChoice = partnerId ? (gameState.choices[partnerId] || null) : null;
+  const myChoice = user ? (gameState.choices[user.id.toLowerCase()] || null) : null;
+  const partnersChoice = partnerId ? (gameState.choices[partnerId.toLowerCase()] || null) : null;
   const isMatch = myChoice && partnersChoice && myChoice === partnersChoice;
 
   return (

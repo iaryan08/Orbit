@@ -63,6 +63,7 @@ export function DashboardHeader({
     { href: '/dashboard/letters', icon: Mail, label: 'Letters' },
     { href: '/dashboard/memories', icon: ImageIcon, label: 'Memories' },
     { href: '/dashboard/games', icon: Gamepad2, label: 'Games' },
+    { href: '/dashboard/intimacy', icon: Heart, label: 'Intimacy' },
   ]
 
   return (

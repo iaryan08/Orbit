@@ -32,12 +32,26 @@ export default function SignUpPage() {
       </div>
 
       <Card className="w-full max-w-md relative z-10 border-border/50 shadow-xl">
-        <CardHeader className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-            <Heart className="w-8 h-8 text-primary" fill="currentColor" />
+        <CardHeader className="text-center space-y-6">
+          <div className="mx-auto w-20 h-20 bg-white/5 rounded-full flex items-center justify-center shadow-inner ring-1 ring-white/10 backdrop-blur-md">
+            <svg width="0" height="0" className="absolute">
+              <defs>
+                <linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#f472b6" />
+                  <stop offset="50%" stopColor="#e2556f" />
+                  <stop offset="100%" stopColor="#d98b75" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <Heart
+              className="w-10 h-10 animate-heart-bounce drop-shadow-lg"
+              style={{ fill: 'url(#heartGradient)' }}
+              strokeWidth={1.5}
+              stroke="rgba(255,255,255,0.2)"
+            />
           </div>
           <div>
-            <CardTitle className="text-2xl font-serif text-rose-50 tracking-wide">Create Your Space</CardTitle>
+            <CardTitle className="text-4xl font-serif text-vibrant-animate tracking-tight">Create Your Space</CardTitle>
             <CardDescription className="text-rose-100/70 mt-2">
               Start your journey of love together
             </CardDescription>

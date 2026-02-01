@@ -6,8 +6,8 @@
     /* Ambient Romantic Mode (Sweet & Sexy) - Deep & Intimate */
     --background: 355 25% 10%;
     /* Deep Burgundy/Cocoa Base */
-    --foreground: 340 30% 98%;
-    /* Soft Pale Rose */
+    --foreground: 340 50% 90%;
+    /* Soft Clear Rose */
 
     --card: 355 25% 12%;
     --card-foreground: 340 30% 98%;
@@ -24,8 +24,8 @@
     --secondary-foreground: 355 30% 15%;
 
     --muted: 355 20% 20%;
-    --muted-foreground: 340 15% 85%;
-    /* High contrast rose-tinted gray */
+    --muted-foreground: 340 30% 75%;
+    /* Rose-tinted muted text */
 
     --accent: 340 40% 60%;
     /* Warm Rose Berry */
@@ -244,7 +244,7 @@
   h5,
   h6 {
     @apply text-foreground;
-    color: white;
+    color: var(--foreground);
   }
 
   /* Global Input/Text Enforcements for Visibility */

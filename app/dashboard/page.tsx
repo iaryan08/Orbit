@@ -46,6 +46,7 @@ export default async function DashboardPage() {
   let memoriesCount = 0
   let lettersCount = 0
   let onThisDayMemories = []
+  let onThisDayMilestones = []
 
   if (profile.couple_id) {
     // First get couple data
@@ -65,12 +66,13 @@ export default async function DashboardPage() {
       const day = todayDate.getDate()
 
       // Fetch all dependent data in parallel
-      const [partnerRes, moodsRes, memCountRes, letCountRes, allMemRes] = await Promise.all([
+      const [partnerRes, moodsRes, memCountRes, letCountRes, memoriesRes, milestonesRes] = await Promise.all([
         partnerId ? supabase.from('profiles').select('*').eq('id', partnerId).single() : Promise.resolve({ data: null }),
         partnerId ? supabase.from('moods').select('*, mood:emoji, note:mood_text').eq('user_id', partnerId).gte('created_at', todayDate.toISOString()).order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
         supabase.from('memories').select('*', { count: 'exact', head: true }).eq('couple_id', profile.couple_id),
         supabase.from('love_letters').select('*', { count: 'exact', head: true }).eq('couple_id', profile.couple_id),
-        supabase.from('memories').select('*').eq('couple_id', profile.couple_id)
+        supabase.from('memories').select('*').eq('couple_id', profile.couple_id),
+        supabase.from('milestones').select('*').eq('couple_id', profile.couple_id)
       ])
 
       partnerProfile = partnerRes.data
@@ -78,11 +80,22 @@ export default async function DashboardPage() {
       memoriesCount = memCountRes.count || 0
       lettersCount = letCountRes.count || 0
 
-      if (allMemRes.data) {
-        onThisDayMemories = allMemRes.data.filter(m => {
-          const d = new Date(m.memory_date)
-          return (d.getMonth() + 1) === month && d.getDate() === day
-        })
+      const milestones = milestonesRes.data || []
+      const memories = memoriesRes.data || []
+
+      // Filter for On This Day (Memories & Milestones)
+      const isToday = (dateStr: string) => {
+        if (!dateStr) return false
+        const d = new Date(dateStr)
+        return (d.getMonth() + 1) === month && d.getDate() === day
+      }
+
+      if (memories) {
+        onThisDayMemories = memories.filter(m => isToday(m.memory_date))
+      }
+
+      if (milestones) {
+        onThisDayMilestones = milestones.filter(m => isToday(m.milestone_date))
       }
     }
   }
@@ -135,8 +148,8 @@ export default async function DashboardPage() {
             </div>
 
           </div>
-          <p className="text-white/70 uppercase text-xs tracking-[0.2em] font-medium">
-            Connected with <span className="text-white font-bold">{partnerProfile?.display_name || 'Partner'}</span>
+          <p className="text-rose-100/70 uppercase text-xs tracking-[0.2em] font-medium">
+            Connected with <span className="text-rose-50 font-bold">{partnerProfile?.display_name || 'Partner'}</span>
           </p>
         </div>
       </ScrollReveal>
@@ -155,7 +168,7 @@ export default async function DashboardPage() {
               </div>
               <div className="flex flex-col">
                 <div className="flex items-end gap-1">
-                  <span className="text-6xl md:text-8xl font-bold leading-none text-white tracking-tighter">
+                  <span className="text-6xl md:text-8xl font-bold leading-none text-rose-50 tracking-tighter">
                     {couple?.paired_at
                       ? Math.floor(
                         (new Date().getTime() - new Date(couple.paired_at).getTime()) /
@@ -163,7 +176,7 @@ export default async function DashboardPage() {
                       )
                       : 0}
                   </span>
-                  <span className="text-xl md:text-2xl text-white/50 pb-1 md:pb-2 font-serif italic">Days</span>
+                  <span className="text-xl md:text-2xl text-rose-100/50 pb-1 md:pb-2 font-serif italic">Days</span>
                 </div>
                 <p className="text-white/60 flex items-center gap-2 uppercase tracking-[0.3em] text-[10px] font-bold pt-2">
                   <Calendar className="w-3 h-3 text-amber-400/60" />
@@ -246,16 +259,16 @@ export default async function DashboardPage() {
         </ScrollReveal>
 
         {/* Your Interaction Center */}
-        <ScrollReveal className={cn("lg:col-span-2", onThisDayMemories.length > 0 ? "lg:col-span-1" : "lg:col-span-2")} delay={0.5}>
+        <ScrollReveal className={cn("lg:col-span-2", (onThisDayMemories.length > 0 || onThisDayMilestones.length > 0) ? "lg:col-span-1" : "lg:col-span-2")} delay={0.5}>
           <div className="glass-card p-2 h-full">
             <MoodCheckIn hasPartner={hasPartner} />
           </div>
         </ScrollReveal>
 
         {/* On This Day (Conditional) */}
-        {onThisDayMemories.length > 0 && (
+        {(onThisDayMemories.length > 0 || onThisDayMilestones.length > 0) && (
           <ScrollReveal className="lg:col-span-1" delay={0.55}>
-            <OnThisDay memories={onThisDayMemories} />
+            <OnThisDay memories={onThisDayMemories} milestones={onThisDayMilestones} />
           </ScrollReveal>
         )}
 

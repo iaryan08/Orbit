@@ -114,7 +114,7 @@ export function LoveQuiz({ onBack }: LoveQuizProps) {
           if (payload.new && payload.new.game_type === "love-quiz") {
             const newState = payload.new.state as GameState;
             setGameState(newState);
-            updateTurnStatus(newState, user?.id);
+            updateTurnStatus(newState, user?.id.toLowerCase());
           }
         }
       )
@@ -126,7 +126,8 @@ export function LoveQuiz({ onBack }: LoveQuizProps) {
   };
 
   const updateTurnStatus = (state: GameState, userId: string) => {
-    const isInitiator = state.initiatorId === userId;
+    if (!userId) return;
+    const isInitiator = state.initiatorId?.toLowerCase() === userId.toLowerCase();
     if (state.phase === "complete") {
       setIsMyTurn(false);
       return;
@@ -171,7 +172,7 @@ export function LoveQuiz({ onBack }: LoveQuizProps) {
       answers: [],
       selectedQuestions: shuffled.slice(0, 5),
       score: 0,
-      initiatorId: user.id,
+      initiatorId: user.id.toLowerCase(),
       roundStep: "answering",
     };
     setGameState(newState);
@@ -306,7 +307,7 @@ export function LoveQuiz({ onBack }: LoveQuizProps) {
   }
 
   if (gameState.phase === "playing") {
-    const isSubject = gameState.initiatorId === user?.id;
+    const isSubject = gameState.initiatorId?.toLowerCase() === user?.id.toLowerCase();
     const isAnswering = gameState.roundStep === "answering";
     const isGuessing = gameState.roundStep === "guessing";
 
@@ -384,7 +385,7 @@ export function LoveQuiz({ onBack }: LoveQuizProps) {
 
   if (gameState.phase === "reveal") {
     const currentAnswer = gameState.answers[gameState.currentQuestionIndex];
-    const isSubject = gameState.initiatorId === user?.id;
+    const isSubject = gameState.initiatorId?.toLowerCase() === user?.id.toLowerCase();
 
     return (
       <div className="space-y-6">
