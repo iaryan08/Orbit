@@ -25,7 +25,7 @@ export async function POST() {
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
     const prompt = `Generate romantic and thoughtful content for a couple's daily inspiration. 
     The user's name is ${userName} and their gender is ${userGender}.

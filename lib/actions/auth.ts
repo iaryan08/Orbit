@@ -576,3 +576,46 @@ export async function logSymptoms(symptoms: string[]) {
   revalidatePath('/dashboard', 'layout')
   return { success: true }
 }
+
+export async function logSexDrive(level: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return { error: 'Not authenticated' }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('couple_id')
+    .eq('id', user.id)
+    .single()
+
+  const today = getTodayIST()
+
+  console.log('[logSexDrive] Saving:', {
+    user_id: user.id,
+    couple_id: profile?.couple_id,
+    log_date: today,
+    sex_drive: level
+  })
+
+  const { data, error } = await supabase
+    .from('cycle_logs')
+    .upsert({
+      user_id: user.id,
+      couple_id: profile?.couple_id,
+      log_date: today,
+      sex_drive: level,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id, log_date' })
+    .select()
+
+  console.log('[logSexDrive] Result:', { data, error })
+
+  if (error) {
+    console.error('Error logging sex drive:', error)
+    return { error: error.message }
+  }
+
+  revalidatePath('/dashboard', 'layout')
+  return { success: true }
+}

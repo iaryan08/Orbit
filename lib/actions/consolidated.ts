@@ -40,7 +40,7 @@ export async function fetchDashboardData() {
         if (partnerId) {
             const { data: pProfile } = await supabase
                 .from('profiles')
-                .select('display_name, avatar_url')
+                .select('id, display_name, avatar_url, gender')
                 .eq('id', partnerId)
                 .single()
             partnerProfile = pProfile
@@ -74,12 +74,16 @@ export async function fetchDashboardData() {
                 .limit(5)
             supportLogs = sLogs || []
 
-            const { data: cLogs } = await supabase
+            const { data: cLogs, error: cycleError } = await supabase
                 .from('cycle_logs')
                 .select('*')
                 .eq('couple_id', coupleId)
                 .order('log_date', { ascending: false })
                 .limit(10)
+
+            console.log('[fetchDashboardData] Fetching cycleLogs for couple_id:', coupleId)
+            console.log('[fetchDashboardData] cycleLogs result:', { count: cLogs?.length, data: cLogs, error: cycleError })
+
             cycleLogs = cLogs || []
         }
 
