@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { syncGlobalRSS } from '@/lib/actions/insights'
+import { syncDailyFeed } from '@/lib/actions/insights'
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
@@ -11,7 +11,7 @@ export async function GET(request: Request) {
     }
 
     try {
-        const result = await syncGlobalRSS()
+        const result = await syncDailyFeed()
 
         if (!result.success) {
             return NextResponse.json({ error: result.error }, { status: 500 })

@@ -16,6 +16,47 @@ interface Insight {
     title: string
     content: string
     image_url: string
+    source: string // Added source
+}
+
+// Helper component for responsive images
+const ResponsiveImage = ({ src, alt, fill, className }: { src: string, alt: string, fill?: boolean, className?: string }) => {
+    // Check if src is one of our special IDs "1", "2", "3", "4"
+    const isSpecialId = ["1", "2", "3", "4"].includes(src)
+
+    if (isSpecialId) {
+        return (
+            <>
+                {/* Mobile Image */}
+                <div className={cn("md:hidden absolute inset-0", className)}>
+                    <Image
+                        src={`/images/${src}-m.jpg`}
+                        alt={alt}
+                        fill={fill}
+                        className="object-cover"
+                    />
+                </div>
+                {/* Desktop Image */}
+                <div className={cn("hidden md:block absolute inset-0", className)}>
+                    <Image
+                        src={`/images/${src}.jpg`}
+                        alt={alt}
+                        fill={fill}
+                        className="object-cover"
+                    />
+                </div>
+            </>
+        )
+    }
+
+    return (
+        <Image
+            src={src}
+            alt={alt}
+            fill={fill}
+            className={className}
+        />
+    )
 }
 
 export function LunaraTabInsights({ coupleId }: { coupleId: string }) {
@@ -24,9 +65,9 @@ export function LunaraTabInsights({ coupleId }: { coupleId: string }) {
     const [syncing, setSyncing] = useState(false)
     const [selectedInsight, setSelectedInsight] = useState<Insight | null>(null)
 
-    const fetchInsights = async () => {
+    const fetchInsights = async (force: boolean = false) => {
         try {
-            const result = await getDailyInsights(coupleId)
+            const result = await getDailyInsights(coupleId, force)
             if (result.success && result.data) {
                 setInsights(result.data as Insight[])
             }
@@ -40,12 +81,12 @@ export function LunaraTabInsights({ coupleId }: { coupleId: string }) {
 
     useEffect(() => {
         if (!coupleId) return
-        fetchInsights()
+        fetchInsights(false)
     }, [coupleId])
 
     const handleManualSync = () => {
         setSyncing(true)
-        fetchInsights()
+        fetchInsights(true) // Force refresh
     }
 
     if (loading) {
@@ -93,12 +134,7 @@ export function LunaraTabInsights({ coupleId }: { coupleId: string }) {
                 </Button>
             </div>
             {categories.map((cat, catIdx) => {
-                // Filter items for this category
-                // For demonstration of layout, if we have limited data, we might show generic items if empty?
-                // But we have a good library now.
                 const categoryItems = insights.filter(i => i.category === cat.id)
-                // Fallback: If no specific items for this category (e.g. daily rotation didn't pick one), 
-                // we skip it to keep UI clean.
                 if (categoryItems.length === 0) return null
 
                 return (
@@ -109,8 +145,7 @@ export function LunaraTabInsights({ coupleId }: { coupleId: string }) {
 
                         {/* Horizontal Scroll Container */}
                         <div className="flex overflow-x-auto gap-4 pb-4 px-2 snap-x snap-mandatory scrollbar-hide -mx-4 md:mx-0 md:px-0 px-6">
-                            {/* We loop slightly to fake multiple cards if only 1 exists, for valid layout feeling */}
-                            {[...categoryItems].map((insight, idx) => (
+                            {categoryItems.map((insight, idx) => (
                                 <motion.div
                                     key={`${cat.id}-${idx}`}
                                     className="min-w-[280px] w-[280px] h-[320px] relative rounded-2xl overflow-hidden snap-center cursor-pointer group flex-shrink-0 bg-white/5 border border-white/5"
@@ -118,7 +153,7 @@ export function LunaraTabInsights({ coupleId }: { coupleId: string }) {
                                     whileHover={{ scale: 0.98 }}
                                     transition={{ duration: 0.2 }}
                                 >
-                                    <Image
+                                    <ResponsiveImage
                                         src={insight.image_url}
                                         alt={insight.title}
                                         fill
@@ -127,7 +162,14 @@ export function LunaraTabInsights({ coupleId }: { coupleId: string }) {
                                     {/* Overlay Gradient */}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
 
-                                    {/* Text Content matching screenshot style */}
+                                    {/* Source Badge */}
+                                    <div className="absolute top-4 left-4">
+                                        <span className="px-2 py-1 rounded-md bg-black/40 backdrop-blur-md text-[8px] uppercase font-bold tracking-widest text-white/60">
+                                            {insight.source}
+                                        </span>
+                                    </div>
+
+                                    {/* Text Content */}
                                     <div className="absolute bottom-0 left-0 w-full p-5">
                                         <p className="text-lg font-bold text-white leading-tight drop-shadow-md">
                                             {insight.title}
@@ -156,7 +198,7 @@ export function LunaraTabInsights({ coupleId }: { coupleId: string }) {
                         {selectedInsight && (
                             <>
                                 <div className="relative h-64 w-full shrink-0">
-                                    <Image
+                                    <ResponsiveImage
                                         src={selectedInsight.image_url}
                                         alt={selectedInsight.title}
                                         fill
@@ -164,9 +206,14 @@ export function LunaraTabInsights({ coupleId }: { coupleId: string }) {
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 to-transparent" />
                                     <div className="absolute bottom-6 left-6 right-6">
-                                        <span className="px-2 py-1 rounded-md bg-white/10 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest text-purple-200 mb-2 inline-block">
-                                            {selectedInsight.category}
-                                        </span>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="px-2 py-1 rounded-md bg-white/10 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest text-purple-200">
+                                                {selectedInsight.category}
+                                            </span>
+                                            <span className="px-2 py-1 rounded-md bg-white/5 backdrop-blur-md text-[10px] uppercase font-bold tracking-widest text-white/40">
+                                                Source: {selectedInsight.source}
+                                            </span>
+                                        </div>
                                         <DrawerTitle className="text-3xl font-serif font-bold leading-tight">
                                             {selectedInsight.title}
                                         </DrawerTitle>
