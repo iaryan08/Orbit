@@ -16,6 +16,7 @@ import {
 import { Heart, Plus, Calendar, Lock, Sparkles, Send, Mail, MailOpen } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { markAsViewed, refreshDashboard } from "@/lib/actions/auth";
+import { getTodayIST } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
@@ -351,7 +352,7 @@ export default function LettersPage() {
                   type="date"
                   value={newLetter.unlock_date}
                   onChange={(e) => setNewLetter(prev => ({ ...prev, unlock_date: e.target.value }))}
-                  min={new Date().toISOString().split("T")[0]}
+                  min={getTodayIST()}
                   className="mt-1 bg-white/5 border-white/10 focus:border-rose-400/50 text-white/80 h-12 rounded-xl"
                 />
               </div>

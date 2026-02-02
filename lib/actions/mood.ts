@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { MoodType } from '@/lib/constants'
+import { getTodayIST, getISTDate } from '@/lib/utils'
 
 export async function submitMood(mood: MoodType, note?: string) {
   const supabase = await createClient()
@@ -26,10 +27,7 @@ export async function submitMood(mood: MoodType, note?: string) {
   /*
    * FIX: Use IST time to calculate mood_date
    */
-  const now = new Date()
-  // Adjust for IST (India) timezone specifically for the server component
-  const istDate = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }))
-  const todayStr = istDate.toISOString().split('T')[0]
+  const todayStr = getTodayIST()
 
   const { error } = await supabase
     .from('moods')
@@ -68,8 +66,7 @@ export async function getTodayMoods() {
    * Server might be in UTC, so new Date() is UTC.
    * We need to find what "today" means in India.
    */
-  const now = new Date()
-  const istDate = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }))
+  const istDate = getISTDate()
 
   // Set to beginning of the day in IST
   const todayStart = new Date(istDate)

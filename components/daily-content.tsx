@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sparkles, RefreshCw, Quote, Heart } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getISTDate } from "@/lib/utils";
 
 interface DailyContentData {
   quote: string;
@@ -47,8 +47,7 @@ export function DailyContent() {
     const cachedDate = localStorage.getItem("dailyContentDate");
 
     // Get current time in IST (India Standard Time)
-    const now = new Date();
-    const istDate = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+    const istDate = getISTDate();
 
     // Create a date string for "today" in IST based on 1 AM cutoff
     // If it's before 1 AM IST, use yesterday's date as "today"

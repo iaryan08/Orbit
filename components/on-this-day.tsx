@@ -238,7 +238,7 @@ export function OnThisDay({ memories, milestones }: { memories: any[], milestone
                                 <div className="absolute bottom-4 left-4 right-4 pointer-events-none">
                                     <h3 className="text-lg font-bold text-white leading-tight drop-shadow-md">{currentItem.title}</h3>
                                     <div className="flex items-center gap-3 mt-1 text-[10px] uppercase tracking-[0.2em] font-bold text-white/60">
-                                        <span>{format(new Date(currentItem.memory_date), "yyyy")}</span>
+                                        <span>{format(new Date(currentItem.memory_date + "T12:00:00"), "yyyy")}</span>
                                         {currentItem.location && (
                                             <span className="flex items-center gap-1">
                                                 <MapPin className="h-3 w-3" />
@@ -274,7 +274,7 @@ export function OnThisDay({ memories, milestones }: { memories: any[], milestone
 
                                     <div className="pt-4 flex flex-col items-center gap-2">
                                         <span className="px-4 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-amber-200">
-                                            {format(new Date(currentItem.milestone_date), "MMMM do, yyyy")}
+                                            {format(new Date(currentItem.milestone_date + "T12:00:00"), "MMMM do, yyyy")}
                                         </span>
                                     </div>
 

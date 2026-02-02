@@ -24,6 +24,7 @@ import { format } from "date-fns";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Edit2 } from "lucide-react";
+import { getTodayIST } from "@/lib/utils";
 
 
 interface Memory {
@@ -53,7 +54,7 @@ export default function MemoriesPage() {
     title: "",
     description: "",
     location: "",
-    memory_date: new Date().toISOString().split("T")[0],
+    memory_date: getTodayIST(),
   });
   const [editingMemory, setEditingMemory] = useState<Memory | null>(null);
   const { toast } = useToast();
@@ -315,7 +316,7 @@ export default function MemoriesPage() {
         title: "",
         description: "",
         location: "",
-        memory_date: new Date().toISOString().split("T")[0],
+        memory_date: getTodayIST(),
       });
       setSelectedFiles([]);
       setPreviewUrls([]);
@@ -354,7 +355,7 @@ export default function MemoriesPage() {
               title: "",
               description: "",
               location: "",
-              memory_date: new Date().toISOString().split("T")[0],
+              memory_date: getTodayIST(),
             });
             setPreviewUrls([]);
             setSelectedFiles([]);
