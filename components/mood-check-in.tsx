@@ -92,20 +92,20 @@ export function MoodCheckIn({ hasPartner }: MoodCheckInProps) {
         <CardDescription className="text-white/70">Share your mood with your partner</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {MOODS.map((mood) => (
             <button
               key={mood}
               onClick={() => setSelectedMood(mood)}
               className={cn(
-                'flex flex-col items-center gap-1 p-3 rounded-xl border border-white/10 transition-all',
+                'flex flex-col items-center gap-1 p-2 rounded-xl border border-white/10 transition-all',
                 selectedMood === mood
                   ? 'bg-primary/20 border-primary'
                   : 'bg-white/5 hover:bg-white/10'
               )}
             >
-              <span className="text-2xl">{MOOD_EMOJIS[mood]}</span>
-              <span className="text-[10px] md:text-xs capitalize text-white w-full truncate text-center">{mood}</span>
+              <span className="text-3xl">{MOOD_EMOJIS[mood]}</span>
+              <span className="text-xs capitalize text-white w-full truncate text-center font-medium opacity-90">{mood}</span>
             </button>
           ))}
         </div>

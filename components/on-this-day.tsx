@@ -26,23 +26,113 @@ interface Milestone {
     content_user2: string | null
 }
 
-// Map category slugs to readable titles
-const CATEGORY_LABELS: Record<string, string> = {
-    first_talk: "First Talk",
-    first_hug: "First Hug",
-    first_kiss: "First Kiss 💋",
-    first_french_kiss: "First French Kiss",
-    first_sex: "First Sex",
-    first_oral: "First Oral Sex",
-    first_time_together: "First Night Together",
-    first_surprise: "First Surprise",
-    first_memory: "First Memory",
-    first_confession: "First Confession",
-    first_promise: "First Promise",
-    first_night_together: "First Night Apart",
-    first_time_alone: "First Time Alone",
-    first_movie_date: "First Movie Date",
-    first_intimate_moment: "First Intimate Moment"
+// Map category slugs to readable titles and styles
+const CATEGORY_CONFIG: Record<string, { label: string, emoji: string, color: string, gradient: string, text: string }> = {
+    first_talk: {
+        label: "First Talk",
+        emoji: "💬",
+        color: "text-blue-300",
+        gradient: "from-blue-900/40 to-black/60",
+        text: "The moment words started our story"
+    },
+    first_hug: {
+        label: "First Hug",
+        emoji: "🫂",
+        color: "text-amber-300",
+        gradient: "from-amber-900/40 to-black/60",
+        text: "The warmth that felt like home"
+    },
+    first_kiss: {
+        label: "First Kiss",
+        emoji: "💋",
+        color: "text-rose-400",
+        gradient: "from-rose-900/40 to-black/60",
+        text: "A spark that set souls on fire"
+    },
+    first_french_kiss: {
+        label: "First French Kiss",
+        emoji: "🔥",
+        color: "text-red-400",
+        gradient: "from-red-900/40 to-black/60",
+        text: "Passion ignited, drifting away"
+    },
+    first_sex: {
+        label: "First Intimacy",
+        emoji: "💞",
+        color: "text-purple-400",
+        gradient: "from-purple-900/40 to-black/60",
+        text: "Two bodies, one soul, infinite love"
+    },
+    first_oral: {
+        label: "Deep Intimacy",
+        emoji: "🌊",
+        color: "text-indigo-400",
+        gradient: "from-indigo-900/40 to-black/60",
+        text: "Exploring the depths of desire"
+    },
+    first_time_together: {
+        label: "First Night Together",
+        emoji: "🌙",
+        color: "text-slate-300",
+        gradient: "from-slate-900/40 to-black/60",
+        text: "Waking up next to you was a dream"
+    },
+    first_surprise: {
+        label: "First Surprise",
+        emoji: "🎁",
+        color: "text-emerald-300",
+        gradient: "from-emerald-900/40 to-black/60",
+        text: "Unexpected joy, forever cherished"
+    },
+    first_memory: {
+        label: "First Memory",
+        emoji: "✨",
+        color: "text-yellow-200",
+        gradient: "from-yellow-900/40 to-black/60",
+        text: "where it all began..."
+    },
+    first_confession: {
+        label: "First Confession",
+        emoji: "💌",
+        color: "text-pink-300",
+        gradient: "from-pink-900/40 to-black/60",
+        text: "Truth spoken from the heart"
+    },
+    first_promise: {
+        label: "First Promise",
+        emoji: "🤞",
+        color: "text-cyan-300",
+        gradient: "from-cyan-900/40 to-black/60",
+        text: "A vow kep, a bond strengthened"
+    },
+    first_night_together: {
+        label: "First Night Apart",
+        emoji: "🛌",
+        color: "text-gray-400",
+        gradient: "from-gray-900/40 to-black/60",
+        text: "Missing you was the only feeling"
+    },
+    first_time_alone: {
+        label: "First Time Alone",
+        emoji: "🤫",
+        color: "text-violet-300",
+        gradient: "from-violet-900/40 to-black/60",
+        text: "Just us, against the world"
+    },
+    first_movie_date: {
+        label: "First Movie Date",
+        emoji: "🎬",
+        color: "text-orange-300",
+        gradient: "from-orange-900/40 to-black/60",
+        text: "Cinema lights and holding hands"
+    },
+    first_intimate_moment: {
+        label: "First Intimate Moment",
+        emoji: "🌹",
+        color: "text-rose-300",
+        gradient: "from-rose-950/40 to-black/60",
+        text: "Closer than ever before"
+    }
 }
 
 export function OnThisDay({ memories, milestones }: { memories: any[], milestones: any[] }) {
@@ -54,13 +144,53 @@ export function OnThisDay({ memories, milestones }: { memories: any[], milestone
     const items = [...normalizedMilestones, ...normalizedMemories]
 
     const [currentIndex, setCurrentIndex] = useState(0)
+    const [direction, setDirection] = useState(0)
 
     if (items.length === 0) return null
 
     const currentItem = items[currentIndex]
+    // Get config for milestones, or default
+    const config = currentItem.type === 'milestone' ? (CATEGORY_CONFIG[currentItem.category] || {
+        label: "Special Moment",
+        emoji: "💖",
+        color: "text-rose-300",
+        gradient: "from-rose-900/40 to-black/60",
+        text: "A beautiful memory in our journey"
+    }) : null
 
-    const nextItem = () => setCurrentIndex(prev => (prev === items.length - 1 ? 0 : prev + 1))
-    const prevItem = () => setCurrentIndex(prev => (prev === 0 ? items.length - 1 : prev - 1))
+    const nextItem = () => {
+        setDirection(1)
+        setCurrentIndex(prev => (prev === items.length - 1 ? 0 : prev + 1))
+    }
+    const prevItem = () => {
+        setDirection(-1)
+        setCurrentIndex(prev => (prev === 0 ? items.length - 1 : prev - 1))
+    }
+
+    const variants = {
+        enter: (direction: number) => ({
+            x: direction > 0 ? 300 : -300,
+            opacity: 0,
+            scale: 0.9
+        }),
+        center: {
+            zIndex: 1,
+            x: 0,
+            opacity: 1,
+            scale: 1,
+            transition: {
+                x: { type: "spring" as const, stiffness: 300, damping: 30 },
+                opacity: { duration: 0.2 }
+            }
+        },
+        exit: (direction: number) => ({
+            zIndex: 0,
+            x: direction < 0 ? 300 : -300,
+            opacity: 0,
+            scale: 0.9,
+            transition: { duration: 0.2 }
+        })
+    }
 
     return (
         <Card className="glass-card overflow-hidden border-primary/10 h-full group relative">
@@ -75,14 +205,24 @@ export function OnThisDay({ memories, milestones }: { memories: any[], milestone
                     </div>
                 </div>
             </CardHeader>
-            <CardContent className="space-y-4 p-0 h-[300px] flex flex-col">
-                <AnimatePresence mode="wait">
+            <CardContent className="space-y-4 p-0 h-[300px] flex flex-col relative overflow-hidden">
+                <AnimatePresence initial={false} custom={direction}>
                     <motion.div
                         key={currentItem.id}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        className="w-full h-full relative"
+                        custom={direction}
+                        variants={variants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        drag="x"
+                        dragConstraints={{ left: 0, right: 0 }}
+                        dragElastic={0.2}
+                        onDragEnd={(e, { offset, velocity }) => {
+                            const swipe = offset.x
+                            if (swipe < -50) nextItem()
+                            else if (swipe > 50) prevItem()
+                        }}
+                        className="w-full h-full absolute inset-0 cursor-grab active:cursor-grabbing"
                     >
                         {currentItem.type === 'memory' ? (
                             // MEMORY CARD VIEW
@@ -92,9 +232,10 @@ export function OnThisDay({ memories, milestones }: { memories: any[], milestone
                                     alt={currentItem.title}
                                     fill
                                     className="object-cover"
+                                    draggable={false}
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                                <div className="absolute bottom-4 left-4 right-4">
+                                <div className="absolute bottom-4 left-4 right-4 pointer-events-none">
                                     <h3 className="text-lg font-bold text-white leading-tight drop-shadow-md">{currentItem.title}</h3>
                                     <div className="flex items-center gap-3 mt-1 text-[10px] uppercase tracking-[0.2em] font-bold text-white/60">
                                         <span>{format(new Date(currentItem.memory_date), "yyyy")}</span>
@@ -114,20 +255,20 @@ export function OnThisDay({ memories, milestones }: { memories: any[], milestone
                             </div>
                         ) : (
                             // MILESTONE CARD VIEW
-                            <div className="w-full h-full relative flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br from-rose-900/40 to-black/60">
+                            <div className={`w-full h-full relative flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br ${config?.gradient}`}>
                                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20" />
 
-                                <div className="relative z-10 space-y-4">
-                                    <div className="w-16 h-16 rounded-full bg-rose-500/20 flex items-center justify-center mx-auto border border-rose-500/30 shadow-lg shadow-rose-900/50">
-                                        <Flame className="w-8 h-8 text-rose-400 animate-pulse" />
+                                <div className="relative z-10 space-y-4 select-none">
+                                    <div className={`w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto border border-white/10 shadow-lg backdrop-blur-sm ${config?.color} text-3xl`}>
+                                        {config?.emoji}
                                     </div>
 
                                     <div className="space-y-1">
-                                        <h3 className="text-2xl md:text-3xl font-serif font-bold text-white text-glow-rose leading-tight">
-                                            {CATEGORY_LABELS[currentItem.category] || "Special Moment"}
+                                        <h3 className={`text-2xl md:text-3xl font-serif font-bold text-white leading-tight ${config?.color} drop-shadow-sm`}>
+                                            {config?.label}
                                         </h3>
-                                        <p className="text-rose-200/60 text-sm font-medium uppercase tracking-widest">
-                                            Everything Started Here
+                                        <p className="text-white/60 text-sm font-medium uppercase tracking-widest">
+                                            {config?.text}
                                         </p>
                                     </div>
 
@@ -137,7 +278,9 @@ export function OnThisDay({ memories, milestones }: { memories: any[], milestone
                                         </span>
                                     </div>
 
-                                    <LinkButton href="/dashboard/intimacy" label="Relive This Memory" />
+                                    <div className="pointer-events-auto">
+                                        <LinkButton href="/dashboard/intimacy" label="Relive This Memory" />
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -145,20 +288,24 @@ export function OnThisDay({ memories, milestones }: { memories: any[], milestone
                 </AnimatePresence>
 
                 {items.length > 1 && (
-                    <div className="absolute top-1/2 -translate-y-1/2 flex justify-between w-full px-2 opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none">
-                        <button
-                            onClick={prevItem}
-                            className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white/70 hover:text-white pointer-events-auto cursor-pointer border border-white/10"
-                        >
-                            <Heart className="h-4 w-4 -rotate-180" />
-                        </button>
-                        <button
-                            onClick={nextItem}
-                            className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white/70 hover:text-white pointer-events-auto cursor-pointer border border-white/10"
-                        >
-                            <Heart className="h-4 w-4" />
-                        </button>
-                    </div>
+                    <>
+                        <div className="absolute top-1/2 left-2 -translate-y-1/2 z-20">
+                            <button
+                                onClick={prevItem}
+                                className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center text-white/30 hover:text-white hover:bg-black/40 transition-all cursor-pointer border border-white/5"
+                            >
+                                <Heart className="h-4 w-4 -rotate-90" />
+                            </button>
+                        </div>
+                        <div className="absolute top-1/2 right-2 -translate-y-1/2 z-20">
+                            <button
+                                onClick={nextItem}
+                                className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center text-white/30 hover:text-white hover:bg-black/40 transition-all cursor-pointer border border-white/5"
+                            >
+                                <Heart className="h-4 w-4 rotate-90" />
+                            </button>
+                        </div>
+                    </>
                 )}
             </CardContent>
         </Card>

@@ -56,7 +56,7 @@ export default function RootLayout({
 
   return (
     <html lang="en" className="dark">
-      <body className={`${_outfit.variable} ${_cormorant.variable} ${_pinyon.variable} font-sans antialiased min-h-screen relative overflow-x-hidden`}>
+      <body suppressHydrationWarning className={`${_outfit.variable} ${_cormorant.variable} ${_pinyon.variable} font-sans antialiased min-h-screen relative overflow-x-hidden`}>
         <RomanticBackground initialImage={initialImage} />
         <div className="relative z-10">
           {children}
