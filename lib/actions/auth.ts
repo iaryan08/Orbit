@@ -13,6 +13,7 @@ export async function signUp(prevState: any, formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const displayName = formData.get('displayName') as string
+  const gender = formData.get('gender') as string
 
   const { error } = await supabase.auth.signUp({
     email,
@@ -21,6 +22,7 @@ export async function signUp(prevState: any, formData: FormData) {
       emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${origin}/dashboard`,
       data: {
         display_name: displayName,
+        gender: gender,
       },
     },
   })
@@ -389,3 +391,36 @@ export async function joinCouple(pairCode: string) {
   revalidatePath('/dashboard')
   return { success: true, couple: response.couple }
 }
+
+export async function saveLunaraOnboarding(onboardingData: any) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: 'Not authenticated' }
+  }
+
+  const { error } = await supabase
+    .from('cycle_profiles')
+    .upsert({
+      user_id: user.id,
+      last_period_start: onboardingData.lastPeriodStart,
+      avg_cycle_length: parseInt(onboardingData.cycleLength),
+      avg_period_length: parseInt(onboardingData.periodLength),
+      contraception: onboardingData.contraception,
+      trying_to_conceive: onboardingData.tryingToConceive === 'yes',
+      regularity: onboardingData.regularity,
+      typical_symptoms: onboardingData.symptoms,
+      tracking_goals: onboardingData.trackingGoals,
+      onboarding_completed: true,
+      updated_at: new Date().toISOString(),
+    })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/dashboard', 'layout')
+  return { success: true }
+}
+

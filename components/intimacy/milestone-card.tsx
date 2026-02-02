@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { CalendarIcon, Heart, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -36,6 +36,18 @@ export function MilestoneCard({
     );
     const [content, setContent] = useState(milestone?.[myContentField] || "");
     const [saving, setSaving] = useState(false);
+    const [hasInteracted, setHasInteracted] = useState(false);
+
+    useEffect(() => {
+        if (milestone && !hasInteracted) {
+            if (milestone.milestone_date) {
+                setDate(new Date(milestone.milestone_date));
+            }
+            if (milestone[myContentField]) {
+                setContent(milestone[myContentField]);
+            }
+        }
+    }, [milestone, myContentField, hasInteracted]);
 
     const myAnswer = milestone?.[myContentField];
     const partnerAnswer = milestone?.[partnerContentField];
@@ -46,6 +58,7 @@ export function MilestoneCard({
         await onSave(id, date, content);
         setSaving(false);
         setIsOpen(false);
+        setHasInteracted(false); // Reset interaction after save to pick up potential partner updates or confirmed server state
     };
 
     return (
@@ -98,7 +111,10 @@ export function MilestoneCard({
                                         <Calendar
                                             mode="single"
                                             selected={date}
-                                            onSelect={setDate}
+                                            onSelect={(newDate) => {
+                                                setDate(newDate);
+                                                setHasInteracted(true);
+                                            }}
                                             initialFocus
                                             className="text-white"
                                         />
@@ -111,7 +127,10 @@ export function MilestoneCard({
                                 <label className="text-xs uppercase tracking-widest text-rose-200/40 font-bold">Your Perspective</label>
                                 <Textarea
                                     value={content}
-                                    onChange={(e) => setContent(e.target.value)}
+                                    onChange={(e) => {
+                                        setContent(e.target.value);
+                                        setHasInteracted(true);
+                                    }}
                                     placeholder="How do you remember it..."
                                     className="bg-black/40 border-rose-500/20 text-rose-100 min-h-[100px] focus:border-rose-500/50"
                                 />

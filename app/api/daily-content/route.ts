@@ -1,16 +1,39 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 export async function POST() {
-  try {
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-    const prompt = `Generate romantic and thoughtful content for a couple's daily inspiration. Return a JSON object with exactly these three fields:
-    1. "quote": A beautiful, romantic love quote (can be original or from famous sources)
-    2. "challenge": A fun and romantic daily challenge for couples to do together
-    3. "tip": A helpful relationship tip to strengthen their bond
+  let userGender = 'user';
+  let userName = 'Partner';
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('gender, display_name')
+      .eq('id', user.id)
+      .single();
+
+    if (profile) {
+      userGender = profile.gender || 'user';
+      userName = profile.display_name || 'Partner';
+    }
+  }
+
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const prompt = `Generate romantic and thoughtful content for a couple's daily inspiration. 
+    The user's name is ${userName} and their gender is ${userGender}.
+    
+    Return a JSON object with exactly these three fields:
+    1. "quote": A beautiful, romantic love quote (tailored for a ${userGender})
+    2. "challenge": A fun and romantic daily challenge for ${userName} to do for their partner.
+    3. "tip": A helpful relationship tip to strengthen their bond, considering the user is a ${userGender}.
 
     Keep each response concise (1-2 sentences max). Make it warm, loving, and encouraging.
     Return ONLY the JSON object, no additional text.`;

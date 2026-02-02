@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { RealtimeObserver } from '@/components/realtime-observer'
 import { fetchUnreadCounts } from '@/lib/actions/auth'
+import { AppModeProvider } from '@/components/app-mode-context'
 
 export default async function DashboardLayout({
   children,
@@ -59,21 +60,23 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-transparent pb-10 md:pb-0">
-      <RealtimeObserver
-        coupleId={profile?.couple_id || null}
-        partnerId={couple ? (couple.user1_id === user.id ? couple.user2_id : couple.user1_id) : null}
-      />
-      <DashboardHeader
-        userName={profile?.display_name || user.email?.split('@')[0] || 'User'}
-        userAvatar={profile?.avatar_url}
-        partnerName={partnerProfile?.display_name}
-        daysTogetherCount={daysTogetherCount}
-        unreadCounts={couple ? await fetchUnreadCounts() : undefined}
-      />
-      <main className="container mx-auto px-4 py-6 pt-32">
-        {children}
-      </main>
-    </div>
+    <AppModeProvider>
+      <div className="min-h-screen bg-transparent pb-10 md:pb-0">
+        <RealtimeObserver
+          coupleId={profile?.couple_id || null}
+          partnerId={couple ? (couple.user1_id === user.id ? couple.user2_id : couple.user1_id) : null}
+        />
+        <DashboardHeader
+          userName={profile?.display_name || user.email?.split('@')[0] || 'User'}
+          userAvatar={profile?.avatar_url}
+          partnerName={partnerProfile?.display_name}
+          daysTogetherCount={daysTogetherCount}
+          unreadCounts={couple ? await fetchUnreadCounts() : undefined}
+        />
+        <main className="container mx-auto px-4 py-6 pt-32">
+          {children}
+        </main>
+      </div>
+    </AppModeProvider>
   )
 }

@@ -9,6 +9,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Heart, Mail, Lock, User, Loader2 } from 'lucide-react'
 import { signUp } from '@/lib/actions/auth'
 import { useToast } from '@/hooks/use-toast'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export default function SignUpPage() {
   const [state, formAction, isPending] = useActionState(signUp, null)
@@ -73,6 +80,19 @@ export default function SignUpPage() {
                   required
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="gender" className="text-rose-50/90 font-medium">Gender</Label>
+              <Select name="gender" required>
+                <SelectTrigger className="w-full h-11 bg-white/5 border-white/10 text-rose-50">
+                  <SelectValue placeholder="Select gender" />
+                </SelectTrigger>
+                <SelectContent className="bg-rose-950 border-white/10 text-rose-50">
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">

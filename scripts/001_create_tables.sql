@@ -9,6 +9,7 @@ create table if not exists public.profiles (
   couple_id uuid,
   couple_code text unique,
   partner_id uuid references auth.users(id),
+  gender text check (gender in ('male', 'female', 'other')),
   created_at timestamp with time zone default now(),
   updated_at timestamp with time zone default now()
 );
@@ -191,11 +192,12 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, email, display_name)
+  insert into public.profiles (id, email, display_name, gender)
   values (
     new.id,
     new.email,
-    coalesce(new.raw_user_meta_data ->> 'display_name', split_part(new.email, '@', 1))
+    coalesce(new.raw_user_meta_data ->> 'display_name', split_part(new.email, '@', 1)),
+    new.raw_user_meta_data ->> 'gender'
   )
   on conflict (id) do nothing;
   return new;

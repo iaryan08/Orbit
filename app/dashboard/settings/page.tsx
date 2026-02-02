@@ -10,12 +10,20 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface Profile {
   id: string;
   display_name: string;
   avatar_url: string | null;
   couple_id: string | null;
+  gender: string | null;
 }
 
 interface Couple {
@@ -33,6 +41,7 @@ export default function SettingsPage() {
   const [uploading, setUploading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [displayName, setDisplayName] = useState("");
+  const [gender, setGender] = useState("");
   const [coupleName, setCoupleName] = useState("");
   const [anniversaryDate, setAnniversaryDate] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -58,6 +67,7 @@ export default function SettingsPage() {
       if (profileData) {
         setProfile(profileData);
         setDisplayName(profileData.display_name || "");
+        setGender(profileData.gender || "");
 
         if (profileData.couple_id) {
           const { data: coupleData } = await supabase
@@ -144,7 +154,10 @@ export default function SettingsPage() {
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ display_name: displayName })
+        .update({
+          display_name: displayName,
+          gender: gender || null
+        })
         .eq("id", profile.id);
 
       if (error) throw error;
@@ -159,7 +172,7 @@ export default function SettingsPage() {
       toast({
         title: "Error",
         description: "Failed to save profile. Please try again.",
-        variant: "failed",
+        variant: "destructive",
       });
     } finally {
       setSaving(false);
@@ -286,6 +299,18 @@ export default function SettingsPage() {
                 placeholder="Your name"
                 className="border border-white/10"
               />
+            </div>
+            <div>
+              <Label htmlFor="gender" className="text-white/80 font-bold uppercase tracking-widest text-[10px] mb-2 block">Gender</Label>
+              <Select value={gender} onValueChange={setGender}>
+                <SelectTrigger className="w-full border border-white/10 text-white">
+                  <SelectValue placeholder="Select gender" />
+                </SelectTrigger>
+                <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <Button onClick={saveProfile} disabled={saving} className="w-full sm:w-auto">
               {saving ? "Saving..." : "Save Profile"}

@@ -27,11 +27,14 @@ import {
   Mail,
   Image as ImageIcon,
   Gamepad2,
-  Bell
+  Bell,
+  Moon
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { useAppMode } from './app-mode-context'
+import { LunaraToggle } from './lunara-toggle'
 
 interface DashboardHeaderProps {
   userName: string
@@ -67,19 +70,31 @@ export function DashboardHeader({
     { href: '/dashboard', icon: LayoutGrid, label: 'Home' },
     { href: '/dashboard/letters', icon: Mail, label: 'Letters' },
     { href: '/dashboard/memories', icon: ImageIcon, label: 'Memories' },
-    { href: '/dashboard/games', icon: Gamepad2, label: 'Games' },
+    // { href: '/dashboard/games', icon: Gamepad2, label: 'Games' },
     { href: '/dashboard/intimacy', icon: Heart, label: 'Intimacy' },
   ]
+
+  const { mode } = useAppMode()
 
   return (
     <>
       {/* 1. Logo (Top Left Floating) */}
       <div className={cn(
-        "fixed top-6 left-6 z-50 hidden md:flex items-center gap-2 text-amber-200/90 drop-shadow-xl text-glow-gold transition-all duration-500",
+        "fixed top-6 left-6 z-50 hidden md:flex items-center gap-2 drop-shadow-xl transition-all duration-500",
+        mode === 'moon' ? "text-amber-200/90 text-glow-gold" : "text-purple-200/90 shadow-[0_0_10px_rgba(168,85,247,0.3)]",
         scrolled ? "opacity-0 -translate-x-10 pointer-events-none" : "opacity-100 translate-x-0"
       )}>
-        <Heart className="w-6 h-6 text-rose-300 animate-pulse-slow" fill="currentColor" />
-        <span className="font-serif text-xl font-semibold tracking-wide">MoonBetweenUs</span>
+        {mode === 'moon' ? (
+          <>
+            <Heart className="w-6 h-6 text-rose-300 animate-pulse-slow" fill="currentColor" />
+            <span className="font-serif text-xl font-semibold tracking-wide">MoonBetweenUs</span>
+          </>
+        ) : (
+          <>
+            <Moon className="w-6 h-6 text-purple-300" fill="currentColor" />
+            <span className="font-serif text-xl font-semibold tracking-wide">Lunara</span>
+          </>
+        )}
       </div>
 
       {/* 2. Days Counter (Absolute Top Center - Optional, or kept in profile) */}
@@ -102,7 +117,8 @@ export function DashboardHeader({
         <nav
           onMouseLeave={() => setHoveredPath(null)}
           className={cn(
-            "glass-card flex items-center gap-1 p-1.5 rounded-full border border-white/10 shadow-2xl ring-1 ring-white/5",
+            "glass-card flex items-center gap-1 p-1.5 rounded-full border shadow-2xl ring-1 ring-white/5",
+            mode === 'moon' ? "border-white/10" : "border-purple-500/30 bg-purple-950/40",
             "backdrop-blur-[12px] md:backdrop-blur-3xl bg-black/60", // 12px blur for mobile per request
             scrolled ? "md:flex-col md:rounded-[40px] md:py-4 md:px-2" : "md:flex-row md:rounded-full md:p-1.5"
           )}
@@ -127,6 +143,13 @@ export function DashboardHeader({
                 <p>Settings</p>
               </TooltipContent>
             </Tooltip>
+
+            {/* Separator in Dock */}
+            <div className={cn(
+              "bg-white/10 transition-all duration-300",
+              scrolled ? "md:w-6 md:h-px md:my-4 mx-0" : "md:w-px md:h-6 md:mx-2 my-0",
+              "w-px h-6 mx-2" // Mobile default
+            )} />
 
             {navItems.map((item) => {
               const isActive = pathname === item.href
@@ -192,21 +215,17 @@ export function DashboardHeader({
               )
             })}
 
-            {/* Separator in Dock */}
-            <div className={cn(
-              "bg-white/10 transition-all duration-300",
-              scrolled ? "md:w-6 md:h-px md:my-4 mx-0" : "md:w-px md:h-6 md:mx-2 my-0",
-              "w-px h-6 mx-2" // Mobile default
-            )} />
-
 
           </TooltipProvider>
         </nav>
       </div>
 
-      {/* 4. Profile Dropdown (Top Right Floating) */}
+      {/* 4. Profile Dropdown & Mode Toggle (Top Right Floating) */}
       <div className="fixed top-6 right-6 z-50 flex items-center gap-4">
-        {partnerName && daysTogetherCount !== undefined && (
+        {/* Lunara Mode Toggle Indicator */}
+        <LunaraToggle />
+
+        {partnerName && daysTogetherCount !== undefined && mode === 'moon' && (
           <div className="hidden lg:flex flex-col items-end mr-2 text-white/90 drop-shadow-sm">
             <span className="text-xs font-light uppercase tracking-widest opacity-80">Together</span>
             <span className="text-sm font-semibold">{daysTogetherCount} Days</span>

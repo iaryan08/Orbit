@@ -63,7 +63,7 @@ export default function IntimacyPage() {
                 // Identify partner
                 // We need to know who is user1 and user2 to know which column to read/write
             }
-            fetchMilestones(profile.couple_id);
+            await fetchMilestones(profile.couple_id);
             subscribe(profile.couple_id);
         }
         setLoading(false);
