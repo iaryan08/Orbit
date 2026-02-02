@@ -5,6 +5,10 @@ import { revalidatePath } from 'next/cache'
 import { MoodType } from '@/lib/constants'
 import { getTodayIST, getISTDate } from '@/lib/utils'
 
+import { sendNotification } from '@/lib/actions/notifications'
+
+// ...
+
 export async function submitMood(mood: MoodType, note?: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -13,10 +17,10 @@ export async function submitMood(mood: MoodType, note?: string) {
     return { error: 'Not authenticated' }
   }
 
-  // Get user's couple_id
+  // Get couple and partner info correctly
   const { data: profile } = await supabase
     .from('profiles')
-    .select('couple_id')
+    .select('couple_id, display_name')
     .eq('id', user.id)
     .single()
 
@@ -41,6 +45,28 @@ export async function submitMood(mood: MoodType, note?: string) {
 
   if (error) {
     return { error: error.message }
+  }
+
+  // Calculate Partner ID from Couples Table
+  const { data: couple } = await supabase
+    .from('couples')
+    .select('user1_id, user2_id')
+    .eq('id', profile.couple_id)
+    .single()
+
+  if (couple) {
+    const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
+
+    if (partnerId) {
+      await sendNotification({
+        recipientId: partnerId,
+        actorId: user.id,
+        type: 'mood',
+        title: 'New Mood Log',
+        message: `${profile.display_name || 'Your partner'} is feeling ${mood} ${note ? 'with a note' : ''}`,
+        actionUrl: '/dashboard'
+      })
+    }
   }
 
   revalidatePath('/dashboard')

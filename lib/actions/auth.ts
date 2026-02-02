@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
+import { sendNotification } from '@/lib/actions/notifications'
 
 export async function signUp(prevState: any, formData: FormData) {
   const supabase = await createClient()
@@ -496,7 +497,7 @@ export async function logPeriodStart() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('couple_id')
+    .select('couple_id, display_name')
     .eq('id', user.id)
     .single()
 
@@ -530,6 +531,30 @@ export async function logPeriodStart() {
   if (logError) {
     console.error('Error adding cycle log:', logError)
     // We don't return error here because the main profile update succeeded
+  }
+
+  // 3. Notify Partner
+  if (profile?.couple_id) {
+    const { data: couple } = await supabase
+      .from('couples')
+      .select('user1_id, user2_id')
+      .eq('id', profile.couple_id)
+      .single()
+
+    if (couple) {
+      const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
+      if (partnerId) {
+        await sendNotification({
+          recipientId: partnerId,
+          actorId: user.id,
+          type: 'period_start',
+          title: 'Period Started',
+          message: `${profile.display_name || 'Your partner'} logged the start of their period.`,
+          actionUrl: '/dashboard',
+          metadata: { log_date: today }
+        })
+      }
+    }
   }
 
   revalidatePath('/dashboard', 'layout')
@@ -568,9 +593,28 @@ export async function logSymptoms(symptoms: string[]) {
       updated_at: new Date().toISOString()
     }, { onConflict: 'user_id, log_date' })
 
-  if (error) {
-    console.error('Error logging symptoms:', error)
-    return { error: error.message }
+  // Notify Partner
+  if (profile?.couple_id) {
+    const { data: couple } = await supabase
+      .from('couples')
+      .select('user1_id, user2_id')
+      .eq('id', profile.couple_id)
+      .single()
+
+    if (couple) {
+      const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
+      if (partnerId) {
+        await sendNotification({
+          recipientId: partnerId,
+          actorId: user.id,
+          type: 'mood',
+          title: 'Symptoms Updated',
+          message: `${profile.display_name || 'Your partner'} updated their cycle symptoms.`,
+          actionUrl: '/dashboard',
+          metadata: { log_date: today }
+        })
+      }
+    }
   }
 
   revalidatePath('/dashboard', 'layout')
@@ -611,9 +655,28 @@ export async function logSexDrive(level: string) {
 
   console.log('[logSexDrive] Result:', { data, error })
 
-  if (error) {
-    console.error('Error logging sex drive:', error)
-    return { error: error.message }
+  // Notify Partner
+  if (profile?.couple_id) {
+    const { data: couple } = await supabase
+      .from('couples')
+      .select('user1_id, user2_id')
+      .eq('id', profile.couple_id)
+      .single()
+
+    if (couple) {
+      const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
+      if (partnerId) {
+        await sendNotification({
+          recipientId: partnerId,
+          actorId: user.id,
+          type: 'mood',
+          title: 'Intimacy Status Updated',
+          message: `${profile.display_name || 'Your partner'} updated their intimacy status.`,
+          actionUrl: '/dashboard',
+          metadata: { log_date: today }
+        })
+      }
+    }
   }
 
   revalidatePath('/dashboard', 'layout')

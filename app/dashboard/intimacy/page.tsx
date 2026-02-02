@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { MilestoneCard } from "@/components/intimacy/milestone-card";
+import { logIntimacyMilestone } from "@/lib/actions/intimacy";
 
 const questions = [
     { id: "first_talk", label: "First Talk", q: "What was the first time you discussed intimacy with your partner?" },
@@ -93,30 +94,20 @@ export default function IntimacyPage() {
     const partnerContentField = isUser1 ? "content_user2" : "content_user1";
 
     const handleSave = async (category: string, date: Date | undefined, myContent: string) => {
-        if (!coupleId) return;
-
-        const existing = milestones[category] || {};
-
-        const updateData: any = {
-            couple_id: coupleId,
+        const payload = {
             category,
-            [myContentField]: myContent,
-            updated_at: new Date().toISOString()
-        };
-
-        // Only update date if it's provided (shared field)
-        if (date) {
-            updateData.milestone_date = format(date, "yyyy-MM-dd");
+            content: myContent,
+            date: date ? format(date, "yyyy-MM-dd") : undefined
         }
 
-        // Upsert
-        const { error } = await supabase.from("milestones").upsert(updateData, { onConflict: "couple_id, category" });
+        const res = await logIntimacyMilestone(payload)
 
-        if (error) {
-            toast({ title: "Error", description: "Failed to save.", variant: "destructive" });
+        if (res.error) {
+            toast({ title: "Error", description: res.error, variant: "destructive" });
         } else {
-            toast({ title: "Saved", description: "Your memory has been recorded.", variant: "default" }); // Use default or success variant if available
+            toast({ title: "Saved", description: "Your memory has been recorded.", variant: "default" });
             setActiveQuestion(null);
+            if (coupleId) fetchMilestones(coupleId); // Refresh local state
         }
     };
 

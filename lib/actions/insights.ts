@@ -7,7 +7,7 @@ import staticContent from '@/lib/content/insights-static.json'
 
 // --- Configuration ---
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || '')
-const NEWS_API_KEY = process.env.NEWS_API_KEY
+const INSIGHT_API_KEY = process.env.INSIGHT_API_KEY
 const GLOBAL_ID = '00000000-0000-0000-0000-000000000000'
 
 interface FeedCard {
@@ -35,15 +35,47 @@ const WIKI_TOPICS: Record<string, string[]> = {
  * Fetches and normalizes content from Wikipedia, NewsAPI, and Static JSON.
  * Designed to be called by a CRON job or manually.
  */
-export async function syncDailyFeed() {
+export async function syncDailyFeed(force: boolean = false) {
     const supabase = await createAdminClient() // Use Admin Client
     const today = getTodayIST()
 
-    console.log(`[Cron] Syncing Daily Feed for ${today}`)
+    console.log(`[Cron] Checking sync for ${today}`)
+
+    // 1. Check if we already synced today
+    const { data: existing } = await supabase
+        .from('global_insights_cache')
+        .select('insight_date')
+        .eq('insight_date', today)
+        .single()
+
+    if (existing && !force) {
+        console.log(`[Cron] Already synced for ${today}. Skipping.`)
+        return { success: true, message: "Already synced" }
+    }
+
+    // 2. Randomization Logic (for Cron window 3:00 - 4:00 AM)
+    // If called via Cron (not force), roll dice.
+    // We want it to run ONCE between 3:00 and 4:00.
+    // If current time is nearing 4:00 AM (e.g. > 3:45), run definitely.
+    // Otherwise, 30% chance.
+    if (!force) {
+        const istHours = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })).getHours()
+        const istMinutes = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })).getMinutes()
+
+        // Critical window check (e.g. after 3:40 AM, just do it to ensure it happens)
+        const isLateWindow = istHours === 3 && istMinutes >= 40
+
+        if (!isLateWindow && Math.random() > 0.3) {
+            console.log(`[Cron] Randomly postponing sync (Time: ${istHours}:${istMinutes})`)
+            return { success: true, message: "Randomly postponed" }
+        }
+    }
+
+    console.log(`[Cron] Executing sync...`)
 
     const allItems: FeedCard[] = []
 
-    // 1. Wikipedia Content (Education/Evergreen)
+    // 3. Wikipedia Content (Education/Evergreen)
     const wikiPromises = Object.entries(WIKI_TOPICS).map(async ([category, topics]) => {
         // Rotate weekly based on date
         const dayOfYear = Math.floor((new Date().getTime() - new Date(new Date().getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24))
@@ -57,11 +89,11 @@ export async function syncDailyFeed() {
         if (item) allItems.push(item)
     })
 
-    // 2. NewsAPI Content (Freshness)
+    // 4. NewsAPI Content (Freshness)
     const newsItems = await fetchNewsAPIContent()
     allItems.push(...newsItems)
 
-    // 3. Static Fallback (Stability)
+    // 5. Static Fallback (Stability)
     // Add 1 static item per category to ensure variety
     for (const [category, items] of Object.entries(staticContent)) {
         const item = items[0] // Taking the first one as basic fallback
@@ -173,7 +205,7 @@ async function fetchWikipediaSummary(category: string, topic: string): Promise<F
 }
 
 async function fetchNewsAPIContent(): Promise<FeedCard[]> {
-    if (!NEWS_API_KEY) return []
+    if (!INSIGHT_API_KEY) return []
 
     const categories = [
         { key: "Latest News", query: "sexual health" },
@@ -183,7 +215,7 @@ async function fetchNewsAPIContent(): Promise<FeedCard[]> {
 
     try {
         const promises = categories.map(async (cat) => {
-            const response = await fetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(cat.query)}&language=en&pageSize=3&apiKey=${NEWS_API_KEY}`)
+            const response = await fetch(`https://newsapi.org/v2/everything?q=${encodeURIComponent(cat.query)}&language=en&pageSize=3&apiKey=${INSIGHT_API_KEY}`)
             if (!response.ok) return []
             const data = await response.json()
 

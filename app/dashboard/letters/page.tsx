@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Heart, Plus, Calendar, Lock, Sparkles, Send, Mail, MailOpen } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { openLetter, sendLetter as sendLetterAction, updateLetter } from "@/lib/actions/letters";
 import { markAsViewed, refreshDashboard } from "@/lib/actions/auth";
 import { getTodayIST } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +32,7 @@ interface LoveLetter {
   receiver_id: string;
   unlock_date: string | null;
   is_read: boolean;
+  read_at?: string; // Added field
   created_at: string;
   sender_name?: string;
 }
@@ -159,47 +161,16 @@ export default function LettersPage() {
     }
   };
 
-  const sendLetter = async () => {
+  const handleSendLetter = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("couple_id")
-        .eq("id", user.id)
-        .single();
-
-      if (!profile?.couple_id) {
-        toast({
-          title: "Not paired yet",
-          description: "You need to be paired with your partner first.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Get partner ID
-      const { data: couple } = await supabase
-        .from("couples")
-        .select("user1_id, user2_id")
-        .eq("id", profile.couple_id)
-        .single();
-
-      const partnerId = couple?.user1_id === user.id ? couple?.user2_id : couple?.user1_id;
-
       if (editingLetter) {
-        const { error } = await supabase
-          .from("love_letters")
-          .update({
-            title: newLetter.title,
-            content: newLetter.content,
-            unlock_date: newLetter.unlock_date || null,
-            unlock_type: newLetter.unlock_date ? 'custom' : 'immediate'
-          })
-          .eq("id", editingLetter.id);
+        const res = await updateLetter(editingLetter.id, {
+          title: newLetter.title,
+          content: newLetter.content,
+          unlock_date: newLetter.unlock_date || null
+        })
 
-        if (error) throw error;
+        if (res.error) throw new Error(res.error)
 
         toast({
           title: "Letter updated!",
@@ -207,17 +178,13 @@ export default function LettersPage() {
           variant: "success",
         });
       } else {
-        const { error } = await supabase.from("love_letters").insert({
-          couple_id: profile.couple_id,
-          sender_id: user.id,
-          receiver_id: partnerId,
+        const res = await sendLetterAction({
           title: newLetter.title,
           content: newLetter.content,
-          unlock_date: newLetter.unlock_date || null,
-          unlock_type: newLetter.unlock_date ? 'custom' : 'immediate'
-        });
+          unlock_date: newLetter.unlock_date || null
+        })
 
-        if (error) throw error;
+        if (res.error) throw new Error(res.error)
 
         toast({
           title: "Letter sent!",
@@ -234,15 +201,16 @@ export default function LettersPage() {
       fetchLetters();
       router.refresh();
       await refreshDashboard();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error sending letter:", error);
       toast({
         title: "Error",
-        description: "Failed to send letter. Please try again.",
-        variant: "failed",
+        description: error.message || "Failed to send letter. Please try again.",
+        variant: "destructive",
       });
     }
   };
+
 
   const generateAILetter = async () => {
     setGenerating(true);
@@ -266,14 +234,13 @@ export default function LettersPage() {
 
   const markAsRead = async (letterId: string) => {
     try {
-      await supabase
-        .from("love_letters")
-        .update({ is_read: true })
-        .eq("id", letterId);
+      const result = await openLetter(letterId);
 
-      setLetters(prev =>
-        prev.map(l => (l.id === letterId ? { ...l, is_read: true } : l))
-      );
+      if (result.success && result.read_at) {
+        setLetters(prev =>
+          prev.map(l => (l.id === letterId ? { ...l, is_read: true, read_at: result.read_at } : l))
+        );
+      }
     } catch (error) {
       console.error("Error marking letter as read:", error);
     }
@@ -356,7 +323,7 @@ export default function LettersPage() {
                   className="mt-1 bg-white/5 border-white/10 focus:border-rose-400/50 text-white/80 h-12 rounded-xl"
                 />
               </div>
-              <Button onClick={sendLetter} className="w-full gap-2 h-12 text-lg font-bold shadow-lg shadow-rose-500/20" variant="rosy" disabled={!newLetter.content}>
+              <Button onClick={handleSendLetter} className="w-full gap-2 h-12 text-lg font-bold shadow-lg shadow-rose-500/20" variant="rosy" disabled={!newLetter.content}>
                 <Send className="h-5 w-5" />
                 {editingLetter ? "Save Changes" : "Send with Love"}
               </Button>
@@ -431,7 +398,15 @@ export default function LettersPage() {
                   {letter.content}
                 </p>
                 <div className="flex items-center justify-between text-[10px] uppercase tracking-widest font-bold text-white/40 pt-4 border-t border-white/5">
-                  <span>From: <span className="text-white/60">{letter.sender_name}</span></span>
+                  <div className="flex flex-col gap-1">
+                    <span>From: <span className="text-white/60">{letter.sender_name}</span></span>
+                    {letter.read_at && letter.sender_id === (supabase as any).auth?.user?.id && (
+                      <span className="text-emerald-400/80 flex items-center gap-1 normal-case tracking-normal font-medium">
+                        <MailOpen className="h-3 w-3" />
+                        Read {format(new Date(letter.read_at), "MMM d, h:mm a")}
+                      </span>
+                    )}
+                  </div>
                   <span>{format(new Date(letter.created_at), "MMM d, yyyy")}</span>
                 </div>
               </CardContent>

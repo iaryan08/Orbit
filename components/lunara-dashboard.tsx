@@ -21,6 +21,8 @@ import { SupportModal } from './support-modal'
 import { differenceInDays, addDays, format, startOfDay } from 'date-fns'
 import { cn } from '@/lib/utils'
 
+import { NotificationBell } from './notification-bell'
+
 export function LunaraDashboard() {
     const [loading, setLoading] = React.useState(true)
     const [profile, setProfile] = React.useState<any>(null)
@@ -259,15 +261,16 @@ export function LunaraDashboard() {
 
     return (
         <div className="max-w-7xl mx-auto space-y-12 pt-12 pb-40 px-6 md:px-8">
+
             {/* Lunara Brand Header */}
             <ScrollReveal className="space-y-4 text-center lg:text-left relative">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                     <div className="space-y-4">
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-200/90 text-[10px] uppercase tracking-[0.3em] font-bold backdrop-blur-md shadow-[0_0_15px_rgba(168,85,247,0.2)]">
                             <Sparkles className="w-3 h-3 text-purple-400" />
                             Lunara Sync
                         </div>
-                        <h1 className="hidden md:block text-4xl md:text-7xl font-serif text-white leading-[1.1] tracking-tight">
+                        <h1 className="text-4xl md:text-7xl font-serif text-white leading-[1.1] tracking-tight">
                             Your Natural
                             <br />
                             <span className="bg-gradient-to-r from-purple-300 via-indigo-300 to-purple-200 bg-clip-text text-transparent drop-shadow-sm italic">
@@ -276,12 +279,13 @@ export function LunaraDashboard() {
                         </h1>
                     </div>
 
-                    {profile?.gender === 'female' && (
-                        <div className="hidden md:flex justify-end">
+                    <div className="flex items-center gap-4 justify-center md:justify-end">
+
+                        {profile?.gender === 'female' && (
                             <Button
                                 variant="ghost"
                                 onClick={() => setShowSettings(true)}
-                                className="group relative flex items-center gap-2 px-6 py-6 rounded-2xl bg-purple-950/20 border border-purple-500/20 text-purple-200 hover:text-white hover:bg-purple-900/40 transition-all shadow-xl"
+                                className="hidden md:flex group relative items-center gap-2 px-6 py-6 rounded-2xl bg-purple-950/20 border border-purple-500/20 text-purple-200 hover:text-white hover:bg-purple-900/40 transition-all shadow-xl"
                             >
                                 <Settings className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500 text-purple-400" />
                                 <div className="text-left">
@@ -289,8 +293,8 @@ export function LunaraDashboard() {
                                     <p className="text-sm font-bold">Cycle Settings</p>
                                 </div>
                             </Button>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
 
             </ScrollReveal>

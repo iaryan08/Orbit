@@ -18,6 +18,7 @@ import {
 import { Camera, Plus, Calendar, MapPin, Heart, Upload, X, ImageIcon, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { markAsViewed, refreshDashboard, deleteMemory } from "@/lib/actions/auth";
+import { createMemory, updateMemory } from "@/lib/actions/memories";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
@@ -245,7 +246,7 @@ export default function MemoriesPage() {
       toast({
         title: "Title required",
         description: "Please give your memory a title.",
-        variant: "failed",
+        variant: "destructive", // Changed from failed
       });
       return;
     }
@@ -265,44 +266,40 @@ export default function MemoriesPage() {
         toast({
           title: "Not paired yet",
           description: "You need to be paired with your partner first.",
-          variant: "failed",
+          variant: "destructive",
         });
         return;
       }
 
       // Upload images if any new ones selected
       const newImageUrls = selectedFiles.length > 0 ? await uploadImages(profile.couple_id) : [];
+      const allImageUrls = [...existingImages, ...newImageUrls];
 
       if (editingMemory) {
-        const { error } = await supabase
-          .from("memories")
-          .update({
-            title: newMemory.title,
-            description: newMemory.description,
-            image_urls: [...existingImages, ...newImageUrls],
-            location: newMemory.location || null,
-            memory_date: newMemory.memory_date,
-          })
-          .eq("id", editingMemory.id);
+        const res = await updateMemory(editingMemory.id, {
+          title: newMemory.title,
+          description: newMemory.description,
+          image_urls: allImageUrls,
+          location: newMemory.location || null,
+          memory_date: newMemory.memory_date,
+        })
 
-        if (error) throw error;
+        if (res.error) throw new Error(res.error)
 
         toast({
           title: "Memory updated!",
           description: "Your changes have been saved.",
         });
       } else {
-        const { error } = await supabase.from("memories").insert({
-          couple_id: profile.couple_id,
-          user_id: user.id,
+        const res = await createMemory({
           title: newMemory.title,
           description: newMemory.description,
-          image_urls: newImageUrls,
+          image_urls: newImageUrls, // For new memory, just new images
           location: newMemory.location || null,
           memory_date: newMemory.memory_date,
-        });
+        })
 
-        if (error) throw error;
+        if (res.error) throw new Error(res.error)
 
         toast({
           title: "Memory saved!",
@@ -326,11 +323,11 @@ export default function MemoriesPage() {
       fetchMemories();
       router.refresh();
       await refreshDashboard();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving memory:", error);
       toast({
         title: "Error",
-        description: "Failed to save memory. Please try again.",
+        description: error.message || "Failed to save memory. Please try again.",
         variant: "destructive",
       });
     } finally {

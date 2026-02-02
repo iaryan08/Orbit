@@ -17,6 +17,7 @@ import { LunaraTabDashboard } from './lunara-tab-dashboard'
 import { LunaraTabPartner } from './lunara-tab-partner'
 import { LunaraTabInsights } from './lunara-tab-insights'
 import { ScrollReveal } from '@/components/scroll-reveal'
+import { NotificationBell } from '@/components/notification-bell'
 
 export function LunaraLayout() {
     const [activeTab, setActiveTab] = React.useState<'dashboard' | 'insights' | 'partner'>('dashboard')
@@ -117,6 +118,15 @@ export function LunaraLayout() {
                     )}
                 >
                     <TooltipProvider delayDuration={0}>
+                        {/* Bell with Separator */}
+                        <div className="flex items-center gap-1 pr-2">
+                            <NotificationBell />
+                            <div className={cn(
+                                "bg-white/10 w-px h-6 mx-2 transition-all duration-300",
+                                scrolled ? "md:w-6 md:h-px md:my-2 md:mx-0" : "md:w-px md:h-6 md:mx-2"
+                            )} />
+                        </div>
+
                         {tabs.map((tab) => {
                             const isActive = activeTab === tab.id
                             return (

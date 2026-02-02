@@ -27,9 +27,9 @@ import {
   Mail,
   Image as ImageIcon,
   Gamepad2,
-  Bell,
   Moon
 } from 'lucide-react'
+import { NotificationBell } from './notification-bell'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -149,6 +149,10 @@ export function DashboardHeader({
                   <p>Settings</p>
                 </TooltipContent>
               </Tooltip>
+
+              <div className="flex items-center justify-center">
+                <NotificationBell />
+              </div>
 
               {/* Separator in Dock */}
               <div className={cn(
