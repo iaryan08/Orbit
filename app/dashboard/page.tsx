@@ -152,10 +152,22 @@ export default async function DashboardPage() {
           <div className="flex flex-col lg:flex-row items-center gap-4 pt-4">
             <div className="flex -space-x-4">
               <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-background bg-primary/20 flex items-center justify-center ring-2 ring-white/10 overflow-hidden shadow-xl">
-                <img src={profile?.avatar_url || '/images/profile.png'} className="w-full h-full object-cover" alt="You" />
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} className="w-full h-full object-cover" alt="You" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-rose-500/20 text-rose-200 font-bold text-xs">
+                    {profile?.display_name?.charAt(0) || "U"}
+                  </div>
+                )}
               </div>
               <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-background bg-secondary/20 flex items-center justify-center ring-2 ring-white/10 overflow-hidden shadow-xl">
-                <img src={partnerProfile?.avatar_url || '/images/profile2.jpg'} className="w-full h-full object-cover" alt="Partner" />
+                {partnerProfile?.avatar_url ? (
+                  <img src={partnerProfile.avatar_url} className="w-full h-full object-cover" alt="Partner" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-cyan-500/20 text-cyan-200 font-bold text-xs">
+                    {partnerProfile?.display_name?.charAt(0) || "P"}
+                  </div>
+                )}
               </div>
 
             </div>

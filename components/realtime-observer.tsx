@@ -58,10 +58,34 @@ export function RealtimeObserver({ coupleId, partnerId }: RealtimeObserverProps)
             .on(
                 "postgres_changes",
                 {
-                    event: "UPDATE",
+                    event: "*",
                     schema: "public",
                     table: "couples",
                     filter: `id=eq.${coupleId}`,
+                },
+                () => {
+                    router.refresh();
+                }
+            )
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "cycle_profiles",
+                    filter: partnerId ? `user_id=eq.${partnerId}` : undefined,
+                },
+                () => {
+                    router.refresh();
+                }
+            )
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "cycle_logs",
+                    filter: partnerId ? `user_id=eq.${partnerId}` : undefined,
                 },
                 () => {
                     router.refresh();

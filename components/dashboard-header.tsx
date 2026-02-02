@@ -57,14 +57,21 @@ export function DashboardHeader({
   const pathname = usePathname()
   const [scrolled, setScrolled] = useState(false)
   const [hoveredPath, setHoveredPath] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+  const { mode } = useAppMode()
 
   useEffect(() => {
+    setMounted(true)
     const handleScroll = () => {
       setScrolled(window.scrollY > 40)
     }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  if (!mounted) {
+    return null // Or a simpler skeleton to avoid layout shift, but null is safest for hydration
+  }
 
   const navItems = [
     { href: '/dashboard', icon: LayoutGrid, label: 'Home' },
@@ -73,8 +80,6 @@ export function DashboardHeader({
     // { href: '/dashboard/games', icon: Gamepad2, label: 'Games' },
     { href: '/dashboard/intimacy', icon: Heart, label: 'Intimacy' },
   ]
-
-  const { mode } = useAppMode()
 
   return (
     <>

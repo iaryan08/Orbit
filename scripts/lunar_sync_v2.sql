@@ -54,6 +54,14 @@ DROP POLICY IF EXISTS "Users can insert own cycle profile" ON public.cycle_profi
 CREATE POLICY "Users can insert own cycle profile" ON public.cycle_profiles
     FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Partners can view shared cycle profile" ON public.cycle_profiles;
+CREATE POLICY "Partners can view shared cycle profile" ON public.cycle_profiles
+    FOR SELECT USING (
+        user_id IN (
+            SELECT partner_id FROM public.profiles WHERE id = auth.uid()
+        )
+    );
+
 DROP POLICY IF EXISTS "Users can view own cycle logs" ON public.cycle_logs;
 CREATE POLICY "Users can view own cycle logs" ON public.cycle_logs
     FOR SELECT USING (auth.uid() = user_id);

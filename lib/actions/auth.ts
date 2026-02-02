@@ -400,10 +400,19 @@ export async function saveLunaraOnboarding(onboardingData: any) {
     return { error: 'Not authenticated' }
   }
 
+  console.log('Saving Lunara onboarding for user:', user.id, onboardingData)
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('couple_id')
+    .eq('id', user.id)
+    .single()
+
   const { error } = await supabase
     .from('cycle_profiles')
     .upsert({
       user_id: user.id,
+      couple_id: profile?.couple_id,
       last_period_start: onboardingData.lastPeriodStart,
       avg_cycle_length: parseInt(onboardingData.cycleLength),
       avg_period_length: parseInt(onboardingData.periodLength),
@@ -412,15 +421,120 @@ export async function saveLunaraOnboarding(onboardingData: any) {
       regularity: onboardingData.regularity,
       typical_symptoms: onboardingData.symptoms,
       tracking_goals: onboardingData.trackingGoals,
+      sharing_enabled: onboardingData.sharingEnabled,
       onboarding_completed: true,
       updated_at: new Date().toISOString(),
     })
 
   if (error) {
+    console.error('Error saving Lunara onboarding:', error)
     return { error: error.message }
   }
 
   revalidatePath('/dashboard', 'layout')
   return { success: true }
 }
+
+export async function logSupportAction(trackerId: string, actionText: string, category: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: 'Not authenticated' }
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('couple_id')
+    .eq('id', user.id)
+    .single()
+
+  const { error } = await supabase
+    .from('support_logs')
+    .insert({
+      tracker_id: trackerId,
+      supporter_id: user.id,
+      couple_id: profile?.couple_id,
+      action_text: actionText,
+      category: category,
+      log_date: new Date().toISOString().split('T')[0]
+    })
+
+  if (error) {
+    console.error('Error logging support action:', error)
+    return { error: error.message }
+  }
+
+  revalidatePath('/dashboard', 'layout')
+  return { success: true }
+}
+
+export async function toggleLunaraSharing(enabled: boolean) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return { error: 'Not authenticated' }
+
+  const { error } = await supabase
+    .from('cycle_profiles')
+    .update({ sharing_enabled: enabled })
+    .eq('user_id', user.id)
+
+  if (error) {
+    console.error('Error toggling Lunara sharing:', error)
+    return { error: error.message }
+  }
+
+  revalidatePath('/dashboard', 'layout')
+  return { success: true }
+}
+export async function logPeriodStart() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return { error: 'Not authenticated' }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('couple_id')
+    .eq('id', user.id)
+    .single()
+
+  const today = new Date().toISOString().split('T')[0]
+
+  // 1. Update the cycle profile
+  const { error: profileError } = await supabase
+    .from('cycle_profiles')
+    .update({
+      last_period_start: today,
+      updated_at: new Date().toISOString()
+    })
+    .eq('user_id', user.id)
+
+  if (profileError) {
+    console.error('Error updating cycle profile:', profileError)
+    return { error: profileError.message }
+  }
+
+  // 2. Add to cycle logs
+  const { error: logError } = await supabase
+    .from('cycle_logs')
+    .upsert({
+      user_id: user.id,
+      couple_id: profile?.couple_id,
+      log_date: today,
+      flow_level: 'medium',
+      notes: 'Period started'
+    }, { onConflict: 'user_id, log_date' })
+
+  if (logError) {
+    console.error('Error adding cycle log:', logError)
+    // We don't return error here because the main profile update succeeded
+  }
+
+  revalidatePath('/dashboard', 'layout')
+  return { success: true }
+}
+
+
 
