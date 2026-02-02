@@ -105,7 +105,7 @@ export function MoodCheckIn({ hasPartner }: MoodCheckInProps) {
               )}
             >
               <span className="text-2xl">{MOOD_EMOJIS[mood]}</span>
-              <span className="text-xs capitalize text-white">{mood}</span>
+              <span className="text-[10px] md:text-xs capitalize text-white w-full truncate text-center">{mood}</span>
             </button>
           ))}
         </div>

@@ -188,10 +188,10 @@ export default function MemoriesPage() {
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length + selectedFiles.length > 5) {
+    if (files.length + selectedFiles.length > 10) {
       toast({
         title: "Too many files",
-        description: "You can upload up to 5 images per memory.",
+        description: "You can upload up to 10 images per memory.",
         variant: "destructive",
       });
       return;
@@ -423,14 +423,14 @@ export default function MemoriesPage() {
                     ))}
                   </div>
 
-                  {(existingImages.length + previewUrls.length) < 5 && (
+                  {(existingImages.length + previewUrls.length) < 10 && (
                     <Button
                       variant="outline"
                       className="w-full h-20 border-dashed bg-white/5 border-white/20 hover:bg-white/10 hover:border-white/40 transition-all text-white/70 hover:text-white"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <Upload className="h-5 w-5 mr-2" />
-                      Upload Photos ({existingImages.length + previewUrls.length}/5)
+                      Upload Photos ({existingImages.length + previewUrls.length}/10)
                     </Button>
                   )}
                   <input

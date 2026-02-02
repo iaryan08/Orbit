@@ -9,7 +9,9 @@ import { Label } from '@/components/ui/label'
 import { ScrollReveal } from '@/components/scroll-reveal'
 import { LunaraOnboarding } from './lunara-onboarding'
 import { createClient } from '@/lib/supabase/client'
-import { saveLunaraOnboarding, toggleLunaraSharing, logPeriodStart } from '@/lib/actions/auth'
+import { saveLunaraOnboarding, toggleLunaraSharing, logPeriodStart, logSymptoms } from '@/lib/actions/auth'
+import { fetchDashboardData } from '@/lib/actions/consolidated'
+import { getTodayIST } from '@/lib/utils'
 import { Loader2, Share2, Shield, UserCheck } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/hooks/use-toast'
@@ -31,133 +33,63 @@ export function LunaraDashboard() {
     const [showSupportModal, setShowSupportModal] = React.useState(false)
     const [isSyncing, setIsSyncing] = React.useState(false)
     const [isLogging, setIsLogging] = React.useState(false)
+    const [sharedSymptoms, setSharedSymptoms] = React.useState<string[]>([])
     const supabase = createClient()
+
 
     React.useEffect(() => {
         let channel: any = null
 
-        const initLunara = async () => {
-            try {
-                const { data: { user } } = await supabase.auth.getUser()
-                if (!user) return
+        const loadData = async () => {
+            // Use consolidated fetch
+            const result = await fetchDashboardData()
+            if (result.success && result.data) {
+                const d = result.data
+                setProfile(d.profile)
+                setPartnerProfile(d.partnerProfile)
+                setCycleProfile(d.userCycle)
+                setCycleLogs(d.cycleLogs)
+                setSupportLogs(d.supportLogs)
+                setPartnerId(d.profile.partner_id)
 
-                // 1. Fetch Profile first to get couple_id for real-time filtering
-                const { data: profileData } = await supabase
-                    .from('profiles')
-                    .select('*, partner_id, couple_id')
-                    .eq('id', user.id)
-                    .single()
+                // Handle partner cycle separately if needed or if it returns mixed data
+                // The consolidated action returns 'partnerCycle' explicitly
+                // But existing code expects 'cycleProfile' to be the one we show? 
+                // Logic in original: if female, show hers. if male, show partner's.
 
-                const coupleId = profileData?.couple_id
-
-                // 2. Initial Data Fetch
-                await fetchData(profileData, user.id)
-
-                // 3. Setup real-time channel with filters if possible
-                channel = supabase
-                    .channel('lunara-changes')
-                    .on('postgres_changes', {
-                        event: '*',
-                        schema: 'public',
-                        table: 'cycle_profiles',
-                        filter: coupleId ? `couple_id=eq.${coupleId}` : undefined
-                    }, () => fetchData(profileData, user.id))
-                    .on('postgres_changes', {
-                        event: '*',
-                        schema: 'public',
-                        table: 'cycle_logs',
-                        filter: coupleId ? `couple_id=eq.${coupleId}` : undefined
-                    }, () => fetchData(profileData, user.id))
-                    .on('postgres_changes', {
-                        event: '*',
-                        schema: 'public',
-                        table: 'support_logs',
-                        filter: coupleId ? `couple_id=eq.${coupleId}` : undefined
-                    }, () => fetchData(profileData, user.id))
-                    .subscribe()
-
-            } catch (error) {
-                console.error('Error initializing Lunara:', error)
-            }
-        }
-
-        const fetchData = async (profileData: any, userId: string) => {
-            try {
-                let partnerId = profileData?.partner_id
-
-                // If partner_id is missing, try to find it via couples table
-                if (!partnerId && profileData?.couple_id) {
-                    const { data: coupleData } = await supabase
-                        .from('couples')
-                        .select('user1_id, user2_id')
-                        .eq('id', profileData.couple_id)
-                        .single()
-
-                    if (coupleData) {
-                        partnerId = coupleData.user1_id === userId ? coupleData.user2_id : coupleData.user1_id
-                    }
-                }
-                setPartnerId(partnerId)
-
-                // Fetch partner's display info if we have a partner
-                if (partnerId) {
-                    const { data: pProfile } = await supabase
-                        .from('profiles')
-                        .select('display_name, avatar_url')
-                        .eq('id', partnerId)
-                        .maybeSingle()
-                    setPartnerProfile(pProfile)
+                if (d.profile.gender === 'female') {
+                    setCycleProfile(d.userCycle)
+                } else {
+                    setCycleProfile(d.partnerCycle)
                 }
 
-                let cycleData = null
-                if (profileData?.gender === 'female') {
-                    const { data } = await supabase
-                        .from('cycle_profiles')
-                        .select('*')
-                        .eq('user_id', userId)
-                        .maybeSingle()
-                    cycleData = data
-                } else if (partnerId) {
-                    // Fetch partner's cycle data
-                    const { data } = await supabase
-                        .from('cycle_profiles')
-                        .select('*')
-                        .eq('user_id', partnerId)
-                        .maybeSingle()
-                    cycleData = data
+                // Log for today
+                const today = d.currentDateIST
+                const todaysLog = d.cycleLogs?.find((l: any) => l.log_date === today)
+                if (todaysLog?.symptoms) {
+                    setSharedSymptoms(todaysLog.symptoms)
+                } else {
+                    setSharedSymptoms([])
                 }
 
-                setProfile(profileData)
-                setCycleProfile(cycleData)
+                setLoading(false)
 
-                // If we have a couple_id, fetch all related data using it
-                if (profileData?.couple_id) {
-                    // Fetch support logs for the couple
-                    const { data: logs } = await supabase
-                        .from('support_logs')
-                        .select('*')
-                        .eq('couple_id', profileData.couple_id)
-                        .order('created_at', { ascending: false })
-                        .limit(5)
-                    setSupportLogs(logs || [])
-
-                    // Fetch cycle logs for the couple
-                    const { data: cLogs } = await supabase
-                        .from('cycle_logs')
-                        .select('*')
-                        .eq('couple_id', profileData.couple_id)
-                        .order('log_date', { ascending: false })
-                        .limit(5)
-                    setCycleLogs(cLogs || [])
+                // Setup Subs if we have couple_id
+                if (d.profile.couple_id && !channel) {
+                    channel = supabase
+                        .channel('lunara-changes-consolidated')
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'cycle_profiles', filter: `couple_id=eq.${d.profile.couple_id}` }, loadData)
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'cycle_logs', filter: `couple_id=eq.${d.profile.couple_id}` }, loadData)
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'support_logs', filter: `couple_id=eq.${d.profile.couple_id}` }, loadData)
+                        .subscribe()
                 }
-            } catch (error: any) {
-                console.error('Error in LunaraDashboard fetchData:', error)
-            } finally {
+            } else {
+                console.error("Failed to load dashboard data:", result.error)
                 setLoading(false)
             }
         }
 
-        initLunara()
+        loadData()
 
         return () => {
             if (channel) supabase.removeChannel(channel)
@@ -178,6 +110,13 @@ export function LunaraDashboard() {
         if (day <= 13) return { name: "Follicular Phase", color: "text-emerald-400", advice: "You're likely feeling more energetic." }
         if (day === 14 || day === 15) return { name: "Ovulatory Phase", color: "text-amber-400", advice: "Energy and mood are at their peak." }
         return { name: "Luteal Phase", color: "text-indigo-400", advice: "Focus on gentle self-care and winding down." }
+    }
+
+    const getSuggestedSymptoms = (day: number) => {
+        if (day <= 5) return ["Cramps", "Fatigue", "Back pain", "Headache"]
+        if (day <= 13) return ["Energetic", "Positive", "Clean skin", "High libido"]
+        if (day === 14 || day === 15) return ["Ovulation pain", "Bloating", "Tender breasts", "Peak energy"]
+        return ["Mood swings", "Cravings", "Bloating", "Anxiety", "Tiredness"]
     }
 
     const getPartnerAdvice = (day: number) => {
@@ -260,7 +199,7 @@ export function LunaraDashboard() {
             const result = await logPeriodStart()
             if (result.success) {
                 // Update local state for immediate feedback
-                const today = new Date().toISOString().split('T')[0]
+                const today = getTodayIST()
                 setCycleProfile((prev: any) => ({ ...prev, last_period_start: today }))
 
                 toast({
@@ -319,7 +258,7 @@ export function LunaraDashboard() {
     }
 
     return (
-        <div className="max-w-7xl mx-auto space-y-12 pt-12 pb-24 px-6 md:px-8">
+        <div className="max-w-7xl mx-auto space-y-12 pt-12 pb-40 px-6 md:px-8">
             {/* Lunara Brand Header */}
             <ScrollReveal className="space-y-4 text-center lg:text-left relative">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -328,7 +267,7 @@ export function LunaraDashboard() {
                             <Sparkles className="w-3 h-3 text-purple-400" />
                             Lunara Sync
                         </div>
-                        <h1 className="text-4xl md:text-7xl font-serif text-white leading-[1.1] tracking-tight">
+                        <h1 className="hidden md:block text-4xl md:text-7xl font-serif text-white leading-[1.1] tracking-tight">
                             Your Natural
                             <br />
                             <span className="bg-gradient-to-r from-purple-300 via-indigo-300 to-purple-200 bg-clip-text text-transparent drop-shadow-sm italic">
@@ -338,7 +277,7 @@ export function LunaraDashboard() {
                     </div>
 
                     {profile?.gender === 'female' && (
-                        <div className="flex justify-center lg:justify-end">
+                        <div className="hidden md:flex justify-end">
                             <Button
                                 variant="ghost"
                                 onClick={() => setShowSettings(true)}
@@ -354,9 +293,6 @@ export function LunaraDashboard() {
                     )}
                 </div>
 
-                <p className="text-purple-100/60 max-w-xl text-lg font-light leading-relaxed">
-                    Track your cycle, understand your body, and connect with your partner through supportive insights.
-                </p>
             </ScrollReveal>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -364,6 +300,16 @@ export function LunaraDashboard() {
                 <ScrollReveal className="lg:col-span-2 row-span-2" delay={0.1}>
                     <div className="glass-card p-10 flex flex-col items-center justify-center h-full relative overflow-hidden group border-purple-500/20 bg-purple-950/20">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-500 opacity-50" />
+
+                        {/* Settings gear icon - mobile only, in card top-right */}
+                        {profile?.gender === 'female' && (
+                            <button
+                                onClick={() => setShowSettings(true)}
+                                className="md:hidden absolute top-4 right-4 z-10 p-2 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-300 hover:bg-purple-500/30 transition-all"
+                            >
+                                <Settings className="w-4 h-4" />
+                            </button>
+                        )}
 
                         <div className="relative w-64 h-64 flex items-center justify-center">
                             <div className="absolute inset-0 rounded-full border-4 border-dashed border-purple-500/10 animate-spin-slow" />
@@ -451,12 +397,52 @@ export function LunaraDashboard() {
                             {profile?.gender === 'female' ? 'Your Logs' : 'Her Status'}
                         </span>
                         <div className="mt-2 space-y-1">
-                            {cycleLogs.length > 0 ? (
-                                <p className="text-[10px] text-purple-200/60 uppercase font-bold">
-                                    {cycleLogs[0].symptoms?.length > 0 ? cycleLogs[0].symptoms.join(', ') : 'No symptoms logged'}
-                                </p>
+                            {profile?.gender === 'female' ? (
+                                <div className="flex flex-wrap gap-1.5 mt-2">
+                                    {currentDay && getSuggestedSymptoms(currentDay).map(s => {
+                                        const isShared = sharedSymptoms.includes(s)
+                                        return (
+                                            <button
+                                                key={s}
+                                                onClick={async () => {
+                                                    const newSymptoms = sharedSymptoms.includes(s)
+                                                        ? sharedSymptoms.filter(sym => sym !== s)
+                                                        : [...sharedSymptoms, s]
+
+                                                    setSharedSymptoms(newSymptoms) // Optimistic update
+                                                    const result = await logSymptoms(newSymptoms) // Server sync
+
+                                                    if (result.error) {
+                                                        toast({
+                                                            title: "Save Failed",
+                                                            description: "Could not save symptoms. Please try again.",
+                                                            variant: "destructive"
+                                                        })
+                                                        // Revert optimistic update? Optional, but safer to leave for now as it might succeed next time.
+                                                    }
+                                                }}
+                                                className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-tight transition-all active:scale-95 ${isShared
+                                                    ? 'bg-purple-500/30 border-2 border-purple-400 text-purple-200 shadow-[0_0_8px_rgba(168,85,247,0.4)]'
+                                                    : 'bg-purple-500/5 border border-purple-500/20 text-purple-300/50'
+                                                    }`}
+                                            >
+                                                {s}
+                                            </button>
+                                        )
+                                    })}
+                                </div>
                             ) : (
-                                <p className="text-[10px] text-purple-200/20 uppercase font-bold">Waiting for logs...</p>
+                                <div className="flex flex-wrap gap-1.5 mt-2">
+                                    {sharedSymptoms.length > 0 ? (
+                                        sharedSymptoms.map(s => (
+                                            <span key={s} className="px-2 py-0.5 rounded-full bg-purple-500/20 border border-purple-400/40 text-[9px] text-purple-200 font-bold uppercase tracking-tight">
+                                                {s}
+                                            </span>
+                                        ))
+                                    ) : (
+                                        <p className="text-[10px] text-purple-200/20 uppercase font-bold">No symptoms shared yet</p>
+                                    )}
+                                </div>
                             )}
                         </div>
                     </div>
@@ -500,12 +486,12 @@ export function LunaraDashboard() {
                         )}
                     </div>
                 </div>
-            </ScrollReveal>
+            </ScrollReveal >
 
             {/* Coming Soon Message */}
-            <div className="text-center py-10 opacity-30">
+            < div className="text-center py-10 opacity-30" >
                 <p className="text-sm italic tracking-widest uppercase">Deep body insights & Log history coming soon</p>
-            </div>
+            </div >
 
             <SupportModal
                 isOpen={showSupportModal}
@@ -525,7 +511,7 @@ export function LunaraDashboard() {
                 partnerName={profile?.gender === 'female' ? (partnerProfile?.display_name || 'Partner') : (partnerProfile?.display_name || 'Partner')}
                 partnerId={profile?.gender === 'female' ? profile.id : (partnerId || '')}
             />
-        </div>
+        </div >
     )
 }
 

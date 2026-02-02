@@ -45,7 +45,19 @@ export function DailyContent() {
     // Check if we have cached content for today
     const cached = localStorage.getItem("dailyContent");
     const cachedDate = localStorage.getItem("dailyContentDate");
-    const today = new Date().toDateString();
+
+    // Get current time in IST (India Standard Time)
+    const now = new Date();
+    const istDate = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+
+    // Create a date string for "today" in IST based on 1 AM cutoff
+    // If it's before 1 AM IST, use yesterday's date as "today"
+    const cutoffHour = 1;
+    const effectiveDate = new Date(istDate);
+    if (istDate.getHours() < cutoffHour) {
+      effectiveDate.setDate(effectiveDate.getDate() - 1);
+    }
+    const today = effectiveDate.toDateString();
 
     if (cached && cachedDate === today) {
       setContent(JSON.parse(cached));

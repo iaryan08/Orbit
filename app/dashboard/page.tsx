@@ -142,11 +142,11 @@ export default async function DashboardPage() {
             <Sparkles className="w-3 h-3 text-amber-400/80" />
             MoonBetweenUs
           </div>
-          <h1 className="text-4xl md:text-7xl font-romantic text-rose-50 leading-[1.1] tracking-wide text-glow-rose">
-            Stay Connected
+          <h1 className="hidden md:block text-4xl md:text-7xl font-romantic text-rose-50 leading-[1.1] tracking-wide text-glow-rose">
+            Always Together
             <br />
             <span className="bg-gradient-to-r from-amber-200 via-rose-300 to-orange-300 bg-clip-text text-transparent drop-shadow-sm">
-              Every Single Day
+              Forever
             </span>
           </h1>
           <div className="flex flex-col lg:flex-row items-center gap-4 pt-4">
@@ -279,9 +279,6 @@ export default async function DashboardPage() {
                     <span className="text-[10px] font-bold text-white/70 uppercase tracking-wider">{action.label.split(' ')[1] || action.label}</span>
                   </Link>
                 ))}
-                <div className="flex items-center justify-center p-3 rounded-2xl border border-dashed border-white/10 hover:bg-white/5 transition-colors cursor-pointer group">
-                  <span className="text-lg font-light text-white/20 group-hover:text-white/40 group-hover:scale-110 transition-all">+</span>
-                </div>
               </div>
             </div>
           </ScrollReveal>

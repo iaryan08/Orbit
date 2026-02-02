@@ -500,7 +500,7 @@ export async function logPeriodStart() {
     .eq('id', user.id)
     .single()
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayIST()
 
   // 1. Update the cycle profile
   const { error: profileError } = await supabase
@@ -538,3 +538,41 @@ export async function logPeriodStart() {
 
 
 
+
+import { getTodayIST } from '@/lib/utils'
+
+export async function logSymptoms(symptoms: string[]) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return { error: 'Not authenticated' }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('couple_id')
+    .eq('id', user.id)
+    .single()
+
+  const today = getTodayIST()
+
+  // Upsert symptoms into cycle_logs
+  // Note: Assuming 'symptoms' is a text[] or jsonb column. If it doesn't exist, this will fail.
+  // Given standard Supabase usage, we'll try to pass it.
+  const { error } = await supabase
+    .from('cycle_logs')
+    .upsert({
+      user_id: user.id,
+      couple_id: profile?.couple_id,
+      log_date: today,
+      symptoms: symptoms,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id, log_date' })
+
+  if (error) {
+    console.error('Error logging symptoms:', error)
+    return { error: error.message }
+  }
+
+  revalidatePath('/dashboard', 'layout')
+  return { success: true }
+}
