@@ -121,8 +121,8 @@ export function DailyContent() {
                     }}
                   />
                 )}
-                <tab.icon className="h-3 w-3 mr-1.5 relative z-10" />
-                <span className="relative z-10">{tab.label}</span>
+                <tab.icon className={cn("h-3 w-3 relative z-10", isActive && "mr-1.5")} />
+                {isActive && <span className="relative z-10">{tab.label}</span>}
               </Button>
             );
           })}

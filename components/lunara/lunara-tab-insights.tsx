@@ -130,7 +130,7 @@ export function LunaraTabInsights({ coupleId }: { coupleId: string }) {
                     className="text-purple-300 hover:text-white hover:bg-purple-500/10 transition-all gap-2 h-8 px-3 rounded-full border border-purple-500/20"
                 >
                     <RefreshCcw className={cn("w-3.5 h-3.5", syncing && "animate-spin")} />
-                    <span className="text-[10px] uppercase font-black tracking-widest">{syncing ? "Syncing..." : "Refresh"}</span>
+                    <span className="hidden md:inline text-[10px] uppercase font-black tracking-widest">{syncing ? "Syncing..." : "Refresh"}</span>
                 </Button>
             </div>
             {categories.map((cat, catIdx) => {

@@ -105,129 +105,137 @@ export function DashboardHeader({
       {/* 2. Days Counter (Absolute Top Center - Optional, or kept in profile) */}
 
       {/* 3. The Dock (Adaptive Positioning with Pop Animations) */}
-      {mode !== 'lunara' && (
-        <div
-          key={scrolled ? 'vertical' : 'horizontal'}
+      <div
+        key={scrolled ? 'vertical' : 'horizontal'}
+        className={cn(
+          "fixed z-50",
+          // Base animation: pop in
+          "animate-in fade-in duration-300",
+          // Mobile: always bottom-center, pop from bottom
+          "bottom-6 left-1/2 -translate-x-1/2 slide-in-from-bottom-4",
+          // Desktop Switch
+          scrolled
+            ? "md:top-1/2 md:bottom-auto md:left-6 md:-translate-y-1/2 md:translate-x-0 md:slide-in-from-left-4"
+            : "md:bottom-auto md:top-6 md:left-1/2 md:-translate-x-1/2 md:slide-in-from-bottom-4"
+        )}
+      >
+        <nav
+          onMouseLeave={() => setHoveredPath(null)}
           className={cn(
-            "fixed z-50",
-            // Base animation: pop in
-            "animate-in fade-in duration-300",
-            // Mobile: always bottom-center, pop from bottom
-            "bottom-6 left-1/2 -translate-x-1/2 slide-in-from-bottom-4",
-            // Desktop Switch
-            scrolled
-              ? "md:top-1/2 md:bottom-auto md:left-6 md:-translate-y-1/2 md:translate-x-0 md:slide-in-from-left-4"
-              : "md:bottom-auto md:top-6 md:left-1/2 md:-translate-x-1/2 md:slide-in-from-bottom-4"
+            "glass-card flex items-center gap-1 p-1.5 rounded-full border shadow-2xl ring-1 ring-white/5",
+            mode === 'moon' ? "border-white/10" : "border-purple-500/30 bg-purple-950/40",
+            "backdrop-blur-[12px] md:backdrop-blur-3xl bg-black/60", // 12px blur for mobile per request
+            scrolled ? "md:flex-col md:rounded-[40px] md:py-4 md:px-2" : "md:flex-row md:rounded-full md:p-1.5"
           )}
         >
-          <nav
-            onMouseLeave={() => setHoveredPath(null)}
-            className={cn(
-              "glass-card flex items-center gap-1 p-1.5 rounded-full border shadow-2xl ring-1 ring-white/5",
-              mode === 'moon' ? "border-white/10" : "border-purple-500/30 bg-purple-950/40",
-              "backdrop-blur-[12px] md:backdrop-blur-3xl bg-black/60", // 12px blur for mobile per request
-              scrolled ? "md:flex-col md:rounded-[40px] md:py-4 md:px-2" : "md:flex-row md:rounded-full md:p-1.5"
-            )}
-          >
-            <TooltipProvider delayDuration={0}>
-              {/* Search/Dashboard aesthetic from reference */}
-              {/* Search/Dashboard aesthetic from reference */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Link href="/dashboard/settings" className={cn(
-                    "p-3 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-colors",
-                    scrolled && "md:mb-2"
-                  )}>
-                    <Settings className="w-5 h-5 transition-colors" />
-                  </Link>
-                </TooltipTrigger>
-                <TooltipContent
-                  side={scrolled ? "right" : "bottom"}
-                  sideOffset={15}
-                  className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl"
-                >
-                  <p>Settings</p>
-                </TooltipContent>
-              </Tooltip>
+          <TooltipProvider delayDuration={0}>
 
-              <div className="flex items-center justify-center">
-                <NotificationBell />
-              </div>
+            {/* 1. Notification (FIRST) */}
+            <div className="flex items-center justify-center">
+              <NotificationBell />
+            </div>
 
-              {/* Separator in Dock */}
-              <div className={cn(
-                "bg-white/10 transition-all duration-300",
-                scrolled ? "md:w-6 md:h-px md:my-4 mx-0" : "md:w-px md:h-6 md:mx-2 my-0",
-                "w-px h-6 mx-2" // Mobile default
-              )} />
+            {/* Separator */}
+            <div className={cn(
+              "bg-white/10 transition-all duration-300",
+              scrolled ? "md:w-6 md:h-px md:my-2 mx-0" : "md:w-px md:h-6 md:mx-2 my-0",
+              "w-px h-6 mx-2" // Mobile default
+            )} />
 
-              {navItems.map((item) => {
-                const isActive = pathname === item.href
-                const isHovered = hoveredPath === item.href
+            {/* 2. Nav Items (Home, Letters, Memories, Intimacy) */}
+            {navItems.map((item) => {
+              const isActive = pathname === item.href
+              const isHovered = hoveredPath === item.href
 
-                return (
-                  <Tooltip key={item.href}>
-                    <TooltipTrigger asChild>
-                      <Link
-                        href={item.href}
-                        onMouseEnter={() => setHoveredPath(item.href)}
-                        className="relative block"
-                      >
-                        <div className={cn(
-                          "p-3 rounded-full flex items-center justify-center relative group transition-all duration-300",
-                          isActive ? "text-white" : "text-white/40 group-hover:text-white"
-                        )}>
-                          {/* Smooth Sliding Pill Indicator */}
-                          <AnimatePresence>
-                            {(isActive || isHovered) && (
-                              <motion.div
-                                layoutId="nav-indicator"
-                                className={cn(
-                                  "absolute inset-0 z-0 bg-white/10 border border-white/10 shadow-xl rounded-full px-4",
-                                  scrolled ? "md:rounded-[18px]" : "md:rounded-full"
-                                )}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{
-                                  type: "spring",
-                                  bounce: 0.25,
-                                  stiffness: 130,
-                                  damping: 18,
-                                }}
-                              />
-                            )}
-                          </AnimatePresence>
-
-                          <item.icon className={cn(
-                            "w-5 h-5 relative z-10 transition-transform group-hover:scale-110",
-                            isActive && "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]"
-                          )} />
-
-                          {/* Red Dot Notification */}
-                          {item.label === 'Memories' && unreadCounts.memories > 0 && (
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />
-                          )}
-                          {item.label === 'Letters' && unreadCounts.letters > 0 && (
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />
-                          )}
-                        </div>
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side={scrolled ? "right" : "bottom"}
-                      sideOffset={15}
-                      className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl"
+              return (
+                <Tooltip key={item.href}>
+                  <TooltipTrigger asChild>
+                    <Link
+                      href={item.href}
+                      onMouseEnter={() => setHoveredPath(item.href)}
+                      className="relative block"
                     >
-                      <p>{item.label}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )
-              })}
-            </TooltipProvider>
-          </nav>
-        </div>
-      )}
+                      <div className={cn(
+                        "p-3 rounded-full flex items-center justify-center relative group transition-all duration-300",
+                        isActive ? "text-white" : "text-white/40 group-hover:text-white"
+                      )}>
+                        {/* Smooth Sliding Pill Indicator */}
+                        <AnimatePresence>
+                          {(isActive || isHovered) && (
+                            <motion.div
+                              layoutId="nav-indicator"
+                              className={cn(
+                                "absolute inset-0 z-0 bg-white/10 border border-white/10 shadow-xl rounded-full px-4",
+                                scrolled ? "md:rounded-[18px]" : "md:rounded-full"
+                              )}
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{
+                                type: "spring",
+                                bounce: 0.25,
+                                stiffness: 130,
+                                damping: 18,
+                              }}
+                            />
+                          )}
+                        </AnimatePresence>
+
+                        <item.icon className={cn(
+                          "w-5 h-5 relative z-10 transition-transform group-hover:scale-110",
+                          isActive && "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]"
+                        )} />
+
+                        {/* Red Dot Notification */}
+                        {item.label === 'Memories' && unreadCounts.memories > 0 && (
+                          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />
+                        )}
+                        {item.label === 'Letters' && unreadCounts.letters > 0 && (
+                          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />
+                        )}
+                      </div>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side={scrolled ? "right" : "bottom"}
+                    sideOffset={15}
+                    className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl"
+                  >
+                    <p>{item.label}</p>
+                  </TooltipContent>
+                </Tooltip>
+              )
+            })}
+
+            {/* Separator before Settings */}
+            <div className={cn(
+              "bg-white/10 transition-all duration-300",
+              scrolled ? "md:w-6 md:h-px md:my-2 mx-0" : "md:w-px md:h-6 md:mx-2 my-0",
+              "w-px h-6 mx-2" // Mobile default
+            )} />
+
+            {/* 3. Settings (LAST) */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link href="/dashboard/settings" className={cn(
+                  "p-3 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-colors",
+                  scrolled && "md:mb-0"
+                )}>
+                  <Settings className="w-5 h-5 transition-colors" />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent
+                side={scrolled ? "right" : "bottom"}
+                sideOffset={15}
+                className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl"
+              >
+                <p>Settings</p>
+              </TooltipContent>
+            </Tooltip>
+
+          </TooltipProvider>
+        </nav>
+      </div>
 
       {/* 4. Profile Dropdown & Mode Toggle (Top Right Floating) */}
       <div className="fixed top-6 right-6 z-50 flex items-center gap-4">

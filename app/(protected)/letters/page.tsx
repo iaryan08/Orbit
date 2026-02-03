@@ -270,7 +270,7 @@ export default function LettersPage() {
                     </Button>
                     <DialogContent className="sm:max-w-[500px] border border-white/10 bg-[#1a0b10]/95 backdrop-blur-xl shadow-[0_0_50px_rgba(244,63,94,0.15)] text-white">
                         <DialogHeader>
-                            <DialogTitle className="flex items-center gap-3 font-serif text-2xl text-white text-glow-rose">
+                            <DialogTitle className="flex items-center gap-3 font-serif text-2xl text-rose-50 text-glow-rose">
                                 <Heart className="h-6 w-6 text-rose-500 fill-rose-500 animate-pulse" />
                                 {editingLetter ? "Edit Love Letter" : "Write a Love Letter"}
                             </DialogTitle>
@@ -421,7 +421,7 @@ export default function LettersPage() {
                     {selectedLetter && (
                         <>
                             <DialogHeader className="p-6 pb-0">
-                                <DialogTitle className="flex items-center gap-3 font-serif text-2xl text-white text-glow-rose">
+                                <DialogTitle className="flex items-center gap-3 font-serif text-2xl text-rose-50 text-glow-rose">
                                     <Heart className="h-6 w-6 text-rose-500 fill-rose-500" />
                                     {selectedLetter.title || "Love Letter"}
                                 </DialogTitle>
@@ -434,7 +434,7 @@ export default function LettersPage() {
 
                             <ScrollArea className="flex-1 p-6 overflow-y-auto">
                                 <div className="prose prose-pink max-w-none">
-                                    <p className="whitespace-pre-wrap leading-relaxed text-rose-50/90 font-serif italic text-lg">
+                                    <p className="whitespace-pre-wrap leading-relaxed text-rose-50 font-serif italic text-lg">
                                         {selectedLetter.content}
                                     </p>
                                 </div>

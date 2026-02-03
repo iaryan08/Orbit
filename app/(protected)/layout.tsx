@@ -51,8 +51,9 @@ export default async function ProtectedLayout({
             partnerProfile = partnerRes.data;
 
             // Calculate days together
-            if (couple.paired_at) {
-                const startDate = new Date(couple.paired_at)
+            const startDateStr = couple.anniversary_date || couple.paired_at;
+            if (startDateStr) {
+                const startDate = new Date(startDateStr)
                 const today = new Date()
                 daysTogetherCount = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
             }

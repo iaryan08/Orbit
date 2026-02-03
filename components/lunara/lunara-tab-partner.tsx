@@ -115,7 +115,7 @@ export function LunaraTabPartner({ data }: { data: any }) {
                     <h2 className="text-3xl md:text-4xl font-serif text-white">
                         {isFemale ? "Your Wellness & Sync" : `Supporting ${partnerName}`}
                     </h2>
-                    <p className="text-sm text-purple-300/60 uppercase tracking-widest font-bold">
+                    <p className="hidden md:block text-sm text-purple-300/60 uppercase tracking-widest font-bold">
                         {isFemale ? "Syncing with your natural rhythm" : "Being there for her every step of the way"}
                     </p>
                 </div>

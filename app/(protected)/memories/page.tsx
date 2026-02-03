@@ -364,24 +364,25 @@ export default function MemoriesPage() {
                     </Button>
                     <DialogContent className="sm:max-w-[500px] glass-card border-primary/10">
                         <DialogHeader>
-                            <DialogTitle className="flex items-center gap-2 font-serif">
+                            <DialogTitle className="flex items-center gap-2 font-serif text-2xl text-rose-50 text-glow-rose">
                                 <Heart className="h-5 w-5 text-primary" />
                                 {editingMemory ? "Edit Memory" : "Capture a Memory"}
                             </DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4 mt-4">
                             <div>
-                                <Label htmlFor="title">Title</Label>
+                                <Label htmlFor="title" className="text-amber-100 font-medium tracking-wide uppercase text-xs">Title</Label>
                                 <Input
                                     id="title"
                                     placeholder="Our special day..."
                                     value={newMemory.title}
                                     onChange={(e) => setNewMemory((prev) => ({ ...prev, title: e.target.value }))}
+                                    className="bg-white/5 border-white/10 focus:border-rose-400/50 text-white placeholder:text-white/30 h-10 rounded-xl mt-1.5"
                                 />
                             </div>
 
                             <div>
-                                <Label>Photos</Label>
+                                <Label className="text-amber-100 font-medium tracking-wide uppercase text-xs">Photos</Label>
                                 <div className="mt-2 space-y-2">
                                     <div className="grid grid-cols-3 gap-2">
                                         {/* Existing Images */}
@@ -443,19 +444,20 @@ export default function MemoriesPage() {
                             </div>
 
                             <div>
-                                <Label htmlFor="description">Description</Label>
+                                <Label htmlFor="description" className="text-amber-100 font-medium tracking-wide uppercase text-xs">Description</Label>
                                 <Textarea
                                     id="description"
                                     placeholder="What made this moment special..."
                                     value={newMemory.description}
                                     onChange={(e) => setNewMemory((prev) => ({ ...prev, description: e.target.value }))}
                                     rows={3}
+                                    className="bg-white/5 border-white/10 focus:border-rose-400/50 text-white placeholder:text-white/30 rounded-xl mt-1.5"
                                 />
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label htmlFor="date" className="flex items-center gap-1">
+                                    <Label htmlFor="date" className="flex items-center gap-1 text-amber-100 font-medium tracking-wide uppercase text-xs">
                                         <Calendar className="h-3 w-3" />
                                         Date
                                     </Label>
@@ -464,10 +466,11 @@ export default function MemoriesPage() {
                                         type="date"
                                         value={newMemory.memory_date}
                                         onChange={(e) => setNewMemory((prev) => ({ ...prev, memory_date: e.target.value }))}
+                                        className="bg-white/5 border-white/10 focus:border-rose-400/50 text-white/80 h-10 rounded-xl mt-1.5"
                                     />
                                 </div>
                                 <div>
-                                    <Label htmlFor="location" className="flex items-center gap-1">
+                                    <Label htmlFor="location" className="flex items-center gap-1 text-amber-100 font-medium tracking-wide uppercase text-xs">
                                         <MapPin className="h-3 w-3" />
                                         Location
                                     </Label>
@@ -476,6 +479,7 @@ export default function MemoriesPage() {
                                         placeholder="Where..."
                                         value={newMemory.location}
                                         onChange={(e) => setNewMemory((prev) => ({ ...prev, location: e.target.value }))}
+                                        className="bg-white/5 border-white/10 focus:border-rose-400/50 text-white placeholder:text-white/30 h-10 rounded-xl mt-1.5"
                                     />
                                 </div>
                             </div>
@@ -634,7 +638,7 @@ export default function MemoriesPage() {
                     {selectedMemory && (
                         <>
                             <DialogHeader>
-                                <DialogTitle className="font-serif flex items-center justify-between">
+                                <DialogTitle className="font-serif flex items-center justify-between text-2xl text-rose-50 text-glow-rose">
                                     <span>{selectedMemory.title}</span>
                                     {selectedMemory.user_id === (supabase as any).auth?.user?.id && (
                                         <div className="flex gap-2">
@@ -764,7 +768,7 @@ export default function MemoriesPage() {
                                     </div>
                                 )}
                                 {selectedMemory.description && (
-                                    <p className="text-rose-50/90 leading-relaxed font-serif italic text-lg pb-1">{selectedMemory.description}</p>
+                                    <p className="text-rose-50 leading-relaxed font-serif italic text-lg pb-1">{selectedMemory.description}</p>
                                 )}
                                 <div className="flex items-center gap-4 text-sm text-rose-100/60 border-t border-white/10 pt-4 pb-1">
                                     <span className="flex items-center gap-1">
