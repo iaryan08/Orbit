@@ -8,7 +8,7 @@ import { submitMood } from '@/lib/actions/mood'
 import { type MoodType, MOOD_EMOJIS, MOOD_COLORS } from '@/lib/constants'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
-import { Loader2, Send, Heart } from 'lucide-react'
+import { Loader2, Send, Heart, ChevronDown, ChevronUp, Plus, Minus } from 'lucide-react'
 
 const MOODS: MoodType[] = ['happy', 'loved', 'excited', 'calm', 'sad', 'anxious', 'tired', 'grateful', 'flirty', 'teasing', 'needy', 'touchy', 'cuddly', 'romantic', 'turned on', 'craving you', 'affectionate', 'playful naughty', 'feeling desired', 'miss you badly']
 
@@ -21,6 +21,7 @@ export function MoodCheckIn({ hasPartner }: MoodCheckInProps) {
   const [note, setNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
   const { toast } = useToast()
 
   async function handleSubmit() {
@@ -86,12 +87,31 @@ export function MoodCheckIn({ hasPartner }: MoodCheckInProps) {
   }
 
   return (
-    <Card className="bg-transparent border-none shadow-none" glassy={false}>
-      <CardHeader>
-        <CardTitle className="text-lg text-white">How are you feeling?</CardTitle>
-        <CardDescription className="text-white/70">Share your mood with your partner</CardDescription>
+    <Card
+      className={cn(
+        "bg-transparent border-none shadow-none transition-all duration-300",
+        isExpanded ? "py-10 gap-8" : "py-4 gap-0"
+      )}
+      glassy={false}
+    >
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <div className="space-y-1">
+          <CardTitle className="text-lg text-white">How are you feeling?</CardTitle>
+          <CardDescription className="text-white/70">Share your mood with your partner</CardDescription>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-white hover:bg-white/10 rounded-full w-8 h-8 p-0"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          {isExpanded ? <ChevronUp className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+        </Button>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className={cn(
+        "space-y-4 transition-all duration-300 overflow-hidden",
+        isExpanded ? "max-h-[1000px] opacity-100 mt-2" : "max-h-0 opacity-0 p-0"
+      )}>
         <div className="grid grid-cols-3 gap-2">
           {MOODS.map((mood) => (
             <button

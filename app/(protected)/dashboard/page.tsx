@@ -8,7 +8,6 @@ import type { MoodType } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 import { DashboardShell } from '@/components/dashboard-shell'
 import { ScrollReveal } from '@/components/scroll-reveal'
-import { DashboardWelcome } from '@/components/dashboard-welcome'
 
 // Dynamic Imports with Loading Skeletons
 const MoodCheckIn = dynamic(() => import('@/components/mood-check-in').then(mod => mod.MoodCheckIn), {
@@ -71,16 +70,13 @@ export default async function DashboardPage() {
 
             const todayStart = new Date(istDate)
             todayStart.setHours(0, 0, 0, 0)
-
-            // Convert IST 00:00 to UTC for Database Query
-            // Since IST is UTC+5.5, IST 00:00 is UTC 18:30 of the previous day
-            const offsetMs = 5.5 * 60 * 60 * 1000
-            const todayUtcStart = new Date(todayStart.getTime() - offsetMs)
+            todayStart.setHours(todayStart.getHours() - 5)
+            todayStart.setMinutes(todayStart.getMinutes() - 30)
 
             // Fetch all dependent data in parallel
             const [partnerRes, moodsRes, memCountRes, letCountRes, memoriesRes, milestonesRes] = await Promise.all([
                 partnerId ? supabase.from('profiles').select('*').eq('id', partnerId).single() : Promise.resolve({ data: null }),
-                partnerId ? supabase.from('moods').select('*, mood:emoji, note:mood_text').eq('user_id', partnerId).gte('created_at', todayUtcStart.toISOString()).order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
+                partnerId ? supabase.from('moods').select('*, mood:emoji, note:mood_text').eq('user_id', partnerId).gte('created_at', todayStart.toISOString()).order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
                 supabase.from('memories').select('*', { count: 'exact', head: true }).eq('couple_id', profile.couple_id),
                 supabase.from('love_letters').select('*', { count: 'exact', head: true }).eq('couple_id', profile.couple_id),
                 supabase.from('memories').select('*').eq('couple_id', profile.couple_id),
@@ -142,8 +138,46 @@ export default async function DashboardPage() {
     return (
         <DashboardShell>
             <div className="max-w-7xl mx-auto space-y-12 pt-12 pb-24 px-6 md:px-8">
-                {/* Refined Welcome Header - Now Collapsible */}
-                <DashboardWelcome profile={profile} partnerProfile={partnerProfile} />
+                {/* Refined Welcome Header */}
+                <ScrollReveal className="space-y-4 text-center lg:text-left">
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-amber-200/90 text-[10px] uppercase tracking-[0.3em] font-bold backdrop-blur-md text-glow-gold">
+                        <Sparkles className="w-3 h-3 text-amber-400/80" />
+                        MoonBetweenUs
+                    </div>
+                    <h1 className="hidden md:block text-4xl md:text-7xl font-romantic text-rose-50 leading-[1.1] tracking-wide text-glow-rose">
+                        Always Together
+                        <br />
+                        <span className="bg-gradient-to-r from-amber-200 via-rose-300 to-orange-300 bg-clip-text text-transparent drop-shadow-sm">
+                            Forever
+                        </span>
+                    </h1>
+                    <div className="flex flex-col lg:flex-row items-center gap-4 pt-4">
+                        <div className="flex -space-x-4">
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-background bg-primary/20 flex items-center justify-center ring-2 ring-white/10 overflow-hidden shadow-xl">
+                                {profile?.avatar_url ? (
+                                    <img src={profile.avatar_url} className="w-full h-full object-cover" alt="You" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-rose-500/20 text-rose-200 font-bold text-xs">
+                                        {profile?.display_name?.charAt(0) || "U"}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-background bg-secondary/20 flex items-center justify-center ring-2 ring-white/10 overflow-hidden shadow-xl">
+                                {partnerProfile?.avatar_url ? (
+                                    <img src={partnerProfile.avatar_url} className="w-full h-full object-cover" alt="Partner" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-cyan-500/20 text-cyan-200 font-bold text-xs">
+                                        {partnerProfile?.display_name?.charAt(0) || "P"}
+                                    </div>
+                                )}
+                            </div>
+
+                        </div>
+                        <p className="text-rose-100/70 uppercase text-xs tracking-[0.2em] font-medium">
+                            Connected with <span className="text-rose-50 font-bold">{partnerProfile?.display_name || 'Partner'}</span>
+                        </p>
+                    </div>
+                </ScrollReveal>
 
                 {/* Unified Bento Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-8 md:mt-12">
@@ -224,7 +258,7 @@ export default async function DashboardPage() {
                         </div>
                     </ScrollReveal>
 
-                    {/* Quick Actions (Floating Pill Grid) - Hidden as requested */}
+                    {/* Quick Actions (Floating Pill Grid) */}
                     <ScrollReveal className="lg:col-span-1 glass-card hidden" delay={0.3}>
                         <div className=" p-6 flex flex-col justify-between h-full bg-black/20">
                             <div className="flex items-center justify-between mb-8">

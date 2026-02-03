@@ -50,16 +50,11 @@ export default async function ProtectedLayout({
 
             partnerProfile = partnerRes.data;
 
-            // Calculate days together using IST strings to avoid UTC rollover issues
+            // Calculate days together
             const startDateStr = couple.anniversary_date || couple.paired_at;
             if (startDateStr) {
-                // startDateStr is YYYY-MM-DD
-                const [y, m, d] = startDateStr.split('T')[0].split('-').map(Number)
-                const startDate = new Date(y, m - 1, d) // Local date at midnight
-
-                const nowIst = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }))
-                const today = new Date(nowIst.getFullYear(), nowIst.getMonth(), nowIst.getDate())
-
+                const startDate = new Date(startDateStr)
+                const today = new Date()
                 daysTogetherCount = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
             }
         }

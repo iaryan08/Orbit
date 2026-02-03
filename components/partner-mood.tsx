@@ -17,6 +17,13 @@ interface PartnerMoodProps {
 export function PartnerMood({ partnerName, partnerAvatar, moods }: PartnerMoodProps) {
   const formatTime = (timeString: string) => {
     const date = new Date(timeString)
+    // Manually add 5:30 for Vercel/Server environments if they are in UTC
+    // Most cloud providers use UTC by default
+    const isUTC = date.getTimezoneOffset() === 0
+    if (isUTC) {
+      date.setHours(date.getHours() + 5)
+      date.setMinutes(date.getMinutes() + 30)
+    }
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
 
@@ -68,11 +75,17 @@ export function PartnerMood({ partnerName, partnerAvatar, moods }: PartnerMoodPr
 
       <CardContent className="pt-2 h-full">
         <div className="space-y-4">
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-4 relative overflow-hidden group">
+          <div className={cn(
+            "border border-white/10 rounded-2xl p-4 relative overflow-hidden group transition-colors",
+            MOOD_COLORS[latestMood.mood]?.split(' ').find(c => c.startsWith('bg-'))?.replace('bg-', 'bg-').replace('-100', '-500/10') || "bg-white/5"
+          )}>
             <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
               <Clock className="w-12 h-12 text-white" />
             </div>
-            <p className={cn("text-sm leading-relaxed relative z-10 font-medium", MOOD_COLORS[latestMood.mood])}>
+            <p className={cn(
+              "text-sm leading-relaxed relative z-10 font-medium",
+              MOOD_COLORS[latestMood.mood]?.split(' ').find(c => c.startsWith('text-')) || "text-white/90"
+            )}>
               {latestMood.note ? `"${latestMood.note}"` : `Feeling ${latestMood.mood} right now`}
             </p>
             <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold text-white/30 mt-3 relative z-10">
