@@ -9,6 +9,8 @@ interface AppModeContextType {
     mode: AppMode
     setMode: (mode: AppMode) => void
     toggleMode: () => void
+    activeLunaraTab: 'dashboard' | 'insights' | 'partner'
+    setActiveLunaraTab: (tab: 'dashboard' | 'insights' | 'partner') => void
 }
 
 const AppModeContext = createContext<AppModeContextType | undefined>(undefined)
@@ -37,8 +39,16 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
         router.push('/dashboard')
     }
 
+    const [activeLunaraTab, setActiveLunaraTab] = useState<'dashboard' | 'insights' | 'partner'>('dashboard')
+
     return (
-        <AppModeContext.Provider value={{ mode, setMode: handleSetMode, toggleMode }}>
+        <AppModeContext.Provider value={{
+            mode,
+            setMode: handleSetMode,
+            toggleMode,
+            activeLunaraTab,
+            setActiveLunaraTab
+        }}>
             {children}
         </AppModeContext.Provider>
     )

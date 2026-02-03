@@ -27,7 +27,8 @@ import {
   Mail,
   Image as ImageIcon,
   Gamepad2,
-  Moon
+  Moon,
+  BookOpen
 } from 'lucide-react'
 import { NotificationBell } from './notification-bell'
 import Link from 'next/link'
@@ -58,7 +59,7 @@ export function DashboardHeader({
   const [scrolled, setScrolled] = useState(false)
   const [hoveredPath, setHoveredPath] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
-  const { mode } = useAppMode()
+  const { mode, activeLunaraTab, setActiveLunaraTab } = useAppMode()
 
   useEffect(() => {
     setMounted(true)
@@ -73,13 +74,7 @@ export function DashboardHeader({
     return null // Or a simpler skeleton to avoid layout shift, but null is safest for hydration
   }
 
-  const navItems = [
-    { href: '/dashboard', icon: LayoutGrid, label: 'Home' },
-    { href: '/letters', icon: Mail, label: 'Letters' },
-    { href: '/memories', icon: ImageIcon, label: 'Memories' },
-    // { href: '/games', icon: Gamepad2, label: 'Games' },
-    { href: '/intimacy', icon: Heart, label: 'Intimacy' },
-  ]
+
 
   return (
     <>
@@ -142,70 +137,139 @@ export function DashboardHeader({
               "w-px h-6 mx-2" // Mobile default
             )} />
 
-            {/* 2. Nav Items (Home, Letters, Memories, Intimacy) */}
-            {navItems.map((item) => {
-              const isActive = pathname === item.href
-              const isHovered = hoveredPath === item.href
+            {/* 2. Nav Items (Conditional based on Mode) */}
+            {mode === 'moon' ? (
+              // MOON MODE ITEMS
+              [
+                { href: '/dashboard', icon: LayoutGrid, label: 'Home' },
+                { href: '/letters', icon: Mail, label: 'Letters' },
+                { href: '/memories', icon: ImageIcon, label: 'Memories' },
+                { href: '/intimacy', icon: Heart, label: 'Intimacy' },
+              ].map((item) => {
+                const isActive = pathname === item.href
+                const isHovered = hoveredPath === item.href
 
-              return (
-                <Tooltip key={item.href}>
-                  <TooltipTrigger asChild>
-                    <Link
-                      href={item.href}
-                      onMouseEnter={() => setHoveredPath(item.href)}
-                      className="relative block"
-                    >
-                      <div className={cn(
-                        "p-3 rounded-full flex items-center justify-center relative group transition-all duration-300",
-                        isActive ? "text-white" : "text-white/40 group-hover:text-white"
-                      )}>
-                        {/* Smooth Sliding Pill Indicator */}
-                        <AnimatePresence>
-                          {(isActive || isHovered) && (
-                            <motion.div
-                              layoutId="nav-indicator"
-                              className={cn(
-                                "absolute inset-0 z-0 bg-white/10 border border-white/10 shadow-xl rounded-full px-4",
-                                scrolled ? "md:rounded-[18px]" : "md:rounded-full"
-                              )}
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 1 }}
-                              exit={{ opacity: 0 }}
-                              transition={{
-                                type: "spring",
-                                bounce: 0.25,
-                                stiffness: 130,
-                                damping: 18,
-                              }}
-                            />
+                return (
+                  <Tooltip key={item.href}>
+                    <TooltipTrigger asChild>
+                      <Link
+                        href={item.href}
+                        onMouseEnter={() => setHoveredPath(item.href)}
+                        className="relative block"
+                      >
+                        <div className={cn(
+                          "p-3 rounded-full flex items-center justify-center relative group transition-all duration-300",
+                          isActive ? "text-white" : "text-white/40 group-hover:text-white"
+                        )}>
+                          {/* Smooth Sliding Pill Indicator */}
+                          <AnimatePresence>
+                            {(isActive || isHovered) && (
+                              <motion.div
+                                layoutId="nav-indicator"
+                                className={cn(
+                                  "absolute inset-0 z-0 bg-white/10 border border-white/10 shadow-xl rounded-full px-4",
+                                  scrolled ? "md:rounded-[18px]" : "md:rounded-full"
+                                )}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{
+                                  type: "spring",
+                                  bounce: 0.25,
+                                  stiffness: 130,
+                                  damping: 18,
+                                }}
+                              />
+                            )}
+                          </AnimatePresence>
+
+                          <item.icon className={cn(
+                            "w-5 h-5 relative z-10 transition-transform group-hover:scale-110",
+                            isActive && "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]"
+                          )} />
+
+                          {/* Red Dot Notification */}
+                          {item.label === 'Memories' && unreadCounts.memories > 0 && (
+                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />
                           )}
-                        </AnimatePresence>
+                          {item.label === 'Letters' && unreadCounts.letters > 0 && (
+                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />
+                          )}
+                        </div>
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side={scrolled ? "right" : "bottom"}
+                      sideOffset={15}
+                      className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl"
+                    >
+                      <p>{item.label}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )
+              })
+            ) : (
+              // LUNARA MODE ITEMS
+              [
+                { id: 'dashboard', icon: LayoutGrid, label: 'Dashboard' },
+                { id: 'insights', icon: BookOpen, label: 'Insights' },
+                { id: 'partner', icon: Heart, label: 'Partner' },
+              ].map((item) => {
+                const isActive = activeLunaraTab === item.id
+                const isHovered = hoveredPath === item.id
 
-                        <item.icon className={cn(
-                          "w-5 h-5 relative z-10 transition-transform group-hover:scale-110",
-                          isActive && "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]"
-                        )} />
+                return (
+                  <Tooltip key={item.id}>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => setActiveLunaraTab(item.id as any)}
+                        onMouseEnter={() => setHoveredPath(item.id)}
+                        className="relative block"
+                      >
+                        <div className={cn(
+                          "p-3 rounded-full flex items-center justify-center relative group transition-all duration-300",
+                          isActive ? "text-purple-200" : "text-purple-300/40 group-hover:text-purple-200"
+                        )}>
+                          {/* Smooth Sliding Pill Indicator (Purple for Lunara) */}
+                          <AnimatePresence>
+                            {(isActive || isHovered) && (
+                              <motion.div
+                                layoutId="lunara-nav-indicator"
+                                className={cn(
+                                  "absolute inset-0 z-0 bg-purple-500/20 border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)] rounded-full px-4",
+                                  scrolled ? "md:rounded-[18px]" : "md:rounded-full"
+                                )}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{
+                                  type: "spring",
+                                  bounce: 0.25,
+                                  stiffness: 130,
+                                  damping: 18,
+                                }}
+                              />
+                            )}
+                          </AnimatePresence>
 
-                        {/* Red Dot Notification */}
-                        {item.label === 'Memories' && unreadCounts.memories > 0 && (
-                          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />
-                        )}
-                        {item.label === 'Letters' && unreadCounts.letters > 0 && (
-                          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />
-                        )}
-                      </div>
-                    </Link>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side={scrolled ? "right" : "bottom"}
-                    sideOffset={15}
-                    className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl"
-                  >
-                    <p>{item.label}</p>
-                  </TooltipContent>
-                </Tooltip>
-              )
-            })}
+                          <item.icon className={cn(
+                            "w-5 h-5 relative z-10 transition-transform group-hover:scale-110",
+                            isActive && "text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]"
+                          )} />
+                        </div>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side={scrolled ? "right" : "bottom"}
+                      sideOffset={15}
+                      className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl"
+                    >
+                      <p>{item.label}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )
+              })
+            )}
 
             {/* Separator before Settings */}
             <div className={cn(
