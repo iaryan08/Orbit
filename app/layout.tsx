@@ -43,6 +43,9 @@ export const metadata: Metadata = {
 }
 
 import { RomanticBackground } from '@/components/romantic-background'
+import { MoonBackdrop } from '@/components/MoonBackdrop'
+import { Stars } from '@/components/Stars'
+import { FloatingHearts } from '@/components/FloatingHearts'
 
 export default function RootLayout({
   children,
@@ -57,6 +60,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body suppressHydrationWarning className={`${_outfit.variable} ${_cormorant.variable} ${_pinyon.variable} font-sans antialiased min-h-screen relative overflow-x-hidden`}>
+        <Stars />
+        <MoonBackdrop />
+        <FloatingHearts />
         <RomanticBackground initialImage={initialImage} />
         <div className="relative z-10">
           {children}

@@ -344,8 +344,8 @@ export function LunaraDashboard() {
                                             : 'Support Mode')}
                                 </span>
                                 {cycleProfile?.last_period_start && (
-                                    <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] -mt-1">
-                                        Last: {format(new Date(cycleProfile.last_period_start), "MMM dd, yyyy")}
+                                    <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] pt-1">
+                                        {format(new Date(cycleProfile.last_period_start), "MMM dd, yyyy")}
                                     </span>
                                 )}
                                 <span className={cn("text-[10px] uppercase tracking-[0.2em] font-bold", phase?.color || "text-purple-300/60")}>

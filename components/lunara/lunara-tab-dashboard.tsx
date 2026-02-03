@@ -111,6 +111,11 @@ export function LunaraTabDashboard({ data }: { data: any }) {
                                         ? `Day ${currentDay}`
                                         : 'Support Mode')}
                             </span>
+                            {cycleProfile?.last_period_start && (
+                                <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] pt-1">
+                                    {format(new Date(cycleProfile.last_period_start), "MMM dd, yyyy")}
+                                </span>
+                            )}
                             <span className={cn("text-[10px] uppercase tracking-[0.2em] font-bold", phase?.color || "text-purple-300/60")}>
                                 {(profile?.gender === 'female' || cycleProfile?.sharing_enabled) && phase?.name
                                     ? phase.name

@@ -206,15 +206,29 @@
     }
   }
 
-  @keyframes heart-sway {
-
-    0%,
-    100% {
-      transform: translateX(0);
+  @keyframes heartFloat {
+    0% {
+      transform: translateY(100vh) scale(0.9);
+      opacity: 0;
     }
 
-    50% {
-      transform: translateX(15px);
+    10% {
+      opacity: 0.08;
+    }
+
+    100% {
+      transform: translateY(-10vh) scale(1.1);
+      opacity: 0;
+    }
+  }
+
+  @keyframes starDrift {
+    from {
+      transform: translateY(0);
+    }
+
+    to {
+      transform: translateY(-50px);
     }
   }
 }
@@ -399,5 +413,21 @@
   /* Premium Card Styles */
   .card-border-premium {
     @apply border-none relative bg-black/20;
+  }
+}
+
+.animate-heartFloat {
+  animation: heartFloat 18s linear infinite;
+}
+
+.animate-starDrift {
+  animation: starDrift linear infinite;
+}
+
+@media (max-width: 768px) {
+
+  .animate-starDrift,
+  .animate-heartFloat {
+    animation-duration: 240s !important;
   }
 }

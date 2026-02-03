@@ -19,8 +19,8 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
 
         // Generate static hearts and stars
         const newElements = Array.from({ length: 30 }).map((_, i) => {
-            const type = Math.random() > 0.6 ? "heart" : "star";
-            const size = Math.random() * 20 + 10;
+            const type = Math.random() > 0.8 ? "heart" : "star";
+            const size = type === "heart" ? Math.random() * 8 + 6 : Math.random() * 10 + 2;
             const duration = Math.random() * 20 + 10;
             const delay = Math.random() * 10;
 
@@ -35,7 +35,7 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
                     minHeight: `100%`,
                     animationDuration: `${duration}s`,
                     animationDelay: `${delay}s`,
-                    opacity: Math.random() * 0.5 + 0.1,
+                    opacity: type === "heart" ? Math.random() * 0.2 + 0.1 : Math.random() * 0.4 + 0.1,
                 },
             };
         });
@@ -90,11 +90,16 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
             {elements.map((el) => (
                 <div
                     key={el.id}
-                    className={`absolute animate-float ${el.type === "heart" ? "text-primary/60" : "text-yellow-200/60"}`}
-                    style={el.style}
+                    className={`absolute animate-float ${el.type === "heart" ? "" : "text-yellow-200/60"}`}
+                    style={{
+                        ...el.style,
+                        color: el.type === "heart" ? "#ff69b4" : (el.style.color as string),
+                        opacity: el.type === "heart" ? 0.25 : el.style.opacity,
+                        zIndex: 1 // Ensure they are above the base image
+                    }}
                 >
                     {el.type === "heart" ? (
-                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full drop-shadow-lg">
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full drop-shadow-[0_0_10px_rgba(255,105,180,0.3)]">
                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                         </svg>
                     ) : (
@@ -106,7 +111,7 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
             ))}
 
             {/* Grain texture for premium feel */}
-            <div className="absolute inset-0 opacity-[0.15] bg-[url('https://www.transparenttextures.com/patterns/gray-floral.png')] mix-blend-overlay"></div>
+            <div className="absolute inset-0 opacity-[0.15] bg-[url('https://www.transparenttextures.com/patterns/inspiration-geometry.png')] mix-blend-overlay"></div>
         </div>
     );
 }
