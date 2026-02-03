@@ -75,10 +75,10 @@ export function DashboardHeader({
 
   const navItems = [
     { href: '/dashboard', icon: LayoutGrid, label: 'Home' },
-    { href: '/dashboard/letters', icon: Mail, label: 'Letters' },
-    { href: '/dashboard/memories', icon: ImageIcon, label: 'Memories' },
-    // { href: '/dashboard/games', icon: Gamepad2, label: 'Games' },
-    { href: '/dashboard/intimacy', icon: Heart, label: 'Intimacy' },
+    { href: '/letters', icon: Mail, label: 'Letters' },
+    { href: '/memories', icon: ImageIcon, label: 'Memories' },
+    // { href: '/games', icon: Gamepad2, label: 'Games' },
+    { href: '/intimacy', icon: Heart, label: 'Intimacy' },
   ]
 
   return (

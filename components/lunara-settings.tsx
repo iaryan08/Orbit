@@ -49,7 +49,12 @@ export function LunaraSettings({ initialData, onBack, onSave }: LunaraSettingsPr
     const handleSave = async () => {
         setSaving(true)
         try {
-            const result = await saveLunaraOnboarding(data)
+            // Fix: Send date as YYYY-MM-DD string to avoid timezone shifts (e.g. IST midnight -> UTC previous day)
+            const submissionData = {
+                ...data,
+                lastPeriodStart: data.lastPeriodStart ? format(data.lastPeriodStart, 'yyyy-MM-dd') : null
+            }
+            const result = await saveLunaraOnboarding(submissionData)
             if (result.success) {
                 toast({
                     title: "Settings Saved",

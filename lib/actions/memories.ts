@@ -56,13 +56,13 @@ export async function createMemory(payload: {
                 type: 'memory',
                 title: 'New Memory Shared',
                 message: `${profile.display_name || 'Your partner'} added a new memory: "${payload.title}"`,
-                actionUrl: '/dashboard/memories',
+                actionUrl: '/memories',
                 metadata: { memory_id: memory.id }
             })
         }
     }
 
-    revalidatePath('/dashboard/memories')
+    revalidatePath('/memories')
     revalidatePath('/dashboard')
     return { success: true }
 }
@@ -93,7 +93,7 @@ export async function updateMemory(memoryId: string, payload: {
 
     if (error) return { error: error.message }
 
-    revalidatePath('/dashboard/memories')
+    revalidatePath('/memories')
     revalidatePath('/dashboard')
     return { success: true }
 }

@@ -80,10 +80,10 @@ export async function logIntimacyMilestone(payload: {
             type: 'intimacy',
             title: 'Intimacy Memory Added',
             message: `${profile.display_name || 'Your partner'} added a memory for: ${label}`,
-            actionUrl: '/dashboard/intimacy'
+            actionUrl: '/intimacy'
         })
     }
 
-    revalidatePath('/dashboard/intimacy')
+    revalidatePath('/intimacy')
     return { success: true }
 }

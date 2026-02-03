@@ -88,35 +88,20 @@ export async function getTodayMoods() {
   if (!profile?.couple_id) return null
 
   /* 
-   * FIX: Use IST time to determine "today"
-   * Server might be in UTC, so new Date() is UTC.
    * We need to find what "today" means in India.
    */
   const istDate = getISTDate()
 
-  // Set to beginning of the day in IST
+  // Set to beginning of the day in IST (Nominal 00:00)
   const todayStart = new Date(istDate)
   todayStart.setHours(0, 0, 0, 0)
 
-  /* 
-   * WARNING: supabase 'created_at' is likely UTC. 
-   * If we filter by created_at >= todayStart (which is an IST date object), 
-   * comparison might be tricky depending on how node handles the TZ.
-   * 
-   * Safer approach for "Today's Moods":
-   * Filter by the `mood_date` column if it exists and we just populated it with YYYY-MM-DD string.
-   * BUT `mood_date` is a Date/String column? The insert used `mood_date: todayStr`.
-   * The selection uses `created_at` in the original code.
-   * 
-   * Let's stick to the user's requested logic for defining "today" boundaries but apply it to filter.
-   * Since we just changed insert to use correct `mood_date`, using that column is best if possible.
-   * However, `getTodayMoods` was using `created_at`.
-   * Let's use the calculated timestamp for `created_at` filter as a fallback or primary if `mood_date` isn't reliable for *time* precision (it is date only).
-   * 
-   * Actually, for "Today's moods", we just need moods from the current day in IST.
-   * Converting the `todayStart` (IST 00:00) back to UTC for the query is the standard way.
-   * `todayStart.toISOString()` will convert that specific moment to UTC string.
-   */
+  // Convert Nominal IST 00:00 to True UTC Timestamp
+  // 00:00 IST is 18:30 UTC previous day (minus 5.5 hours)
+  // Since todayStart is a Date object representing 00:00 UTC (because server is UTC),
+  // we just need to subtract 5.5 hours to get the UTC timestamp that equals IST Midnight.
+  todayStart.setHours(todayStart.getHours() - 5)
+  todayStart.setMinutes(todayStart.getMinutes() - 30)
 
   const { data: moods } = await supabase
     .from('moods')

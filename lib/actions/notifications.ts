@@ -126,3 +126,50 @@ export async function markAsRead(notificationId?: string) {
     revalidatePath('/dashboard')
     return { success: true }
 }
+
+/**
+ * Deletes a single notification.
+ */
+export async function deleteNotification(notificationId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return { error: 'Unauthorized' }
+
+    const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId)
+        .eq('recipient_id', user.id)
+
+    if (error) {
+        console.error("Failed to delete notification:", error)
+        return { success: false, error: error.message }
+    }
+
+    revalidatePath('/dashboard')
+    return { success: true }
+}
+
+/**
+ * Deletes all notifications for the current user.
+ */
+export async function deleteAllNotifications() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return { error: 'Unauthorized' }
+
+    const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('recipient_id', user.id)
+
+    if (error) {
+        console.error("Failed to clear notifications:", error)
+        return { success: false, error: error.message }
+    }
+
+    revalidatePath('/dashboard')
+    return { success: true }
+}

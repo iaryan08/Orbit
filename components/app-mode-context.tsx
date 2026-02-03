@@ -1,6 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 type AppMode = 'moon' | 'lunara'
 
@@ -13,6 +14,7 @@ interface AppModeContextType {
 const AppModeContext = createContext<AppModeContextType | undefined>(undefined)
 
 export function AppModeProvider({ children }: { children: React.ReactNode }) {
+    const router = useRouter()
     const [mode, setMode] = useState<AppMode>('moon')
     const [mounted, setMounted] = useState(false)
 
@@ -32,6 +34,7 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
     const toggleMode = () => {
         const newMode = mode === 'moon' ? 'lunara' : 'moon'
         handleSetMode(newMode)
+        router.push('/dashboard')
     }
 
     return (

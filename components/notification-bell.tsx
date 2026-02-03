@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Bell, Check, Circle, ExternalLink, Calendar, Heart, Mail, Sparkles, X } from 'lucide-react'
+import { Bell, Check, Circle, ExternalLink, Calendar, Heart, Mail, Sparkles, X, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     Popover,
@@ -9,7 +9,7 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { getUnreadCount, getNotifications, markAsRead } from '@/lib/actions/notifications'
+import { getUnreadCount, getNotifications, markAsRead, deleteNotification, deleteAllNotifications } from '@/lib/actions/notifications'
 import { formatDistanceToNow } from 'date-fns'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -81,9 +81,6 @@ export function NotificationBell({ className }: { className?: string }) {
         try {
             const data = await getNotifications()
             setNotifications(data as Notification[])
-            // Reset badge count locally if we assume opening clears "attention" needed?
-            // Usually we only clear count if we mark as read.
-            // Let's keep count accurate to unread status.
         } catch (e) {
             console.error(e)
         } finally {
@@ -104,15 +101,24 @@ export function NotificationBell({ className }: { className?: string }) {
         }
     }
 
-    const handleMarkAllRead = async () => {
-        const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id)
-        if (unreadIds.length === 0) return
+    const handleDelete = async (e: React.MouseEvent, id: string) => {
+        e.stopPropagation()
+        // Optimistic update
+        setNotifications(prev => prev.filter(n => n.id !== id))
 
-        setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
+        // If we deleted an unread one, decrease count
+        const wasUnread = notifications.find(n => n.id === id)?.is_read === false
+        if (wasUnread) {
+            setCount(prev => Math.max(0, prev - 1))
+        }
+
+        await deleteNotification(id)
+    }
+
+    const handleDeleteAll = async () => {
+        setNotifications([])
         setCount(0)
-
-        // Mark all on server
-        await Promise.all(unreadIds.map(id => markAsRead(id)))
+        await deleteAllNotifications()
     }
 
     const getIcon = (type: string) => {
@@ -139,14 +145,15 @@ export function NotificationBell({ className }: { className?: string }) {
             <PopoverContent align="end" className="w-80 md:w-96 p-0 border-white/10 bg-[#0f0510]/95 backdrop-blur-xl shadow-2xl text-white">
                 <div className="flex items-center justify-between p-4 border-b border-white/5">
                     <h4 className="font-serif text-lg font-medium text-purple-100">Notifications</h4>
-                    {count > 0 && (
+                    {notifications.length > 0 && (
                         <Button
                             variant="ghost"
-                            size="sm"
-                            className="text-[10px] h-6 px-2 text-purple-300 hover:text-white hover:bg-purple-500/10 uppercase tracking-widest font-bold"
-                            onClick={handleMarkAllRead}
+                            size="icon"
+                            className="h-6 w-6 text-white/40 hover:text-rose-400 hover:bg-rose-500/10"
+                            onClick={handleDeleteAll}
+                            title="Clear all"
                         >
-                            Mark all read
+                            <Trash2 className="h-4 w-4" />
                         </Button>
                     )}
                 </div>
@@ -167,7 +174,7 @@ export function NotificationBell({ className }: { className?: string }) {
                                 <div
                                     key={notification.id}
                                     className={cn(
-                                        "p-4 hover:bg-purple-500/5 transition-colors cursor-pointer flex gap-4 disabled:opacity-50",
+                                        "group relative p-4 hover:bg-purple-500/5 transition-colors cursor-pointer flex gap-4 disabled:opacity-50",
                                         !notification.is_read ? "bg-purple-500/5" : ""
                                     )}
                                     onClick={() => handleMarkAsRead(notification.id, notification.action_url)}
@@ -175,7 +182,7 @@ export function NotificationBell({ className }: { className?: string }) {
                                     <div className="mt-1 p-2 rounded-full bg-white/5 h-8 w-8 flex items-center justify-center shrink-0 border border-white/5">
                                         {getIcon(notification.type)}
                                     </div>
-                                    <div className="flex-1 space-y-1">
+                                    <div className="flex-1 space-y-1 pr-6">
                                         <div className="flex items-start justify-between">
                                             <p className={cn("text-sm font-medium leading-none", !notification.is_read ? "text-white" : "text-white/60")}>
                                                 {notification.title}
@@ -193,6 +200,13 @@ export function NotificationBell({ className }: { className?: string }) {
                                             </span>
                                         </div>
                                     </div>
+
+                                    <button
+                                        onClick={(e) => handleDelete(e, notification.id)}
+                                        className="absolute top-2 right-2 p-1 text-white/20 hover:text-white hover:bg-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-all"
+                                    >
+                                        <X className="h-3.5 w-3.5" />
+                                    </button>
                                 </div>
                             ))}
                         </div>

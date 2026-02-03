@@ -36,14 +36,15 @@ export async function openLetter(letterId: string) {
             type: 'letter',
             title: 'Letter Opened',
             message: 'Your partner just opened your love letter.',
-            actionUrl: '/dashboard/letters',
+            actionUrl: '/letters',
             metadata: { letter_id: letterId }
         })
 
-        revalidatePath('/dashboard/letters')
+        revalidatePath('/letters')
         return { success: true, read_at: now }
     } catch (e: any) {
         console.error("Error opening letter:", e)
+        return { error: e.message || "Failed to open letter" }
     }
 }
 
@@ -103,11 +104,11 @@ export async function sendLetter(payload: {
         type: 'letter',
         title: 'New Love Letter',
         message: `${profile.display_name || 'Your partner'} sent you a love letter.`,
-        actionUrl: '/dashboard/letters',
+        actionUrl: '/letters',
         metadata: { letter_id: letter.id }
     })
 
-    revalidatePath('/dashboard/letters')
+    revalidatePath('/letters')
     return { success: true }
 }
 
@@ -134,6 +135,6 @@ export async function updateLetter(letterId: string, payload: {
 
     if (error) return { error: error.message }
 
-    revalidatePath('/dashboard/letters')
+    revalidatePath('/letters')
     return { success: true }
 }

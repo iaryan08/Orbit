@@ -243,17 +243,32 @@ export function LunaraDashboard() {
             <LunaraSettings
                 initialData={cycleProfile}
                 onBack={() => setShowSettings(false)}
-                onSave={(newData) => {
-                    // Update local state and go back
+                onSave={async (newData) => {
+                    // 1. Optimistic Update
                     setCycleProfile((prev: any) => ({
                         ...prev,
                         ...newData,
                         avg_cycle_length: parseInt(newData.cycleLength),
                         avg_period_length: parseInt(newData.periodLength),
                         sharing_enabled: newData.sharingEnabled,
-                        last_period_start: newData.lastPeriodStart?.toISOString().split('T')[0]
+                        last_period_start: newData.lastPeriodStart ? format(newData.lastPeriodStart, 'yyyy-MM-dd') : null
                     }))
                     setShowSettings(false)
+
+                    // 2. Force Refresh to ensure server state is consistent
+                    router.refresh()
+
+                    // 3. Explicitly reload dashboard data to ensure we have the DB state
+                    // (Small delay to allow DB propagation if needed, though server action should handle it)
+                    setTimeout(() => {
+                        const loadData = async () => {
+                            const result = await fetchDashboardData()
+                            if (result.success && result.data) {
+                                setCycleProfile(prev => ({ ...prev, ...result.data.userCycle }))
+                            }
+                        }
+                        loadData()
+                    }, 500)
                 }}
             />
         )
