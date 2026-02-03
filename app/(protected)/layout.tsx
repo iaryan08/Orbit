@@ -63,6 +63,9 @@ export default async function ProtectedLayout({
     return (
         <AppModeProvider>
             <div className="min-h-screen bg-transparent pb-10 md:pb-0">
+                {/* Top Viewport Fade Overlay */}
+                <div className="fixed top-0 left-0 right-0 h-32 bg-gradient-to-b from-background via-background/60 to-transparent z-[30] pointer-events-none" />
+
                 <RealtimeObserver
                     coupleId={profile?.couple_id || null}
                     partnerId={couple ? (couple.user1_id === user.id ? couple.user2_id : couple.user1_id) : null}
@@ -74,7 +77,7 @@ export default async function ProtectedLayout({
                     daysTogetherCount={daysTogetherCount}
                     unreadCounts={couple ? await fetchUnreadCounts() : undefined}
                 />
-                <main className="container mx-auto px-4 py-6 pt-32">
+                <main className="container mx-auto px-4 py-6 pt-14 relative z-10">
                     {children}
                 </main>
             </div>

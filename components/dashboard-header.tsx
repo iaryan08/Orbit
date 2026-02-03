@@ -32,7 +32,7 @@ import {
 } from 'lucide-react'
 import { NotificationBell } from './notification-bell'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useAppMode } from './app-mode-context'
 import { LunaraToggle } from './lunara-toggle'
@@ -56,6 +56,7 @@ export function DashboardHeader({
   unreadCounts = { memories: 0, letters: 0 }
 }: DashboardHeaderProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const [scrolled, setScrolled] = useState(false)
   const [hoveredPath, setHoveredPath] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
@@ -215,14 +216,19 @@ export function DashboardHeader({
                 { id: 'insights', icon: BookOpen, label: 'Insights' },
                 { id: 'partner', icon: Heart, label: 'Partner' },
               ].map((item) => {
-                const isActive = activeLunaraTab === item.id
+                const isActive = activeLunaraTab === item.id && pathname === '/dashboard'
                 const isHovered = hoveredPath === item.id
 
                 return (
                   <Tooltip key={item.id}>
                     <TooltipTrigger asChild>
                       <button
-                        onClick={() => setActiveLunaraTab(item.id as any)}
+                        onClick={() => {
+                          setActiveLunaraTab(item.id as any)
+                          if (pathname !== '/dashboard') {
+                            router.push('/dashboard')
+                          }
+                        }}
                         onMouseEnter={() => setHoveredPath(item.id)}
                         className="relative block"
                       >
@@ -304,7 +310,18 @@ export function DashboardHeader({
       {/* 4. Profile Dropdown & Mode Toggle (Top Right Floating) */}
       <div className="fixed top-6 right-6 z-50 flex items-center gap-4">
         {/* Lunara Mode Toggle Indicator */}
-        <LunaraToggle />
+        <AnimatePresence>
+          {!scrolled && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, x: 20 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.8, x: 20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <LunaraToggle />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {partnerName && daysTogetherCount !== undefined && mode === 'moon' && (
           <div className="hidden lg:flex flex-col items-end mr-2 text-white/90 drop-shadow-sm">

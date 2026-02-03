@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Edit2 } from "lucide-react";
+import { motion, useScroll, useTransform } from "framer-motion";
 
 interface LoveLetter {
     id: string;
@@ -249,87 +250,100 @@ export default function LettersPage() {
     const receivedLetters = letters.filter(l => l.receiver_id !== l.sender_id);
     const sentLetters = letters.filter(l => l.sender_id === l.receiver_id);
 
+    const { scrollY } = useScroll();
+    const opacity = useTransform(scrollY, [0, 50], [1, 0]);
+
     return (
-        <div className="container mx-auto px-4 py-8 space-y-6 pt-24">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-serif font-semibold text-white flex items-center gap-3 text-glow-white">
-                        <Mail className="h-7 w-7 text-amber-200" />
+        <div className="container mx-auto px-4 py-8 space-y-6 pt-14">
+            <div className="flex items-center justify-between sticky top-6 z-50 md:static">
+                <div className="flex items-center gap-3">
+                    <Mail className="h-6 w-6 text-amber-200 drop-shadow-[0_0_10px_rgba(253,243,165,0.8)]" />
+                    <motion.h1
+                        style={{ opacity }}
+                        className="text-3xl font-serif font-semibold text-white text-glow-white hidden md:block"
+                    >
                         Love Letters
-                    </h1>
-                    <p className="text-white/60 mt-1 uppercase tracking-widest text-[10px] font-bold">Write and cherish heartfelt messages</p>
+                    </motion.h1>
+                    <motion.h1
+                        style={{ opacity }}
+                        className="text-2xl font-serif font-semibold text-white text-glow-white md:hidden"
+                    >
+                        Love Letters
+                    </motion.h1>
                 </div>
-                <Dialog open={isWriting} onOpenChange={setIsWriting}>
-                    <Button className="gap-2" variant="rosy" onClick={() => {
-                        setEditingLetter(null);
-                        setNewLetter({ title: "", content: "", unlock_date: "" });
-                        setIsWriting(true);
-                    }}>
-                        <Plus className="h-4 w-4" />
-                        Write Letter
-                    </Button>
-                    <DialogContent className="sm:max-w-[500px] border border-white/10 bg-[#1a0b10]/95 backdrop-blur-xl shadow-[0_0_50px_rgba(244,63,94,0.15)] text-white">
-                        <DialogHeader>
-                            <DialogTitle className="flex items-center gap-3 font-serif text-2xl text-rose-50 text-glow-rose">
-                                <Heart className="h-6 w-6 text-rose-500 fill-rose-500 animate-pulse" />
-                                {editingLetter ? "Edit Love Letter" : "Write a Love Letter"}
-                            </DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-6 mt-6">
-                            <div className="space-y-2">
-                                <Label htmlFor="title" className="text-amber-100 font-medium tracking-wide uppercase text-xs">Title</Label>
-                                <Input
-                                    id="title"
-                                    placeholder="My Dearest..."
-                                    value={newLetter.title}
-                                    onChange={(e) => setNewLetter(prev => ({ ...prev, title: e.target.value }))}
-                                    className="bg-white/5 border-white/10 focus:border-rose-400/50 text-white placeholder:text-white/30 h-12 rounded-xl"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <Label htmlFor="content" className="text-amber-100 font-medium tracking-wide uppercase text-xs">Your Message</Label>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={generateAILetter}
-                                        disabled={generating}
-                                        className="text-xs text-rose-300 hover:text-rose-200 hover:bg-rose-500/10 h-6 px-2"
-                                    >
-                                        <Sparkles className="h-3 w-3 mr-1" />
-                                        {generating ? "Writing..." : "AI Assist"}
-                                    </Button>
+
+                <motion.div style={{ opacity }}>
+                    <Dialog open={isWriting} onOpenChange={setIsWriting}>
+                        <Button className="w-10 h-10 p-0 rounded-full" variant="rosy" onClick={() => {
+                            setEditingLetter(null);
+                            setNewLetter({ title: "", content: "", unlock_date: "" });
+                            setIsWriting(true);
+                        }}>
+                            <Plus className="h-4 w-4" />
+                        </Button>
+                        <DialogContent className="sm:max-w-[500px] border border-white/10 bg-[#1a0b10]/95 backdrop-blur-xl shadow-[0_0_50px_rgba(244,63,94,0.15)] text-white">
+                            <DialogHeader>
+                                <DialogTitle className="flex items-center gap-3 font-serif text-2xl text-rose-50 text-glow-rose">
+                                    <Heart className="h-6 w-6 text-rose-500 fill-rose-500 animate-pulse" />
+                                    {editingLetter ? "Edit Love Letter" : "Write a Love Letter"}
+                                </DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-6 mt-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="title" className="text-amber-100 font-medium tracking-wide uppercase text-xs">Title</Label>
+                                    <Input
+                                        id="title"
+                                        placeholder="My Dearest..."
+                                        value={newLetter.title}
+                                        onChange={(e) => setNewLetter(prev => ({ ...prev, title: e.target.value }))}
+                                        className="bg-white/5 border-white/10 focus:border-rose-400/50 text-white placeholder:text-white/30 h-12 rounded-xl"
+                                    />
                                 </div>
-                                <Textarea
-                                    id="content"
-                                    placeholder="Pour your heart out..."
-                                    value={newLetter.content}
-                                    onChange={(e) => setNewLetter(prev => ({ ...prev, content: e.target.value }))}
-                                    rows={8}
-                                    className="resize-none bg-white/5 border-white/10 focus:border-rose-400/50 text-white placeholder:text-white/30 rounded-xl leading-relaxed p-4"
-                                />
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="content" className="text-amber-100 font-medium tracking-wide uppercase text-xs">Your Message</Label>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={generateAILetter}
+                                            disabled={generating}
+                                            className="text-xs text-rose-300 hover:text-rose-200 hover:bg-rose-500/10 h-6 px-2"
+                                        >
+                                            <Sparkles className="h-3 w-3 mr-1" />
+                                            {generating ? "Writing..." : "AI Assist"}
+                                        </Button>
+                                    </div>
+                                    <Textarea
+                                        id="content"
+                                        placeholder="Pour your heart out..."
+                                        value={newLetter.content}
+                                        onChange={(e) => setNewLetter(prev => ({ ...prev, content: e.target.value }))}
+                                        rows={8}
+                                        className="resize-none bg-white/5 border-white/10 focus:border-rose-400/50 text-white placeholder:text-white/30 rounded-xl leading-relaxed p-4"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="scheduled" className="flex items-center gap-2 text-amber-100 font-medium tracking-wide uppercase text-xs">
+                                        <Calendar className="h-3.5 w-3.5" />
+                                        Schedule Delivery (Optional)
+                                    </Label>
+                                    <Input
+                                        id="scheduled"
+                                        type="date"
+                                        value={newLetter.unlock_date}
+                                        onChange={(e) => setNewLetter(prev => ({ ...prev, unlock_date: e.target.value }))}
+                                        min={getTodayIST()}
+                                        className="mt-1 bg-white/5 border-white/10 focus:border-rose-400/50 text-white/80 h-12 rounded-xl"
+                                    />
+                                </div>
+                                <Button onClick={handleSendLetter} className="w-full gap-2 h-12 text-lg font-bold shadow-lg shadow-rose-500/20" variant="rosy" disabled={!newLetter.content}>
+                                    <Send className="h-5 w-5" />
+                                    {editingLetter ? "Save Changes" : "Send with Love"}
+                                </Button>
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="scheduled" className="flex items-center gap-2 text-amber-100 font-medium tracking-wide uppercase text-xs">
-                                    <Calendar className="h-3.5 w-3.5" />
-                                    Schedule Delivery (Optional)
-                                </Label>
-                                <Input
-                                    id="scheduled"
-                                    type="date"
-                                    value={newLetter.unlock_date}
-                                    onChange={(e) => setNewLetter(prev => ({ ...prev, unlock_date: e.target.value }))}
-                                    min={getTodayIST()}
-                                    className="mt-1 bg-white/5 border-white/10 focus:border-rose-400/50 text-white/80 h-12 rounded-xl"
-                                />
-                            </div>
-                            <Button onClick={handleSendLetter} className="w-full gap-2 h-12 text-lg font-bold shadow-lg shadow-rose-500/20" variant="rosy" disabled={!newLetter.content}>
-                                <Send className="h-5 w-5" />
-                                {editingLetter ? "Save Changes" : "Send with Love"}
-                            </Button>
-                        </div>
-                    </DialogContent>
-                </Dialog>
+                        </DialogContent>
+                    </Dialog>
+                </motion.div>
             </div>
 
             {loading ? (
@@ -413,7 +427,8 @@ export default function LettersPage() {
                         </Card>
                     ))}
                 </div>
-            )}
+            )
+            }
 
             {/* Letter Detail Modal */}
             <Dialog open={!!selectedLetter} onOpenChange={() => setSelectedLetter(null)}>
@@ -423,19 +438,19 @@ export default function LettersPage() {
                             <DialogHeader className="p-6 pb-0">
                                 <DialogTitle className="flex items-center gap-3 font-serif text-2xl text-rose-50 text-glow-rose">
                                     <Heart className="h-6 w-6 text-rose-500 fill-rose-500" />
-                                    {selectedLetter.title || "Love Letter"}
+                                    {selectedLetter?.title || "Love Letter"}
                                 </DialogTitle>
                                 <div className="flex items-center gap-2 mt-2">
-                                    <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">From: <span className="text-rose-200/60">{selectedLetter.sender_name}</span></span>
+                                    <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">From: <span className="text-rose-200/60">{selectedLetter?.sender_name}</span></span>
                                     <span className="text-white/20">•</span>
-                                    <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">{format(new Date(selectedLetter.created_at), "MMMM d, yyyy")}</span>
+                                    <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">{selectedLetter?.created_at ? format(new Date(selectedLetter.created_at), "MMMM d, yyyy") : ""}</span>
                                 </div>
                             </DialogHeader>
 
                             <ScrollArea className="flex-1 p-6 overflow-y-auto">
                                 <div className="prose prose-pink max-w-none">
                                     <p className="whitespace-pre-wrap leading-relaxed text-rose-50 font-serif italic text-lg">
-                                        {selectedLetter.content}
+                                        {selectedLetter?.content}
                                     </p>
                                 </div>
                             </ScrollArea>
@@ -473,6 +488,6 @@ export default function LettersPage() {
                     )}
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     );
 }

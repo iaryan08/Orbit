@@ -89,12 +89,15 @@ export function MoodCheckIn({ hasPartner }: MoodCheckInProps) {
   return (
     <Card
       className={cn(
-        "bg-transparent border-none shadow-none transition-all duration-300",
-        isExpanded ? "py-10 gap-8" : "py-4 gap-0"
+        "bg-transparent border-none shadow-none transition-all duration-300 pt-4 relative",
+        isExpanded ? "pb-10 gap-8" : "pb-4 gap-0"
       )}
       glassy={false}
     >
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader
+        className="flex flex-row items-center justify-between space-y-0 pb-2 cursor-pointer hover:bg-white/5 transition-colors rounded-t-[40px]"
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
         <div className="space-y-1">
           <CardTitle className="text-lg text-white">How are you feeling?</CardTitle>
           <CardDescription className="text-white/70">Share your mood with your partner</CardDescription>
@@ -102,8 +105,7 @@ export function MoodCheckIn({ hasPartner }: MoodCheckInProps) {
         <Button
           variant="ghost"
           size="sm"
-          className="text-white hover:bg-white/10 rounded-full w-8 h-8 p-0"
-          onClick={() => setIsExpanded(!isExpanded)}
+          className="text-white hover:bg-transparent rounded-full w-8 h-8 p-0"
         >
           {isExpanded ? <ChevronUp className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
         </Button>

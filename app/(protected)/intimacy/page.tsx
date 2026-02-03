@@ -12,7 +12,7 @@ import { format } from "date-fns";
 import { CalendarIcon, Heart, Lock, Unlock, Sparkles, Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { MilestoneCard } from "@/components/intimacy/milestone-card";
 import { logIntimacyMilestone } from "@/lib/actions/intimacy";
 
@@ -111,18 +111,21 @@ export default function IntimacyPage() {
         }
     };
 
+    const { scrollY } = useScroll();
+    const opacity = useTransform(scrollY, [0, 50], [1, 0]);
+
     if (loading) return <div className="p-10 text-center text-rose-200">Loading intimacy mode...</div>;
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-4xl space-y-8 pb-20 pt-24">
-            <div className="text-center space-y-4">
-                <h1 className="text-4xl md:text-5xl font-serif font-bold text-rose-100 flex items-center justify-center gap-3">
-                    <Flame className="w-10 h-10 text-rose-500 animate-pulse" />
+        <div className="container mx-auto px-4 py-8 max-w-4xl space-y-8 pb-20 pt-8">
+            <div className="flex items-center justify-start sticky top-6 z-50 md:static gap-3">
+                <Flame className="h-6 w-6 text-rose-500 drop-shadow-[0_0_10px_rgba(251,113,133,0.8)]" />
+                <motion.h1 style={{ opacity }} className="text-3xl md:text-5xl font-serif font-bold text-rose-100 flex items-center gap-3">
                     Intimacy Mode
-                </h1>
-                <p className="text-rose-200/60 max-w-lg mx-auto">
+                </motion.h1>
+                <motion.p style={{ opacity }} className="text-rose-200/60 max-w-lg hidden md:block">
                     Rediscover your first moments together. Share your perspectives and lock them in forever.
-                </p>
+                </motion.p>
             </div>
 
             <div className="grid gap-6">

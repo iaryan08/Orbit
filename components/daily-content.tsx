@@ -75,7 +75,7 @@ export function DailyContent() {
   ];
 
   return (
-    <Card className="border-none bg-transparent shadow-none" glassy={false}>
+    <Card className="border-none bg-transparent shadow-none relative" glassy={false}>
       <CardHeader className="pb-4 md:pb-2 p-0">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg font-serif text-white">

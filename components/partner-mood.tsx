@@ -47,7 +47,7 @@ export function PartnerMood({ partnerName, partnerAvatar, moods }: PartnerMoodPr
   const latestMood = moods[0]
 
   return (
-    <Card className="bg-transparent border-none shadow-none h-full" glassy={false}>
+    <Card className="bg-transparent border-none shadow-none h-full relative" glassy={false}>
       <CardHeader className="pb-2">
         <div className="flex items-center gap-3">
           <div className="relative">
