@@ -57,7 +57,7 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
                                 priority
                                 className="object-cover opacity-80"
                                 quality={85}
-                                sizes="100vw"
+                                sizes="(min-width: 768px) 100vw, 0px"
                             />
                         </div>
                         {/* Mobile variant */}
@@ -69,7 +69,7 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
                                 priority
                                 className="object-cover opacity-80"
                                 quality={85}
-                                sizes="100vh"
+                                sizes="(max-width: 767px) 100vw, 0px"
                             />
                         </div>
                     </>
