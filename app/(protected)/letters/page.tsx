@@ -274,7 +274,7 @@ export default function LettersPage() {
                         </Button>
                         <DialogContent className="sm:max-w-[500px] border border-white/10 bg-[#1a0b10]/70 backdrop-blur-[8px] shadow-[0_0_50px_rgba(244,63,94,0.15)] text-white">
                             <DialogHeader>
-                                <DialogTitle className="flex items-center gap-3 font-serif text-2xl text-rose-400">
+                                <DialogTitle className="flex items-center gap-3 font-serif text-2xl text-rose-200">
                                     <Heart className="h-6 w-6 text-rose-500 fill-rose-500 animate-pulse" />
                                     {editingLetter ? "Edit Love Letter" : "Write a Love Letter"}
                                 </DialogTitle>
