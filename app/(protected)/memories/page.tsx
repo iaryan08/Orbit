@@ -340,15 +340,12 @@ export default function MemoriesPage() {
 
     return (
         <div className="container mx-auto px-4 py-8 space-y-6 pt-14">
-            <div className="flex items-center justify-between sticky top-6 z-50 md:static">
+            <div className="flex items-center justify-between z-10">
                 <div className="flex items-center gap-3">
                     <Camera className="h-6 w-6 text-amber-200 drop-shadow-[0_0_10px_rgba(253,243,165,0.8)]" />
-                    <motion.h1 style={{ opacity }} className="text-3xl font-serif font-semibold text-white text-glow-white hidden md:block">
+                    <h1 className="text-2xl md:text-3xl font-serif font-semibold text-white text-glow-white">
                         Our Memories
-                    </motion.h1>
-                    <motion.h1 style={{ opacity }} className="text-2xl font-serif font-semibold text-white text-glow-white md:hidden">
-                        Our Memories
-                    </motion.h1>
+                    </h1>
                 </div>
 
                 <motion.div style={{ opacity }}>
@@ -370,7 +367,7 @@ export default function MemoriesPage() {
                         </Button>
                         <DialogContent className="sm:max-w-[500px] glass-card border-primary/10">
                             <DialogHeader>
-                                <DialogTitle className="flex items-center gap-2 font-serif text-2xl text-rose-50 text-glow-rose">
+                                <DialogTitle className="flex items-center gap-2 font-serif text-2xl text-rose-400">
                                     <Heart className="h-5 w-5 text-primary" />
                                     {editingMemory ? "Edit Memory" : "Capture a Memory"}
                                 </DialogTitle>
@@ -645,7 +642,7 @@ export default function MemoriesPage() {
                     {selectedMemory && (
                         <>
                             <DialogHeader>
-                                <DialogTitle className="font-serif flex items-center justify-between text-2xl text-rose-50 text-glow-rose">
+                                <DialogTitle className="font-serif flex items-center justify-between text-2xl text-rose-400">
                                     <span>{selectedMemory?.title}</span>
                                     {selectedMemory?.user_id === (supabase as any).auth?.user?.id && (
                                         <div className="flex gap-2">
@@ -752,7 +749,7 @@ export default function MemoriesPage() {
                                                                 className="object-cover"
                                                                 draggable={false}
                                                             />
-                                                            <div className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded-full border border-white/10 font-bold uppercase tracking-widest">
+                                                            <div className="absolute bottom-4 right-4 bg-black/20 backdrop-blur-[4px] text-white text-[10px] px-2 py-1 rounded-full border border-white/10 font-bold uppercase tracking-widest">
                                                                 {index + 1} / {selectedMemory.image_urls.length}
                                                             </div>
                                                         </div>

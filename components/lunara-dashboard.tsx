@@ -264,7 +264,7 @@ export function LunaraDashboard() {
                         const loadData = async () => {
                             const result = await fetchDashboardData()
                             if (result.success && result.data) {
-                                setCycleProfile(prev => ({ ...prev, ...result.data.userCycle }))
+                                setCycleProfile((prev: any) => ({ ...prev, ...result.data.userCycle }))
                             }
                         }
                         loadData()
@@ -339,10 +339,15 @@ export function LunaraDashboard() {
                                 <span className="text-5xl font-bold text-white">
                                     {profile?.gender === 'female'
                                         ? (currentDay ? `Day ${currentDay}` : 'Rhythm')
-                                        : (currentDay && (cycleProfile?.sharing_enabled || cycleProfile?.privacy_level !== 'hidden')
+                                        : (currentDay && cycleProfile?.sharing_enabled
                                             ? `Day ${currentDay}`
                                             : 'Support Mode')}
                                 </span>
+                                {cycleProfile?.last_period_start && (
+                                    <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] -mt-1">
+                                        Last: {format(new Date(cycleProfile.last_period_start), "MMM dd, yyyy")}
+                                    </span>
+                                )}
                                 <span className={cn("text-[10px] uppercase tracking-[0.2em] font-bold", phase?.color || "text-purple-300/60")}>
                                     {(profile?.gender === 'female' || cycleProfile?.sharing_enabled) && phase?.name
                                         ? phase.name
@@ -387,7 +392,7 @@ export function LunaraDashboard() {
                         <p className="text-xl text-purple-50 italic font-serif leading-relaxed">
                             {profile?.gender === 'female'
                                 ? (phase?.advice || '"Track your daily wellness to get personalized cycle insights and tips."')
-                                : (currentDay && (cycleProfile?.sharing_enabled || cycleProfile?.privacy_level !== 'hidden')
+                                : (currentDay && cycleProfile?.sharing_enabled
                                     ? getPartnerAdvice(currentDay)
                                     : '"When your partner shares her cycle info, you\'ll see tailored tips here on how to support her."')
                             }
@@ -505,22 +510,22 @@ export function LunaraDashboard() {
                         )}
                     </div>
                 </div>
-            </ScrollReveal >
+            </ScrollReveal>
 
             {/* Coming Soon Message */}
-            < div className="text-center py-10 opacity-30" >
+            <div className="text-center py-10 opacity-30">
                 <p className="text-sm italic tracking-widest uppercase">Deep body insights & Log history coming soon</p>
-            </div >
+            </div>
 
             <SupportModal
                 isOpen={showSupportModal}
                 onClose={async () => {
                     setShowSupportModal(false)
-                    // Refresh logs
+                    // Refresh logs - Use couple_id for consistency with initial fetch
                     const { data: logs } = await supabase
                         .from('support_logs')
                         .select('*')
-                        .eq('tracker_id', profile?.gender === 'female' ? profile.id : profile?.partner_id)
+                        .eq('couple_id', profile?.couple_id)
                         .order('created_at', { ascending: false })
                         .limit(6)
                     setSupportLogs(logs || [])
@@ -530,7 +535,7 @@ export function LunaraDashboard() {
                 partnerName={profile?.gender === 'female' ? (partnerProfile?.display_name || 'Partner') : (partnerProfile?.display_name || 'Partner')}
                 partnerId={profile?.gender === 'female' ? profile.id : (partnerId || '')}
             />
-        </div >
+        </div>
     )
 }
 

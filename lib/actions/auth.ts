@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { sendNotification } from '@/lib/actions/notifications'
+import { getTodayIST } from '@/lib/utils'
 
 export async function signUp(prevState: any, formData: FormData) {
   const supabase = await createClient()
@@ -564,8 +565,6 @@ export async function logPeriodStart() {
 
 
 
-import { getTodayIST } from '@/lib/utils'
-
 export async function logSymptoms(symptoms: string[]) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -574,7 +573,7 @@ export async function logSymptoms(symptoms: string[]) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('couple_id')
+    .select('couple_id, display_name')
     .eq('id', user.id)
     .single()
 
@@ -629,7 +628,7 @@ export async function logSexDrive(level: string) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('couple_id')
+    .select('couple_id, display_name')
     .eq('id', user.id)
     .single()
 

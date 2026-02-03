@@ -255,21 +255,12 @@ export default function LettersPage() {
 
     return (
         <div className="container mx-auto px-4 py-8 space-y-6 pt-14">
-            <div className="flex items-center justify-between sticky top-6 z-50 md:static">
+            <div className="flex items-center justify-between z-10">
                 <div className="flex items-center gap-3">
                     <Mail className="h-6 w-6 text-amber-200 drop-shadow-[0_0_10px_rgba(253,243,165,0.8)]" />
-                    <motion.h1
-                        style={{ opacity }}
-                        className="text-3xl font-serif font-semibold text-white text-glow-white hidden md:block"
-                    >
+                    <h1 className="text-2xl md:text-3xl font-serif font-semibold text-white text-glow-white">
                         Love Letters
-                    </motion.h1>
-                    <motion.h1
-                        style={{ opacity }}
-                        className="text-2xl font-serif font-semibold text-white text-glow-white md:hidden"
-                    >
-                        Love Letters
-                    </motion.h1>
+                    </h1>
                 </div>
 
                 <motion.div style={{ opacity }}>
@@ -281,9 +272,9 @@ export default function LettersPage() {
                         }}>
                             <Plus className="h-4 w-4" />
                         </Button>
-                        <DialogContent className="sm:max-w-[500px] border border-white/10 bg-[#1a0b10]/95 backdrop-blur-xl shadow-[0_0_50px_rgba(244,63,94,0.15)] text-white">
+                        <DialogContent className="sm:max-w-[500px] border border-white/10 bg-[#1a0b10]/70 backdrop-blur-[8px] shadow-[0_0_50px_rgba(244,63,94,0.15)] text-white">
                             <DialogHeader>
-                                <DialogTitle className="flex items-center gap-3 font-serif text-2xl text-rose-50 text-glow-rose">
+                                <DialogTitle className="flex items-center gap-3 font-serif text-2xl text-rose-400">
                                     <Heart className="h-6 w-6 text-rose-500 fill-rose-500 animate-pulse" />
                                     {editingLetter ? "Edit Love Letter" : "Write a Love Letter"}
                                 </DialogTitle>
@@ -436,7 +427,7 @@ export default function LettersPage() {
                     {selectedLetter && (
                         <>
                             <DialogHeader className="p-6 pb-0">
-                                <DialogTitle className="flex items-center gap-3 font-serif text-2xl text-rose-50 text-glow-rose">
+                                <DialogTitle className="flex items-center gap-3 font-serif text-2xl text-rose-400">
                                     <Heart className="h-6 w-6 text-rose-500 fill-rose-500" />
                                     {selectedLetter?.title || "Love Letter"}
                                 </DialogTitle>

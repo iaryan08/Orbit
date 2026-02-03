@@ -120,7 +120,7 @@ export function DashboardHeader({
           className={cn(
             "glass-card flex items-center gap-1 p-1.5 rounded-full border shadow-2xl ring-1 ring-white/5",
             mode === 'moon' ? "border-white/10" : "border-purple-500/30 bg-purple-950/40",
-            "backdrop-blur-[12px] md:backdrop-blur-3xl bg-black/60", // 12px blur for mobile per request
+            "backdrop-blur-[20px] md:backdrop-blur-3xl bg-black/60", // Restored heavy blur for premium feel
             scrolled ? "md:flex-col md:rounded-[40px] md:py-4 md:px-2" : "md:flex-row md:rounded-full md:p-1.5"
           )}
         >

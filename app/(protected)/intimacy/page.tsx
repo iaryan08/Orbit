@@ -118,14 +118,14 @@ export default function IntimacyPage() {
 
     return (
         <div className="container mx-auto px-4 py-8 max-w-4xl space-y-8 pb-20 pt-8">
-            <div className="flex items-center justify-start sticky top-6 z-50 md:static gap-3">
+            <div className="flex items-center justify-start gap-3 z-10">
                 <Flame className="h-6 w-6 text-rose-500 drop-shadow-[0_0_10px_rgba(251,113,133,0.8)]" />
-                <motion.h1 style={{ opacity }} className="text-3xl md:text-5xl font-serif font-bold text-rose-100 flex items-center gap-3">
+                <h1 className="text-2xl md:text-5xl font-serif font-bold text-rose-100 flex items-center gap-3">
                     Intimacy Mode
-                </motion.h1>
-                <motion.p style={{ opacity }} className="text-rose-200/60 max-w-lg hidden md:block">
+                </h1>
+                <p className="text-rose-200/60 max-w-lg hidden md:block">
                     Rediscover your first moments together. Share your perspectives and lock them in forever.
-                </motion.p>
+                </p>
             </div>
 
             <div className="grid gap-6">

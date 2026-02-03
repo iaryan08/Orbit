@@ -144,7 +144,7 @@ export default async function DashboardPage() {
                         <Sparkles className="w-3 h-3 text-amber-400/80" />
                         MoonBetweenUs
                     </div>
-                    <h1 className="hidden md:block text-4xl md:text-7xl font-romantic text-rose-50 leading-[1.1] tracking-wide text-glow-rose">
+                    <h1 className="hidden md:block text-4xl md:text-7xl font-romantic text-rose-50 leading-[1.1] tracking-wide">
                         Always Together
                         <br />
                         <span className="bg-gradient-to-r from-amber-200 via-rose-300 to-orange-300 bg-clip-text text-transparent drop-shadow-sm">
@@ -173,8 +173,8 @@ export default async function DashboardPage() {
                             </div>
 
                         </div>
-                        <p className="text-rose-100/70 uppercase text-xs tracking-[0.2em] font-medium">
-                            Connected with <span className="text-rose-50 font-bold">{partnerProfile?.display_name || 'Partner'}</span>
+                        <p className="text-rose-100/70 uppercase text-xs tracking-[0.2em]">
+                            Connected with <span className="text-rose-300 font-bold">{partnerProfile?.display_name || 'Partner'}</span>
                         </p>
                     </div>
                 </ScrollReveal>
@@ -188,8 +188,8 @@ export default async function DashboardPage() {
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 to-cyan-500 opacity-50" />
                             <div className="flex items-center gap-4 md:gap-6">
                                 <div className="relative">
-                                    <div className="absolute inset-0 bg-rose-500/10 blur-3xl rounded-full" />
-                                    <Heart className="w-16 h-16 md:w-24 md:h-24 text-rose-300/80 relative z-10 animate-pulse-slow" fill="currentColor" />
+                                    <div className="absolute inset-0 bg-rose-500/10 rounded-full" />
+                                    <Heart className="w-16 h-16 md:w-24 md:h-24 text-rose-300/80 relative z-10" fill="currentColor" />
                                 </div>
                                 <div className="flex flex-col">
                                     <div className="flex items-end gap-1">
@@ -241,7 +241,7 @@ export default async function DashboardPage() {
                     {/* Daily Inspiration / Challenge */}
                     <ScrollReveal className="lg:col-span-2" delay={0.1}>
                         <div className="glass-card p-8 flex flex-col justify-between relative overflow-hidden group h-full">
-                            <div className="absolute -top-24 -right-24 w-64 h-64 bg-amber-500/10 blur-[120px] rounded-full" />
+                            <div className="absolute -top-24 -right-24 w-64 h-64 bg-amber-500/5 rounded-full" />
                             <DailyContent />
                         </div>
                     </ScrollReveal>
@@ -249,7 +249,7 @@ export default async function DashboardPage() {
                     {/* Current Mood (Partner) */}
                     <ScrollReveal className="lg:col-span-1" delay={0.2}>
                         <div className="glass-card p-2 relative group overflow-hidden h-full">
-                            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-purple-500/10 blur-3xl rounded-full" />
+                            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-purple-500/5 rounded-full" />
                             <PartnerMood
                                 partnerName={partnerProfile?.display_name || 'Partner'}
                                 partnerAvatar={partnerProfile?.avatar_url}

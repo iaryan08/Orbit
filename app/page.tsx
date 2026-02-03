@@ -51,7 +51,7 @@ export default function HomePage() {
       <section className="py-24">
         <div className="container mx-auto px-4">
           <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-6xl font-serif font-bold text-rose-50 mb-6 text-glow-rose">
+            <h2 className="text-4xl md:text-6xl font-serif font-bold text-rose-50 mb-6">
               Everything You Need
             </h2>
             <div className="w-24 h-1 bg-gradient-to-r from-transparent via-primary to-transparent mx-auto mb-8 rounded-full opacity-50 " />

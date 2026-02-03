@@ -79,7 +79,7 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
             {/* Dark overlay for readability and merging visual layers */}
             <div
                 className="absolute inset-0"
-                style={{ background: 'linear-gradient(135deg, rgba(20, 16, 15, 0.4) 0%, rgba(45, 25, 42, 0.7) 100%)' }}
+                style={{ background: 'linear-gradient(135deg, rgba(20, 16, 15, 0.2) 0%, rgba(45, 25, 42, 0.5) 100%)' }}
             />
 
             {/* Floating orbs for atmosphere */}

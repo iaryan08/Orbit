@@ -58,7 +58,7 @@ export default async function PartnerPage() {
                     </div>
 
                     <div>
-                        <h1 className="text-4xl md:text-5xl font-romantic text-white font-bold tracking-wide text-glow-rose">
+                        <h1 className="text-4xl md:text-5xl font-romantic text-white font-bold tracking-wide">
                             {partner.display_name}
                         </h1>
                         <p className="text-rose-200/60 mt-2 uppercase tracking-[0.2em] text-xs font-bold">

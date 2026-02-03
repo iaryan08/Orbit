@@ -142,7 +142,7 @@ export function NotificationBell({ className }: { className?: string }) {
                     )}
                 </Button>
             </PopoverTrigger>
-            <PopoverContent align="end" className="w-80 md:w-96 p-0 border-white/10 bg-[#0f0510]/95 backdrop-blur-xl shadow-2xl text-white">
+            <PopoverContent align="end" className="w-80 md:w-96 p-0 border-white/10 bg-[#0f0510]/70 backdrop-blur-[8px] shadow-2xl text-white">
                 <div className="flex items-center justify-between p-4 border-b border-white/5">
                     <h4 className="font-serif text-lg font-medium text-purple-100">Notifications</h4>
                     {notifications.length > 0 && (
