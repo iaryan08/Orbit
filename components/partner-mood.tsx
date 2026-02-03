@@ -72,7 +72,7 @@ export function PartnerMood({ partnerName, partnerAvatar, moods }: PartnerMoodPr
             <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
               <Clock className="w-12 h-12 text-white" />
             </div>
-            <p className="text-sm text-white/90 leading-relaxed relative z-10">
+            <p className={cn("text-sm leading-relaxed relative z-10 font-medium", MOOD_COLORS[latestMood.mood])}>
               {latestMood.note ? `"${latestMood.note}"` : `Feeling ${latestMood.mood} right now`}
             </p>
             <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold text-white/30 mt-3 relative z-10">
