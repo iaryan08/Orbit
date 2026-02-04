@@ -287,7 +287,7 @@ export default function LettersPage() {
                                         placeholder="My Dearest..."
                                         value={newLetter.title}
                                         onChange={(e) => setNewLetter(prev => ({ ...prev, title: e.target.value }))}
-                                        className="bg-white/5 border-white/10 focus:border-rose-400/50 text-white placeholder:text-white/30 h-12 rounded-xl"
+                                        className="text-white placeholder:text-white/30"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -310,7 +310,7 @@ export default function LettersPage() {
                                         value={newLetter.content}
                                         onChange={(e) => setNewLetter(prev => ({ ...prev, content: e.target.value }))}
                                         rows={8}
-                                        className="resize-none bg-white/5 border-white/10 focus:border-rose-400/50 text-white placeholder:text-white/30 rounded-xl leading-relaxed p-4"
+                                        className="resize-none text-white placeholder:text-white/30 leading-relaxed p-4"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -324,10 +324,10 @@ export default function LettersPage() {
                                         value={newLetter.unlock_date}
                                         onChange={(e) => setNewLetter(prev => ({ ...prev, unlock_date: e.target.value }))}
                                         min={getTodayIST()}
-                                        className="mt-1 bg-white/5 border-white/10 focus:border-rose-400/50 text-white/80 h-12 rounded-xl"
+                                        className="mt-1 text-white/80"
                                     />
                                 </div>
-                                <Button onClick={handleSendLetter} className="w-full gap-2 h-12 text-lg font-bold shadow-lg shadow-rose-500/20" variant="rosy" disabled={!newLetter.content}>
+                                <Button onClick={handleSendLetter} className="w-full gap-2 h-12 text-lg font-bold" variant="rosy" disabled={!newLetter.content}>
                                     <Send className="h-5 w-5" />
                                     {editingLetter ? "Save Changes" : "Send with Love"}
                                 </Button>

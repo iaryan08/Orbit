@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Heart, Mail, Lock, User, Loader2 } from 'lucide-react'
+import { Heart, Mail, Lock, User, Loader2, AlertCircle } from 'lucide-react'
 import { signUp } from '@/lib/actions/auth'
 import { useToast } from '@/hooks/use-toast'
 import {
@@ -76,7 +76,8 @@ export default function SignUpPage() {
                   name="displayName"
                   type="text"
                   placeholder="Your name"
-                  className="pl-10 h-11 bg-white/5 border-white/10 text-rose-50 placeholder:text-white/30"
+                  className="pl-10 text-rose-50 placeholder:text-white/30"
+                  activeBorderClassName="border-veritas-pink"
                   required
                 />
               </div>
@@ -85,10 +86,13 @@ export default function SignUpPage() {
             <div className="space-y-2">
               <Label htmlFor="gender" className="text-rose-50/90 font-medium">Gender</Label>
               <Select name="gender" required>
-                <SelectTrigger className="w-full h-11 bg-white/5 border-white/10 text-rose-50">
+                <SelectTrigger
+                  className="w-full h-11 bg-transparent border-[#424242] border-b border-t-0 border-l-0 border-r-0 rounded-none text-rose-50 px-3"
+                  activeBorderClassName="border-veritas-pink"
+                >
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
-                <SelectContent className="bg-rose-950 border-white/10 text-rose-50">
+                <SelectContent className="bg-popover border-white/10 text-rose-50">
                   <SelectItem value="male">Male</SelectItem>
                   <SelectItem value="female">Female</SelectItem>
                 </SelectContent>
@@ -104,14 +108,21 @@ export default function SignUpPage() {
                   name="email"
                   type="email"
                   placeholder="you@example.com"
-                  className="pl-10 h-11 bg-white/5 border-white/10 text-rose-50 placeholder:text-white/30"
+                  className="pl-10 text-rose-50 placeholder:text-white/30"
+                  activeBorderClassName="border-veritas-pink"
                   required
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-rose-50/90 font-medium">Password</Label>
+            <div className="space-y-2 mb-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-rose-50/90 font-medium">Password</Label>
+                <div className="flex items-center gap-1 text-[9px] text-rose-300/60 uppercase tracking-widest font-bold">
+                  <AlertCircle className="w-3 h-3" />
+                  <span>Min. 6 chars</span>
+                </div>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-rose-300/40" />
                 <Input
@@ -119,17 +130,17 @@ export default function SignUpPage() {
                   name="password"
                   type="password"
                   placeholder="Create a password"
-                  className="pl-10 h-11 bg-white/5 border-white/10 text-rose-50 placeholder:text-white/30"
+                  className="pl-10 text-rose-50 placeholder:text-white/30"
+                  activeBorderClassName="border-veritas-pink"
                   minLength={6}
                   required
                 />
               </div>
-              <p className="text-[10px] uppercase tracking-widest text-rose-100/40 font-bold ml-1">Must be at least 6 characters</p>
             </div>
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full h-11 text-base font-bold shadow-lg shadow-primary/10" disabled={isPending}>
+            <Button type="submit" className="w-full h-11 btn-auth-hover font-bold" disabled={isPending}>
               {isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Heart, Mail, Lock, Loader2 } from 'lucide-react'
+import { Heart, Mail, Lock, Loader2, AlertCircle } from 'lucide-react'
 import { signIn } from '@/lib/actions/auth'
 import { useToast } from '@/hooks/use-toast'
 
@@ -70,14 +70,21 @@ export default function LoginPage() {
                   name="email"
                   type="email"
                   placeholder="you@example.com"
-                  className="pl-12 h-12 bg-white/5 border-white/10 text-rose-50 placeholder:text-white/30"
+                  className="pl-12 text-rose-50 placeholder:text-white/30"
+                  activeBorderClassName="border-veritas-pink"
                   required
                 />
               </div>
             </div>
 
-            <div className="space-y-3">
-              <Label htmlFor="password" className="text-rose-50 font-medium tracking-wide">Password</Label>
+            <div className="space-y-3 mb-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-rose-50 font-medium tracking-wide">Password</Label>
+                <div className="flex items-center gap-1 text-[10px] text-rose-300/60 uppercase tracking-widest font-bold">
+                  <AlertCircle className="w-3 h-3" />
+                  <span>Secure access</span>
+                </div>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-rose-300/40" />
                 <Input
@@ -85,7 +92,8 @@ export default function LoginPage() {
                   name="password"
                   type="password"
                   placeholder="Enter your password"
-                  className="pl-12 h-12 bg-white/5 border-white/10 text-rose-50 placeholder:text-white/30"
+                  className="pl-12 text-rose-50 placeholder:text-white/30"
+                  activeBorderClassName="border-veritas-pink"
                   required
                 />
               </div>
@@ -93,7 +101,7 @@ export default function LoginPage() {
           </CardContent>
 
           <CardFooter className="flex flex-col gap-6 pt-2">
-            <Button type="submit" className="w-full h-12 text-base font-bold" disabled={isPending}>
+            <Button type="submit" className="w-full h-12 btn-auth-hover" disabled={isPending}>
               {isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />

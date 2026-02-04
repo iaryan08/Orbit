@@ -132,7 +132,7 @@ export function MilestoneCard({
                                         setHasInteracted(true);
                                     }}
                                     placeholder="How do you remember it..."
-                                    className="bg-black/40 border-rose-500/20 text-rose-100 min-h-[100px] focus:border-rose-500/50"
+                                    className="text-rose-100 min-h-[100px]"
                                 />
                             </div>
 

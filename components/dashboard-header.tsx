@@ -106,7 +106,7 @@ export function DashboardHeader({
         className={cn(
           "fixed z-50",
           // Base animation: pop in
-          "animate-in fade-in duration-300",
+          "animate-in fade-in duration-300 ",
           // Mobile: always bottom-center, pop from bottom
           "bottom-6 left-1/2 -translate-x-1/2 slide-in-from-bottom-4",
           // Desktop Switch
@@ -120,8 +120,8 @@ export function DashboardHeader({
           className={cn(
             "flex items-center gap-1 p-1.5 rounded-full border shadow-2xl ring-1 mt-1 transition-all duration-500",
             mode === 'moon'
-              ? "border-white/10 bg-black/20 ring-white/5 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]"
-              : "border-purple-300/20 bg-purple-900/20 ring-purple-400/10 shadow-[0_8px_32px_0_rgba(88,28,135,0.2)]",
+              ? "border-white/10 bg-black/60 ring-white/5 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]"
+              : "border-purple-300/20 bg-purple-900/60 ring-purple-400/10 shadow-[0_8px_32px_0_rgba(88,28,135,0.2)]",
             "backdrop-blur-3xl saturate-150",
             scrolled ? "md:flex-col md:rounded-[40px] md:py-4 md:px-2" : "md:flex-row md:rounded-full md:p-1.5"
           )}
@@ -135,7 +135,7 @@ export function DashboardHeader({
 
             {/* Separator */}
             <div className={cn(
-              "bg-white/10 transition-all duration-300",
+              "bg-white/10 transition-all duration-300 ",
               scrolled ? "md:w-6 md:h-px md:my-2 mx-0" : "md:w-px md:h-6 md:mx-2 my-0",
               "w-px h-6 mx-2" // Mobile default
             )} />
@@ -232,7 +232,7 @@ export function DashboardHeader({
                           }
                         }}
                         onMouseEnter={() => setHoveredPath(item.id)}
-                        className="relative block"
+                        className="relative block cursor-pointer"
                       >
                         <div className={cn(
                           "p-3 rounded-full flex items-center justify-center relative group transition-all duration-300",

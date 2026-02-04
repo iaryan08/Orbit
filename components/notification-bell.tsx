@@ -265,9 +265,9 @@ export function NotificationBell({ className }: { className?: string }) {
 
                                     <button
                                         onClick={(e) => handleDelete(e, notification.id)}
-                                        className="absolute top-2 right-2 p-1 text-white/20 hover:text-white hover:bg-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-all"
+                                        className="absolute top-2 right-2 p-2 text-white/40 hover:text-white hover:bg-white/20 rounded-full opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
                                     >
-                                        <X className="h-3.5 w-3.5" />
+                                        <X className="h-5 w-5" />
                                     </button>
                                 </div>
                             ))}

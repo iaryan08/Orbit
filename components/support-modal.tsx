@@ -14,6 +14,7 @@ import {
     ArrowRight
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
@@ -117,7 +118,7 @@ export function SupportModal({ isOpen, onClose, phase, day, partnerName, partner
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className="relative w-full max-w-lg bg-zinc-950 border border-purple-500/20 rounded-[2.5rem] overflow-hidden shadow-2xl"
+                    className="relative w-full max-w-lg bg-zinc-950 border border-purple-500/10 rounded-[2.5rem] overflow-hidden shadow-2xl"
                 >
                     {/* Header */}
                     <div className="p-8 pb-4 flex items-center justify-between">
@@ -130,8 +131,8 @@ export function SupportModal({ isOpen, onClose, phase, day, partnerName, partner
                                 She's in her <span className="text-purple-400 font-bold">{phase}</span>. Here's how to help:
                             </p>
                         </div>
-                        <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors">
-                            <X className="w-6 h-6 text-zinc-500" />
+                        <button onClick={onClose} className="p-2 bg-white/20 hover:bg-white/30 text-white rounded-full transition-all cursor-pointer">
+                            <X className="w-6 h-6" />
                         </button>
                     </div>
 
@@ -188,14 +189,15 @@ export function SupportModal({ isOpen, onClose, phase, day, partnerName, partner
 
                         <div className="pt-2">
                             <Label className="text-[10px] uppercase tracking-widest font-bold text-zinc-600 mb-2 block">Something else?</Label>
-                            <input
+                            <Input
                                 value={customAction}
                                 onChange={(e) => {
                                     setCustomAction(e.target.value)
                                     setSelectedId(null)
                                 }}
                                 placeholder="I brought her favorite chocolate..."
-                                className="w-full bg-zinc-900/50 border-2 border-zinc-800 rounded-2xl p-4 text-sm text-white placeholder:text-zinc-600 outline-none focus:border-purple-500/50 transition-all"
+                                className="text-white placeholder:text-zinc-600"
+                                activeBorderClassName="border-veritas-purple"
                             />
                         </div>
                     </div>

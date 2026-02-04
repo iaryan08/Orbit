@@ -12,7 +12,7 @@
     --card: 355 25% 12%;
     --card-foreground: 340 30% 98%;
 
-    --popover: 355 25% 12%;
+    --popover: 355 25% 10%;
     --popover-foreground: 340 30% 98%;
 
     --primary: 340 70% 85%;
@@ -37,6 +37,7 @@
     --border: 355 20% 25%;
     --input: 355 20% 25%;
     --ring: 340 70% 85%;
+    --primary-rgb: 244, 189, 210;
 
     --chart-1: 340 70% 85%;
     --chart-2: 35 60% 75%;
@@ -429,5 +430,82 @@
   .animate-starDrift,
   .animate-heartFloat {
     animation-duration: 240s !important;
+  }
+}
+
+@layer utilities {
+  @keyframes border-expand {
+    0% {
+      transform: scaleX(0);
+      opacity: 0;
+    }
+
+    100% {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes veritas-shimmer {
+    0% {
+      background-position: 100% 0;
+    }
+
+    100% {
+      background-position: -100% 0;
+    }
+  }
+
+  .animate-border-expand {
+    animation: border-expand 0.2s ease-out forwards;
+  }
+
+  @keyframes heart-border-expand {
+    0% {
+      transform: scaleX(0);
+      opacity: 0;
+    }
+
+    100% {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+  }
+
+  .animate-heart-border-expand {
+    animation: heart-border-expand 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  /* Heart Gradient utility */
+  .bg-heart-gradient {
+    background: linear-gradient(to right, #f472b6, #e2556f, #d98b75);
+  }
+
+  .bg-moon-pink {
+    background: #f472b6;
+  }
+
+  .shadow-moon-pink-subtle {
+    box-shadow: 0 0 4px rgba(244, 114, 182, 0.2);
+  }
+
+  /* Veritas Styled Animated Borders */
+  .border-veritas-pink {
+    background: linear-gradient(90deg, #f472b6, #e2556f, #f472b6);
+    background-size: 200% 100%;
+    animation: veritas-shimmer 2s linear infinite;
+  }
+
+  .border-veritas-purple {
+    background: linear-gradient(90deg, #a855f7, #7c3aed, #a855f7);
+    background-size: 200% 100%;
+    animation: veritas-shimmer 2s linear infinite;
+  }
+
+  /* Button Auth Gradient */
+  .btn-auth-hover:hover {
+    background: linear-gradient(to right, #f472b6, #e2556f, #d98b75) !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
   }
 }

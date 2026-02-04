@@ -21,6 +21,13 @@ import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { saveLunaraOnboarding } from '@/lib/actions/auth'
 
@@ -211,15 +218,24 @@ export function LunaraSettings({ initialData, onBack, onSave }: LunaraSettingsPr
 
                         <div className="space-y-2">
                             <Label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Average Cycle Length</Label>
-                            <select
+                            <Select
                                 value={data.cycleLength}
-                                onChange={(e) => setData({ ...data, cycleLength: e.target.value })}
-                                className="w-full bg-zinc-900/30 border border-zinc-800 rounded-lg p-2 text-sm text-zinc-200 outline-none focus:border-purple-500 block h-10"
+                                onValueChange={(val) => setData({ ...data, cycleLength: val })}
                             >
-                                {[...Array(20)].map((_, i) => (
-                                    <option key={20 + i} value={(20 + i).toString()}>{20 + i} Days</option>
-                                ))}
-                            </select>
+                                <SelectTrigger
+                                    className="w-full bg-zinc-900/30 border-[#424242] text-zinc-200 h-10 rounded-none border-0 border-b"
+                                    activeBorderClassName="border-veritas-purple"
+                                >
+                                    <SelectValue placeholder="Select cycle length" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-zinc-950 border-zinc-800 text-zinc-200">
+                                    {[...Array(20)].map((_, i) => (
+                                        <SelectItem key={20 + i} value={(20 + i).toString()}>
+                                            {20 + i} Days
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                     </CardContent>
                 </Card>

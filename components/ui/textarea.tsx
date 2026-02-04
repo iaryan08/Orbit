@@ -2,16 +2,31 @@ import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
-function Textarea({ className, ...props }: React.ComponentProps<'textarea'>) {
+interface TextareaProps extends React.ComponentProps<'textarea'> {
+  activeBorderClassName?: string
+}
+
+function Textarea({ className, activeBorderClassName, ...props }: TextareaProps) {
   return (
-    <textarea
-      data-slot="textarea"
-      className={cn(
-        'border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-transparent px-3 py-2 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
-        className,
-      )}
-      {...props}
-    />
+    <div className="group relative w-full">
+      <textarea
+        data-slot="textarea"
+        className={cn(
+          'placeholder:text-muted-foreground/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive',
+          'flex field-sizing-content min-h-16 w-full bg-transparent px-3 py-2 text-base md:text-sm',
+          'border-0 border-b border-[#424242] rounded-none shadow-none outline-none transition-all duration-300',
+          'disabled:cursor-not-allowed disabled:opacity-50',
+          'focus:border-transparent',
+          className,
+        )}
+        {...props}
+      />
+      {/* Animated Glowing Bottom Border */}
+      <div className={cn(
+        "absolute bottom-0 left-1/2 h-[1.5px] w-0 -translate-x-1/2 opacity-0 transition-all duration-300 ease-out group-focus-within:w-full group-focus-within:opacity-100",
+        activeBorderClassName || "bg-heart-gradient"
+      )} />
+    </div>
   )
 }
 

@@ -42,29 +42,61 @@ export function DailyContent() {
   };
 
   useEffect(() => {
-    // Check if we have cached content for today
+    // Get current time in IST (India Standard Time)
+    const istDate = getISTDate();
+    const currentHour = istDate.getHours();
+    const currentMinute = istDate.getMinutes();
+
+    const effectiveDate = new Date(istDate);
+    if (currentHour === 0 && currentMinute < 5) {
+      effectiveDate.setDate(effectiveDate.getDate() - 1);
+    }
+    const today = effectiveDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+
     const cached = localStorage.getItem("dailyContent");
     const cachedDate = localStorage.getItem("dailyContentDate");
 
-    // Get current time in IST (India Standard Time)
-    const istDate = getISTDate();
-
-    // Create a date string for "today" in IST based on 1 AM cutoff
-    // If it's before 1 AM IST, use yesterday's date as "today"
-    const cutoffHour = 1;
-    const effectiveDate = new Date(istDate);
-    if (istDate.getHours() < cutoffHour) {
-      effectiveDate.setDate(effectiveDate.getDate() - 1);
-    }
-    const today = effectiveDate.toDateString();
+    const loadContent = (data: any) => {
+      // Check if data is valid and has required fields
+      if (data && typeof data === 'object' && data.quote && data.challenge && data.tip) {
+        setContent(data);
+        return true;
+      }
+      return false;
+    };
 
     if (cached && cachedDate === today) {
-      setContent(JSON.parse(cached));
+      try {
+        const parsed = JSON.parse(cached);
+        if (!loadContent(parsed)) {
+          // If cache is invalid structure, force refresh
+          localStorage.removeItem("dailyContent");
+          fetchNew();
+        }
+      } catch (e) {
+        localStorage.removeItem("dailyContent");
+        fetchNew();
+      }
     } else {
-      fetchAIContent().then(() => {
-        localStorage.setItem("dailyContent", JSON.stringify(content));
-        localStorage.setItem("dailyContentDate", today);
-      });
+      fetchNew();
+    }
+
+    function fetchNew() {
+      setLoading(true);
+      fetch("/api/daily-content", { method: "POST" })
+        .then(res => res.ok ? res.json() : Promise.reject())
+        .then(data => {
+          if (loadContent(data)) {
+            localStorage.setItem("dailyContent", JSON.stringify(data));
+            localStorage.setItem("dailyContentDate", today);
+          } else {
+            setContent(fallbackContent);
+          }
+        })
+        .catch(() => {
+          setContent(fallbackContent);
+        })
+        .finally(() => setLoading(false));
     }
   }, []);
 
@@ -82,19 +114,8 @@ export function DailyContent() {
             <Sparkles className="h-5 w-5 text-cyan-400" />
             Daily Inspiration
           </CardTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={fetchAIContent}
-            disabled={loading}
-            className="h-8 w-8 text-white/70 hover:text-green-400 hover:bg-green-500/10 transition-all duration-300 group"
-          >
-            <RefreshCw className={cn(
-              "h-4 w-4 transition-all duration-300 group-hover:text-glow-green",
-              loading ? "animate-spin" : ""
-            )} />
-          </Button>
         </div>
+
         <div className="flex gap-1 mt-4 md:mt-2 p-1 bg-white/5 rounded-xl relative border border-white/5 overflow-x-auto">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
