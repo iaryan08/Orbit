@@ -24,6 +24,7 @@ import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Edit2 } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { useAppMode } from "@/components/app-mode-context";
 
 interface LoveLetter {
     id: string;
@@ -40,6 +41,7 @@ interface LoveLetter {
 
 export default function LettersPage() {
     const router = useRouter();
+    const { coupleId } = useAppMode();
     const [letters, setLetters] = useState<LoveLetter[]>([]);
     const [loading, setLoading] = useState(true);
     const [isWriting, setIsWriting] = useState(false);
@@ -60,16 +62,7 @@ export default function LettersPage() {
 
         // Set up Realtime listener
         const setupRealtime = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
-
-            const { data: profile } = await supabase
-                .from("profiles")
-                .select("couple_id")
-                .eq("id", user.id)
-                .single();
-
-            if (profile?.couple_id) {
+            if (coupleId) {
                 const channel = supabase
                     .channel('realtime-letters')
                     .on(
@@ -78,7 +71,7 @@ export default function LettersPage() {
                             event: 'INSERT',
                             schema: 'public',
                             table: 'love_letters',
-                            filter: `couple_id=eq.${profile.couple_id}`
+                            filter: `couple_id=eq.${coupleId}`
                         },
                         () => {
                             fetchLetters();
@@ -103,14 +96,7 @@ export default function LettersPage() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            // Get user's couple
-            const { data: profile } = await supabase
-                .from("profiles")
-                .select("couple_id")
-                .eq("id", user.id)
-                .single();
-
-            if (!profile?.couple_id) {
+            if (!coupleId) {
                 setLoading(false);
                 return;
             }
@@ -119,7 +105,7 @@ export default function LettersPage() {
             const { data: lettersData, error: lettersError } = await supabase
                 .from("love_letters")
                 .select('*')
-                .eq("couple_id", profile.couple_id)
+                .eq("couple_id", coupleId)
                 .or(`sender_id.eq.${user.id},unlock_date.is.null,unlock_date.lte.${new Date().toISOString()}`)
                 .order("created_at", { ascending: false });
 
