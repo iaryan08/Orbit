@@ -11,14 +11,28 @@ interface AppModeContextType {
     toggleMode: () => void
     activeLunaraTab: 'dashboard' | 'insights' | 'partner'
     setActiveLunaraTab: (tab: 'dashboard' | 'insights' | 'partner') => void
+    profile: any | null
+    coupleId: string | null
 }
 
 const AppModeContext = createContext<AppModeContextType | undefined>(undefined)
 
-export function AppModeProvider({ children }: { children: React.ReactNode }) {
+interface AppModeProviderProps {
+    children: React.ReactNode
+    initialProfile?: any
+    initialCoupleId?: string | null
+}
+
+export function AppModeProvider({
+    children,
+    initialProfile,
+    initialCoupleId
+}: AppModeProviderProps) {
     const router = useRouter()
     const [mode, setMode] = useState<AppMode>('moon')
     const [mounted, setMounted] = useState(false)
+    const [profile] = useState(initialProfile || null)
+    const [coupleId] = useState(initialCoupleId || null)
 
     useEffect(() => {
         const savedMode = localStorage.getItem('app-mode') as AppMode
@@ -47,7 +61,9 @@ export function AppModeProvider({ children }: { children: React.ReactNode }) {
             setMode: handleSetMode,
             toggleMode,
             activeLunaraTab,
-            setActiveLunaraTab
+            setActiveLunaraTab,
+            profile,
+            coupleId
         }}>
             {children}
         </AppModeContext.Provider>

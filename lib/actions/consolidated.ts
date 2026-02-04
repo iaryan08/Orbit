@@ -13,7 +13,7 @@ export async function fetchDashboardData() {
         // 1. Fetch User Profile
         const { data: profile } = await supabase
             .from('profiles')
-            .select('*, partner_id, couple_id')
+            .select('id, partner_id, couple_id, gender, display_name, avatar_url')
             .eq('id', user.id)
             .single()
 
@@ -53,7 +53,7 @@ export async function fetchDashboardData() {
 
         const { data: cycles } = await supabase
             .from('cycle_profiles')
-            .select('*')
+            .select('user_id, last_period_start, avg_cycle_length, avg_period_length, sharing_enabled, onboarding_completed')
             .in('user_id', [user.id, partnerId].filter(Boolean))
 
         if (cycles) {
@@ -68,7 +68,7 @@ export async function fetchDashboardData() {
         if (coupleId) {
             const { data: sLogs } = await supabase
                 .from('support_logs')
-                .select('*')
+                .select('id, category, log_date, action_text, supporter_id')
                 .eq('couple_id', coupleId)
                 .order('created_at', { ascending: false })
                 .limit(5)
@@ -76,7 +76,7 @@ export async function fetchDashboardData() {
 
             const { data: cLogs, error: cycleError } = await supabase
                 .from('cycle_logs')
-                .select('*')
+                .select('log_date, symptoms')
                 .eq('couple_id', coupleId)
                 .order('log_date', { ascending: false })
                 .limit(10)

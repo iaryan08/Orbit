@@ -100,6 +100,7 @@
   /* Typography */
   --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-cormorant), ui-serif, Georgia, serif;
+  --font-pinyon: var(--font-pinyon), cursive;
 
   /* Animations */
   --animate-float: float 8s ease-in-out infinite;
@@ -292,9 +293,11 @@
   }
 
   .glass-card {
-    @apply backdrop-blur-[4px] shadow-2xl transition-all duration-700 rounded-[3rem] overflow-hidden;
+    @apply backdrop-blur-[3px] shadow-2xl transition-all duration-700 rounded-[3rem] overflow-hidden;
     background: linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.1));
     box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.3);
+    will-change: transform;
+    transform: translateZ(0);
   }
 
   .glass-card:hover {
@@ -302,7 +305,7 @@
     box-shadow:
       0 20px 50px -10px rgba(0, 0, 0, 0.5),
       0 0 20px rgba(236, 209, 213, 0.05);
-    transform: translateY(-5px);
+    transform: translateY(-5px) translateZ(0);
   }
 
   /* Text Glow Effects - Enhanced Visibility */

@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { optimizeImage } from "@/lib/image-optimization";
 import {
   Select,
   SelectContent,
@@ -97,15 +98,15 @@ export default function SettingsPage() {
 
     const file = event.target.files[0];
     const fileExt = file.name.split('.').pop();
-    const fileName = `${profile?.id}-${Math.random()}.${fileExt}`;
-    const filePath = `${fileName}`;
-
     setUploading(true);
-
     try {
+      // Optimize and convert to WebP
+      const optimizedFile = await optimizeImage(file, 400, 400, 0.9); // Smaller for avatars
+      const filePath = `${profile?.id}-${Date.now()}.webp`;
+
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(filePath, optimizedFile);
 
       if (uploadError) {
         throw uploadError;

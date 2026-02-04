@@ -26,6 +26,8 @@ import Image from "next/image";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { Edit2 } from "lucide-react";
 import { getTodayIST } from "@/lib/utils";
+import { optimizeImage } from "@/lib/image-optimization";
+import { useAppMode } from "@/components/app-mode-context";
 
 
 interface Memory {
@@ -41,6 +43,7 @@ interface Memory {
 
 export default function MemoriesPage() {
     const router = useRouter();
+    const { coupleId } = useAppMode();
     const [memories, setMemories] = useState<Memory[]>([]);
     const [loading, setLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
@@ -67,16 +70,7 @@ export default function MemoriesPage() {
 
         // Set up Realtime listener
         const setupRealtime = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
-
-            const { data: profile } = await supabase
-                .from("profiles")
-                .select("couple_id")
-                .eq("id", user.id)
-                .single();
-
-            if (profile?.couple_id) {
+            if (coupleId) {
                 const channel = supabase
                     .channel('realtime-memories')
                     .on(
@@ -85,7 +79,7 @@ export default function MemoriesPage() {
                             event: 'INSERT',
                             schema: 'public',
                             table: 'memories',
-                            filter: `couple_id=eq.${profile.couple_id}`
+                            filter: `couple_id=eq.${coupleId}`
                         },
                         () => {
                             fetchMemories();
@@ -103,19 +97,10 @@ export default function MemoriesPage() {
         return () => {
             cleanup.then(fn => fn && fn());
         };
-    }, []);
+    }, [coupleId]);
     const fetchMemories = async () => {
         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
-
-            const { data: profile } = await supabase
-                .from("profiles")
-                .select("couple_id")
-                .eq("id", user.id)
-                .single();
-
-            if (!profile?.couple_id) {
+            if (!coupleId) {
                 setLoading(false);
                 return;
             }
@@ -123,7 +108,7 @@ export default function MemoriesPage() {
             const { data, error } = await supabase
                 .from("memories")
                 .select("*")
-                .eq("couple_id", profile.couple_id)
+                .eq("couple_id", coupleId)
                 .order("memory_date", { ascending: false });
 
             if (error) throw error;
@@ -137,57 +122,7 @@ export default function MemoriesPage() {
         }
     };
 
-    const compressImage = async (file: File): Promise<File> => {
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (event) => {
-                const img = new window.Image();
-                img.src = event.target?.result as string;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1200;
-                    const MAX_HEIGHT = 1200;
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > height) {
-                        if (width > MAX_WIDTH) {
-                            height *= MAX_WIDTH / width;
-                            width = MAX_WIDTH;
-                        }
-                    } else {
-                        if (height > MAX_HEIGHT) {
-                            width *= MAX_HEIGHT / height;
-                            height = MAX_HEIGHT;
-                        }
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx?.drawImage(img, 0, 0, width, height);
-
-                    canvas.toBlob(
-                        (blob) => {
-                            if (blob) {
-                                const compressedFile = new File([blob], file.name, {
-                                    type: 'image/jpeg',
-                                    lastModified: Date.now(),
-                                });
-                                resolve(compressedFile);
-                            } else {
-                                resolve(file);
-                            }
-                        },
-                        'image/jpeg',
-                        0.7 // quality
-                    );
-                };
-            };
-        });
-    };
-
+    // We'll use the shared utility now
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
         if (files.length + selectedFiles.length > 10) {
@@ -200,7 +135,8 @@ export default function MemoriesPage() {
         }
 
         setUploading(true);
-        const compressedFiles = await Promise.all(files.map(file => compressImage(file)));
+        // Convert all to WebP for faster uploads and reduced bandwidth
+        const compressedFiles = await Promise.all(files.map(file => optimizeImage(file)));
         setUploading(false);
 
         const newPreviews = compressedFiles.map((file) => URL.createObjectURL(file));
@@ -222,8 +158,8 @@ export default function MemoriesPage() {
         const urls: string[] = [];
 
         for (const file of selectedFiles) {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${coupleId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+            // Already converted to .webp in handleFileSelect
+            const fileName = `${coupleId}/${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
 
             const { data, error } = await supabase.storage
                 .from('memories')
@@ -265,13 +201,7 @@ export default function MemoriesPage() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
 
-            const { data: profile } = await supabase
-                .from("profiles")
-                .select("couple_id")
-                .eq("id", user.id)
-                .single();
-
-            if (!profile?.couple_id) {
+            if (!coupleId) {
                 toast({
                     title: "Not paired yet",
                     description: "You need to be paired with your partner first.",
@@ -281,7 +211,7 @@ export default function MemoriesPage() {
             }
 
             // Upload images if any new ones selected
-            const newImageUrls = selectedFiles.length > 0 ? await uploadImages(profile.couple_id) : [];
+            const newImageUrls = selectedFiles.length > 0 ? await uploadImages(coupleId) : [];
             const allImageUrls = [...existingImages, ...newImageUrls];
 
             if (editingMemory) {

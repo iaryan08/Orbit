@@ -7,7 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { ScrollReveal } from '@/components/scroll-reveal'
-import { LunaraOnboarding } from './lunara-onboarding'
+import dynamic from 'next/dynamic'
+
+const LunaraOnboarding = dynamic(() => import('./lunara-onboarding').then(m => m.LunaraOnboarding), {
+    loading: () => <div className="flex items-center justify-center min-h-[60vh]"><Loader2 className="w-8 h-8 animate-spin text-purple-500" /></div>
+})
 import { createClient } from '@/lib/supabase/client'
 import { saveLunaraOnboarding, toggleLunaraSharing, logPeriodStart, logSymptoms } from '@/lib/actions/auth'
 import { fetchDashboardData } from '@/lib/actions/consolidated'
@@ -16,8 +20,8 @@ import { Loader2, Share2, Shield, UserCheck } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/hooks/use-toast'
 import { useRouter } from 'next/navigation'
-import { LunaraSettings } from './lunara-settings'
-import { SupportModal } from './support-modal'
+const LunaraSettings = dynamic(() => import('./lunara-settings').then(m => m.LunaraSettings))
+const SupportModal = dynamic(() => import('./support-modal').then(m => m.SupportModal))
 import { differenceInDays, addDays, format, startOfDay } from 'date-fns'
 import { cn } from '@/lib/utils'
 

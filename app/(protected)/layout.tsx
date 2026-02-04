@@ -61,7 +61,7 @@ export default async function ProtectedLayout({
     }
 
     return (
-        <AppModeProvider>
+        <AppModeProvider initialProfile={profile} initialCoupleId={profile?.couple_id}>
             <div className="min-h-screen bg-transparent pb-10 md:pb-0">
                 {/* Top Viewport Fade Overlay */}
                 <div className="fixed top-0 left-0 right-0 h-32 bg-gradient-to-b from-background via-background/60 to-transparent z-[30] pointer-events-none" />
@@ -77,7 +77,7 @@ export default async function ProtectedLayout({
                     daysTogetherCount={daysTogetherCount}
                     unreadCounts={couple ? await fetchUnreadCounts() : undefined}
                 />
-                <main className="container mx-auto px-4 py-6 pt-14 relative z-10">
+                <main className="container mx-auto px-4 py-6 pt-14 md:pt-32 relative z-10">
                     {children}
                 </main>
             </div>

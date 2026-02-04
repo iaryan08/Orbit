@@ -20,35 +20,41 @@ import { ScrollReveal } from '@/components/scroll-reveal'
 import { NotificationBell } from '@/components/notification-bell'
 import { useAppMode } from '@/components/app-mode-context'
 
-export function LunaraLayout() {
+export function LunaraLayout({ initialData }: { initialData?: any }) {
     const { activeLunaraTab: activeTab } = useAppMode()
     const [hoveredTab, setHoveredTab] = React.useState<string | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [data, setData] = React.useState<any>(null)
+    const [loading, setLoading] = useState(!initialData)
+    const [data, setData] = React.useState<any>(initialData || null)
     const supabase = createClient()
 
     useEffect(() => {
         let channel: any = null
 
         const loadData = async () => {
-            const result = await fetchDashboardData()
-            if (result.success && result.data) {
-                setData(result.data)
-                setLoading(false)
-
-                // Setup Realtime Subs
-                if (result.data.profile.couple_id && !channel) {
-                    const coupleId = result.data.profile.couple_id
-                    channel = supabase
-                        .channel('lunara-layout-updates')
-                        .on('postgres_changes', { event: '*', schema: 'public', table: 'cycle_profiles', filter: `couple_id=eq.${coupleId}` }, loadData)
-                        .on('postgres_changes', { event: '*', schema: 'public', table: 'cycle_logs', filter: `couple_id=eq.${coupleId}` }, loadData)
-                        .on('postgres_changes', { event: '*', schema: 'public', table: 'support_logs', filter: `couple_id=eq.${coupleId}` }, loadData)
-                        .subscribe()
+            // Only fetch if we don't have initial data or we want to force refresh
+            if (!initialData || !data) {
+                const result = await fetchDashboardData()
+                if (result.success && result.data) {
+                    setData(result.data)
+                    setLoading(false)
+                } else {
+                    console.error("Failed to load Lunara data:", result.error)
+                    setLoading(false)
                 }
             } else {
-                console.error("Failed to load Lunara data:", result.error)
                 setLoading(false)
+            }
+
+            // Always setup Realtime Subs if we have profile (even if from initialData)
+            const profile = data?.profile || initialData?.profile
+            if (profile?.couple_id && !channel) {
+                const coupleId = profile.couple_id
+                channel = supabase
+                    .channel('lunara-layout-updates')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'cycle_profiles', filter: `couple_id=eq.${coupleId}` }, loadData)
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'cycle_logs', filter: `couple_id=eq.${coupleId}` }, loadData)
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'support_logs', filter: `couple_id=eq.${coupleId}` }, loadData)
+                    .subscribe()
             }
         }
 
@@ -57,7 +63,7 @@ export function LunaraLayout() {
         return () => {
             if (channel) supabase.removeChannel(channel)
         }
-    }, [])
+    }, [initialData])
 
     // Scroll detection
     const [scrolled, setScrolled] = useState(false)

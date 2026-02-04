@@ -81,20 +81,34 @@ export function DashboardHeader({
     <>
       {/* 1. Logo (Top Left Floating) */}
       <div className={cn(
-        "fixed top-6 left-6 z-50 hidden md:flex items-center gap-2 drop-shadow-xl transition-all duration-500",
-        mode === 'moon' ? "text-amber-200/90 text-glow-gold" : "text-purple-200/90 shadow-[0_0_10px_rgba(168,85,247,0.3)]",
+        "fixed top-6 md:top-10 left-6 md:left-10 z-50 hidden md:flex items-center gap-2 transition-all duration-700",
+        mode === 'moon' ? "text-amber-100/90" : "text-purple-100/90",
         scrolled ? "opacity-0 -translate-x-10 pointer-events-none" : "opacity-100 translate-x-0"
       )}>
         {mode === 'moon' ? (
-          <>
-            <Heart className="w-6 h-6 text-rose-300 animate-pulse-slow" fill="currentColor" />
-            <span className="font-serif text-xl font-semibold tracking-wide">MoonBetweenUs</span>
-          </>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Heart className="w-8 h-8 text-rose-400/80 animate-pulse-slow relative z-10" fill="currentColor" />
+            </div>
+            <div className="flex flex-col -space-y-1">
+              <span className="font-serif text-2xl font-light tracking-[0.05em]">
+                Moon<span className="font-pinyon font-normal text-3xl lowercase mx-0.5 text-rose-300">between</span>Us
+              </span>
+              <span className="text-[7px] uppercase tracking-[0.5em] font-bold opacity-40 ml-1">Private Sanctuary</span>
+            </div>
+          </div>
         ) : (
-          <>
-            <Moon className="w-6 h-6 text-purple-300" fill="currentColor" />
-            <span className="font-serif text-xl font-semibold tracking-wide">Lunara</span>
-          </>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Moon className="w-8 h-8 text-purple-300 relative z-10" fill="currentColor" />
+            </div>
+            <div className="flex flex-col -space-y-1">
+              <span className="font-serif text-2xl font-light tracking-[0.05em]">
+                Lunara<span className="font-pinyon font-normal text-3xl lowercase mx-0.5 text-purple-300">sync</span>
+              </span>
+              <span className="text-[7px] uppercase tracking-[0.5em] font-bold opacity-40 ml-1">Cycle Rhythm</span>
+            </div>
+          </div>
         )}
       </div>
 
@@ -107,8 +121,8 @@ export function DashboardHeader({
           "fixed z-50",
           "bottom-6 left-1/2 -translate-x-1/2",
           scrolled
-            ? "md:top-1/2 md:bottom-auto md:left-6 md:-translate-y-1/2 md:translate-x-0"
-            : "md:bottom-auto md:top-6 md:left-1/2 md:-translate-x-1/2"
+            ? "md:top-1/2 md:bottom-auto md:left-10 md:-translate-y-1/2 md:translate-x-0"
+            : "md:bottom-auto md:top-10 md:left-1/2 md:-translate-x-1/2"
         )}
       >
         <nav
@@ -306,7 +320,7 @@ export function DashboardHeader({
       </div>
 
       {/* 4. Profile Dropdown & Mode Toggle (Top Right Floating) */}
-      <div className="fixed top-6 right-6 z-50 flex items-center gap-4">
+      <div className="fixed top-6 md:top-10 right-6 md:right-10 z-50 flex items-center gap-4">
         {/* Lunara Mode Toggle Indicator */}
         <AnimatePresence>
           {!scrolled && (

@@ -18,11 +18,15 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
         setBgImage(`/images/${randomId}.jpg`);
 
         // Generate static hearts and stars
-        const newElements = Array.from({ length: 30 }).map((_, i) => {
-            const type = Math.random() > 0.8 ? "heart" : "star";
-            const size = type === "heart" ? Math.random() * 8 + 6 : Math.random() * 10 + 2;
-            const duration = Math.random() * 20 + 10;
-            const delay = Math.random() * 10;
+        const newElements = Array.from({ length: 50 }).map((_, i) => {
+            const type = Math.random() > 0.85 ? "heart" : "star";
+            const size = type === "heart" ? Math.random() * 14 + 8 : Math.random() * 12 + 4;
+            const duration = Math.random() * 20 + 15;
+            const delay = Math.random() * -20; // Use negative delay for immediate start
+
+            // Subtle color palette
+            const starColors = ["#fef3c7", "#fff9db", "#ffffff", "#fff0f6"]; // Amber, white, soft rose
+            const heartColors = ["#fda4af", "#fecdd3", "#fff1f2"]; // Rose-300, 200, 50
 
             return {
                 id: i,
@@ -32,10 +36,12 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
                     top: `${Math.random() * 100}%`,
                     width: `${size}px`,
                     height: `${size}px`,
-                    minHeight: `100%`,
                     animationDuration: `${duration}s`,
                     animationDelay: `${delay}s`,
-                    opacity: type === "heart" ? Math.random() * 0.2 + 0.1 : Math.random() * 0.4 + 0.1,
+                    opacity: Math.random() * 0.4 + 0.2, // 0.2 to 0.6
+                    color: type === "heart"
+                        ? heartColors[Math.floor(Math.random() * heartColors.length)]
+                        : starColors[Math.floor(Math.random() * starColors.length)]
                 },
             };
         });
@@ -90,28 +96,26 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
             {elements.map((el) => (
                 <div
                     key={el.id}
-                    className={`absolute animate-float ${el.type === "heart" ? "" : "text-yellow-200/60"}`}
+                    className="absolute animate-float"
                     style={{
                         ...el.style,
-                        color: el.type === "heart" ? "#ff69b4" : (el.style.color as string),
-                        opacity: el.type === "heart" ? 0.25 : el.style.opacity,
-                        zIndex: 1 // Ensure they are above the base image
+                        zIndex: 1
                     }}
                 >
                     {el.type === "heart" ? (
-                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full drop-shadow-[0_0_10px_rgba(255,105,180,0.3)]">
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full drop-shadow-[0_0_8px_rgba(253,164,175,0.4)]">
                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                         </svg>
                     ) : (
-                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full drop-shadow-md">
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">
                             <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
                         </svg>
                     )}
                 </div>
             ))}
 
-            {/* Grain texture for premium feel */}
-            <div className="absolute inset-0 opacity-[0.15] bg-[url('https://www.transparenttextures.com/patterns/inspiration-geometry.png')] mix-blend-overlay"></div>
+            {/* Grain texture for premium feel - CSS only Noise */}
+            <div className="absolute inset-0 opacity-[0.1] pointer-events-none mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
         </div>
     );
 }
