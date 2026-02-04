@@ -105,24 +105,20 @@ export function DashboardHeader({
         key={scrolled ? 'vertical' : 'horizontal'}
         className={cn(
           "fixed z-50",
-          // Base animation: pop in
-          "animate-in fade-in duration-300 ",
-          // Mobile: always bottom-center, pop from bottom
-          "bottom-6 left-1/2 -translate-x-1/2 slide-in-from-bottom-4",
-          // Desktop Switch
+          "bottom-6 left-1/2 -translate-x-1/2",
           scrolled
-            ? "md:top-1/2 md:bottom-auto md:left-6 md:-translate-y-1/2 md:translate-x-0 md:slide-in-from-left-4"
-            : "md:bottom-auto md:top-6 md:left-1/2 md:-translate-x-1/2 md:slide-in-from-bottom-4"
+            ? "md:top-1/2 md:bottom-auto md:left-6 md:-translate-y-1/2 md:translate-x-0"
+            : "md:bottom-auto md:top-6 md:left-1/2 md:-translate-x-1/2"
         )}
       >
         <nav
           onMouseLeave={() => setHoveredPath(null)}
           className={cn(
-            "flex items-center gap-1 p-1.5 rounded-full border shadow-2xl ring-1 mt-1 transition-all duration-500",
-            mode === 'moon'
-              ? "border-white/10 bg-black/60 ring-white/5 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]"
-              : "border-purple-300/20 bg-purple-900/60 ring-purple-400/10 shadow-[0_8px_32px_0_rgba(88,28,135,0.2)]",
-            "backdrop-blur-3xl saturate-150",
+            "flex items-center gap-1 p-1.5 rounded-full border shadow-2xl transition-all duration-500",
+            "animate-in fade-in slide-in-from-bottom-4 duration-500",
+            scrolled && "md:slide-in-from-left-4",
+            mode === 'moon' ? "border-white/10 bg-black/40" : "border-purple-500/20 bg-purple-950/40",
+            "backdrop-blur-[3px]",
             scrolled ? "md:flex-col md:rounded-[40px] md:py-4 md:px-2" : "md:flex-row md:rounded-full md:p-1.5"
           )}
         >
