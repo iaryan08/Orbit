@@ -41,11 +41,14 @@ export function ScrollReveal({
         <div
             ref={ref}
             className={cn(
-                "transition-all duration-1000 ease-out",
-                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8",
+                "transition-all duration-700",
+                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6",
                 className
             )}
-            style={{ transitionDelay: `${delay}s` }}
+            style={{
+                transitionDelay: `${delay}s`,
+                transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' // Smooth easing
+            }}
         >
             {children}
         </div>
