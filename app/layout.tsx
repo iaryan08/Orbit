@@ -47,6 +47,8 @@ import { MoonBackdrop } from '@/components/MoonBackdrop'
 import { Stars } from '@/components/Stars'
 import { FloatingHearts } from '@/components/FloatingHearts'
 
+import PushNotificationManager from '@/components/PushNotificationManager'
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -68,6 +70,7 @@ export default function RootLayout({
           {children}
         </div>
         <Toaster />
+        <PushNotificationManager />
         <Analytics />
       </body>
     </html>

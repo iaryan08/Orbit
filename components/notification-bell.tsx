@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Bell, Check, Circle, ExternalLink, Calendar, Heart, Mail, Sparkles, X, Trash2 } from 'lucide-react'
+import { Bell, Check, Circle, ExternalLink, Calendar, Heart, Mail, Sparkles, X, Trash2, BellOff, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     Popover,
@@ -14,6 +14,8 @@ import { formatDistanceToNow } from 'date-fns'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
+import { subscribeUserToPush, requestNotificationPermission } from '@/lib/push'
+import { toast } from 'sonner'
 
 interface Notification {
     id: string
@@ -30,6 +32,9 @@ export function NotificationBell({ className }: { className?: string }) {
     const [notifications, setNotifications] = useState<Notification[]>([])
     const [loading, setLoading] = useState(false)
     const [open, setOpen] = useState(false)
+    const [isPushSupported, setIsPushSupported] = useState(false)
+    const [pushSubscription, setPushSubscription] = useState<PushSubscription | null>(null)
+    const [checkingPush, setCheckingPush] = useState(true)
     const router = useRouter()
     const supabase = createClient()
 
@@ -63,7 +68,42 @@ export function NotificationBell({ className }: { className?: string }) {
         }
 
         setupRealtime()
+        checkPushSubscription()
     }, [])
+
+    const checkPushSubscription = async () => {
+        if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
+            setIsPushSupported(true)
+            try {
+                const registration = await navigator.serviceWorker.ready
+                const sub = await registration.pushManager.getSubscription()
+                setPushSubscription(sub)
+            } catch (e) {
+                console.error('Error checking push sub:', e)
+            }
+        }
+        setCheckingPush(false)
+    }
+
+    const handleSubscribe = async () => {
+        try {
+            await requestNotificationPermission()
+            const sub = await subscribeUserToPush()
+            setPushSubscription(sub)
+
+            // Save to backend
+            await fetch('/api/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(sub),
+            })
+
+            toast.success('Live notifications enabled!')
+        } catch (error) {
+            console.error('Push sub error:', error)
+            toast.error('Could not enable live notifications')
+        }
+    }
 
     useEffect(() => {
         if (open) {
@@ -157,6 +197,28 @@ export function NotificationBell({ className }: { className?: string }) {
                         </Button>
                     )}
                 </div>
+
+                {/* Push Notification Prompt */}
+                {!checkingPush && isPushSupported && !pushSubscription && (
+                    <div className="p-4 bg-amber-500/10 border-b border-amber-500/20">
+                        <div className="flex gap-3">
+                            <div className="mt-0.5 shrink-0">
+                                <BellOff className="h-4 w-4 text-amber-400" />
+                            </div>
+                            <div className="flex-1 space-y-1">
+                                <p className="text-xs font-bold text-amber-200 uppercase tracking-tight">Enable Live Notifications</p>
+                                <p className="text-[10px] text-amber-200/60 leading-tight">Get real-time updates on your phone even when the app is closed.</p>
+                                <Button
+                                    onClick={handleSubscribe}
+                                    variant="link"
+                                    className="h-auto p-0 text-amber-400 text-[10px] font-black uppercase tracking-widest hover:text-amber-300"
+                                >
+                                    Enable Now →
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 <ScrollArea className="h-[400px]">
                     {loading && notifications.length === 0 ? (

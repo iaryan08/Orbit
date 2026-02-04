@@ -118,9 +118,11 @@ export function DashboardHeader({
         <nav
           onMouseLeave={() => setHoveredPath(null)}
           className={cn(
-            "glass-card flex items-center gap-1 p-1.5 rounded-full border shadow-2xl ring-1 ring-white/5",
-            mode === 'moon' ? "border-white/10" : "border-purple-500/30 bg-purple-950/40",
-            "backdrop-blur-[20px] md:backdrop-blur-3xl bg-black/60", // Restored heavy blur for premium feel
+            "flex items-center gap-1 p-1.5 rounded-full border shadow-2xl ring-1 mt-1 transition-all duration-500",
+            mode === 'moon'
+              ? "border-white/20 bg-white/[0.08] ring-white/10 shadow-white/[0.02]"
+              : "border-purple-400/30 bg-purple-400/[0.08] ring-purple-500/20 shadow-purple-500/[0.05]",
+            "backdrop-blur-[24px] md:backdrop-blur-[32px] saturate-[180%]",
             scrolled ? "md:flex-col md:rounded-[40px] md:py-4 md:px-2" : "md:flex-row md:rounded-full md:p-1.5"
           )}
         >

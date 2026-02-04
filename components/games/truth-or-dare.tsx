@@ -344,7 +344,7 @@ export function TruthOrDare({ onBack }: TruthOrDareProps) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack} className="text-white hover:bg-white/10 hover:text-white rounded-full">
+          <Button variant="ghost" size="icon" onClick={onBack} className="text-white bg-white/5 backdrop-blur-md border border-white/5 hover:bg-white/10 hover:text-white rounded-full shadow-lg">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-3xl font-serif font-bold text-white flex items-center gap-2 text-glow-gold">
@@ -369,7 +369,7 @@ export function TruthOrDare({ onBack }: TruthOrDareProps) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={onBack} className="text-white hover:bg-white/10 hover:text-white rounded-full">
+        <Button variant="ghost" size="icon" onClick={onBack} className="text-white bg-white/5 backdrop-blur-md border border-white/5 hover:bg-white/10 hover:text-white rounded-full shadow-lg">
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
