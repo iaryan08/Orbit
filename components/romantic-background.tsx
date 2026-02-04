@@ -17,8 +17,12 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
         const randomId = Math.floor(Math.random() * 4) + 1;
         setBgImage(`/images/${randomId}.jpg`);
 
+        // Responsive element count: fewer on mobile for better performance
+        const isMobile = window.innerWidth < 768;
+        const elementCount = isMobile ? 25 : 50;
+
         // Generate static hearts and stars
-        const newElements = Array.from({ length: 50 }).map((_, i) => {
+        const newElements = Array.from({ length: elementCount }).map((_, i) => {
             const type = Math.random() > 0.85 ? "heart" : "star";
             const size = type === "heart" ? Math.random() * 14 + 8 : Math.random() * 12 + 4;
             const duration = Math.random() * 20 + 15;
