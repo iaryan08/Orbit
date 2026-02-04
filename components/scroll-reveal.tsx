@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactNode, useEffect, useRef, useState } from 'react'
-import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
 
 interface ScrollRevealProps {
     children: ReactNode
@@ -38,19 +38,18 @@ export function ScrollReveal({
     }, [once])
 
     return (
-        <div
+        <motion.div
             ref={ref}
-            className={cn(
-                "transition-all duration-700",
-                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6",
-                className
-            )}
-            style={{
-                transitionDelay: `${delay}s`,
-                transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' // Smooth easing
+            initial={{ opacity: 0, y: 20 }}
+            animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{
+                duration: 0.6,
+                delay: delay,
+                ease: [0.16, 1, 0.3, 1] // Smooth cubic-bezier
             }}
+            className={className}
         >
             {children}
-        </div>
+        </motion.div>
     )
 }
