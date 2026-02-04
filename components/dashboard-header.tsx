@@ -120,9 +120,9 @@ export function DashboardHeader({
           className={cn(
             "flex items-center gap-1 p-1.5 rounded-full border shadow-2xl ring-1 mt-1 transition-all duration-500",
             mode === 'moon'
-              ? "border-white/20 bg-white/[0.08] ring-white/10 shadow-white/[0.02]"
-              : "border-purple-400/30 bg-purple-400/[0.08] ring-purple-500/20 shadow-purple-500/[0.05]",
-            "backdrop-blur-[24px] md:backdrop-blur-[32px] saturate-[180%]",
+              ? "border-white/10 bg-black/20 ring-white/5 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)]"
+              : "border-purple-300/20 bg-purple-900/20 ring-purple-400/10 shadow-[0_8px_32px_0_rgba(88,28,135,0.2)]",
+            "backdrop-blur-3xl saturate-150",
             scrolled ? "md:flex-col md:rounded-[40px] md:py-4 md:px-2" : "md:flex-row md:rounded-full md:p-1.5"
           )}
         >
