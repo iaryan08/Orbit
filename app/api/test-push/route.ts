@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
-import { NextResponse } from 'next/server';
 import { sendPushNotification } from '@/lib/push-server';
+import { NextResponse } from 'next/server';
 
-export async function POST(request: Request) {
+export async function POST() {
     try {
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
@@ -13,14 +13,14 @@ export async function POST(request: Request) {
 
         const result = await sendPushNotification(
             user.id,
-            "Test Notification",
-            "This is a test notification from Moon Between Us!",
-            "/dashboard"
+            'Test Notification',
+            'Your device is correctly receiving push notifications from MoonBetweenUs! ✨',
+            '/dashboard'
         );
 
         return NextResponse.json(result);
     } catch (error: any) {
-        console.error('Error in test-push:', error);
+        console.error('Error in test-push route:', error);
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

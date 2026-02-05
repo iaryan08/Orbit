@@ -106,12 +106,23 @@ export function DashboardHeader({
   return (
     <>
       {/* 1. Logo (Top Left Floating) */}
-      <div className={cn(
-        "fixed top-6 md:top-10 left-6 md:left-10 z-50 hidden md:flex items-center gap-2 transition-all duration-500",
-        mode === 'moon' ? "text-amber-100/90" : "text-purple-100/90",
-        isDesktopScrolled ? "opacity-0 -translate-x-10 pointer-events-none" : "opacity-100 translate-x-0",
-        !isVisible && "-translate-x-40" // Hide horizontally to the left
-      )}>
+      <motion.div
+        className={cn(
+          "fixed top-6 md:top-10 left-6 md:left-10 z-50 hidden md:flex items-center gap-2",
+          mode === 'moon' ? "text-amber-100/90" : "text-purple-100/90"
+        )}
+        animate={{
+          x: !isVisible ? -160 : (isDesktopScrolled ? -40 : 0),
+          opacity: !isVisible || isDesktopScrolled ? 0 : 1,
+          scale: !isVisible ? 0.9 : 1,
+          pointerEvents: !isVisible || isDesktopScrolled ? 'none' : 'auto'
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 400,
+          damping: 35
+        }}
+      >
         {mode === 'moon' ? (
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -137,7 +148,7 @@ export function DashboardHeader({
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* 3. The Dock (Adaptive Positioning with Pop Animations) */}
       {/* We use isDesktopScrolled to determine which dock to show. 
@@ -368,10 +379,20 @@ export function DashboardHeader({
       </AnimatePresence>
 
       {/* 4. Profile Dropdown & Mode Toggle (Top Right Floating) */}
-      <div className={cn(
-        "fixed top-6 md:top-10 right-6 md:right-10 z-50 flex items-center gap-4 transition-all duration-500",
-        !isVisible && "-translate-x-40 opacity-0"
-      )}>
+      <motion.div
+        className="fixed top-6 md:top-10 right-6 md:right-10 z-50 flex items-center gap-4"
+        animate={{
+          x: !isVisible ? 160 : 0,
+          opacity: !isVisible ? 0 : 1,
+          scale: !isVisible ? 0.9 : 1,
+          pointerEvents: !isVisible ? 'none' : 'auto'
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 400,
+          damping: 35
+        }}
+      >
         {/* Lunara Mode Toggle Indicator - ALWAYS VISIBLE TO PREVENT SHIFT */}
         <LunaraToggle />
 
@@ -422,7 +443,7 @@ export function DashboardHeader({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
+      </motion.div>
     </>
   )
 }

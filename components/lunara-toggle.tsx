@@ -10,23 +10,35 @@ export function LunaraToggle() {
 
     return (
         <div className="flex items-center gap-3">
+            {/* Moon Mode */}
             <AnimatePresence mode="wait">
-                {(mode === 'moon' || typeof window !== 'undefined' && window.innerWidth >= 640) && (
-                    <motion.span
-                        key="moon-label"
+                {(typeof window !== 'undefined' && window.innerWidth >= 640) && (
+                    <motion.div
+                        key="moon-label-container"
+                        className="flex items-center gap-2"
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
                         transition={{ duration: 0.3 }}
-                        className={cn(
-                            "text-[10px] uppercase tracking-[0.2em] font-bold transition-all duration-500 selection:bg-rose-500/40 selection:text-white",
-                            mode === 'moon'
-                                ? "text-rose-100 drop-shadow-[0_0_12px_rgba(251,113,133,0.6)] scale-110"
-                                : "text-white/20 hover:text-white/40"
-                        )}
                     >
-                        Moon
-                    </motion.span>
+                        <Heart
+                            className={cn(
+                                "w-3 h-3 transition-colors duration-500",
+                                mode === 'moon' ? "text-rose-400" : "text-white/20"
+                            )}
+                            fill={mode === 'moon' ? "currentColor" : "none"}
+                        />
+                        <span
+                            className={cn(
+                                "text-[10px] uppercase tracking-[0.2em] font-bold transition-all duration-500 selection:bg-rose-500/40 selection:text-white",
+                                mode === 'moon'
+                                    ? "text-rose-100 drop-shadow-[0_0_12px_rgba(251,113,133,0.6)] scale-110"
+                                    : "text-white/20 hover:text-white/40"
+                            )}
+                        >
+                            Moon
+                        </span>
+                    </motion.div>
                 )}
             </AnimatePresence>
 
@@ -88,23 +100,35 @@ export function LunaraToggle() {
                 </div>
             </button>
 
+            {/* Lunara Mode */}
             <AnimatePresence mode="wait">
-                {(mode === 'lunara' || typeof window !== 'undefined' && window.innerWidth >= 640) && (
-                    <motion.span
-                        key="lunara-label"
+                {(typeof window !== 'undefined' && window.innerWidth >= 640) && (
+                    <motion.div
+                        key="lunara-label-container"
+                        className="flex items-center gap-2"
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
                         transition={{ duration: 0.3 }}
-                        className={cn(
-                            "text-[10px] uppercase tracking-[0.2em] font-bold transition-all duration-500 selection:bg-purple-500/40 selection:text-white",
-                            mode === 'lunara'
-                                ? "text-purple-100 drop-shadow-[0_0_12px_rgba(168,85,247,0.6)] scale-110"
-                                : "text-white/20 hover:text-white/40"
-                        )}
                     >
-                        Lunara
-                    </motion.span>
+                        <Moon
+                            className={cn(
+                                "w-3 h-3 transition-colors duration-500",
+                                mode === 'lunara' ? "text-purple-400" : "text-white/20"
+                            )}
+                            fill={mode === 'lunara' ? "currentColor" : "none"}
+                        />
+                        <span
+                            className={cn(
+                                "text-[10px] uppercase tracking-[0.2em] font-bold transition-all duration-500 selection:bg-purple-500/40 selection:text-white",
+                                mode === 'lunara'
+                                    ? "text-purple-100 drop-shadow-[0_0_12px_rgba(168,85,247,0.6)] scale-110"
+                                    : "text-white/20 hover:text-white/40"
+                            )}
+                        >
+                            Lunara
+                        </span>
+                    </motion.div>
                 )}
             </AnimatePresence>
         </div>

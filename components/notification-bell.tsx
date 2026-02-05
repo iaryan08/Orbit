@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Bell, Check, Circle, ExternalLink, Calendar, Heart, Mail, Sparkles, X, Trash2, BellOff, Info } from 'lucide-react'
+import { Bell, Check, Circle, ExternalLink, Calendar, Heart, Mail, Sparkles, X, Trash2, BellOff, Info, RotateCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     Popover,
@@ -35,6 +35,7 @@ export function NotificationBell({ className }: { className?: string }) {
     const [isPushSupported, setIsPushSupported] = useState(false)
     const [pushSubscription, setPushSubscription] = useState<PushSubscription | null>(null)
     const [checkingPush, setCheckingPush] = useState(true)
+    const [isIncognito, setIsIncognito] = useState(false)
     const router = useRouter()
     const supabase = createClient()
 
@@ -58,6 +59,8 @@ export function NotificationBell({ className }: { className?: string }) {
                     },
                     (payload) => {
                         setCount(prev => prev + 1)
+                        // Also prepend the new notification if it's open
+                        setNotifications(prev => [payload.new as Notification, ...prev])
                     }
                 )
                 .subscribe()
@@ -78,11 +81,20 @@ export function NotificationBell({ className }: { className?: string }) {
                 const registration = await navigator.serviceWorker.ready
                 const sub = await registration.pushManager.getSubscription()
                 setPushSubscription(sub)
+                if (sub) {
+                    await syncSubscription(sub)
+                }
             } catch (e) {
                 console.error('Error checking push sub:', e)
             }
         }
         setCheckingPush(false)
+
+        // Basic check for Incognito
+        if ('storage' in navigator && 'estimate' in navigator.storage) {
+            const { quota } = await navigator.storage.estimate();
+            if (quota && quota < 120000000) setIsIncognito(true);
+        }
     }
 
 
@@ -96,26 +108,31 @@ export function NotificationBell({ className }: { className?: string }) {
 
             const sub = await subscribeUserToPush()
             setPushSubscription(sub)
-
-            // Save to backend
-            const subscriptionJSON = sub.toJSON();
-            console.log('Sending subscription to backend:', subscriptionJSON);
-
-            const res = await fetch('/api/subscribe', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(subscriptionJSON),
-            })
-
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.error || 'Failed to save subscription');
-            }
-
+            await syncSubscription(sub)
             toast.success('Live notifications enabled!')
         } catch (error) {
             console.error('Push sub error:', error)
             toast.error('Could not enable live notifications')
+        }
+    }
+
+    const syncSubscription = async (sub: PushSubscription) => {
+        const subscriptionJSON = sub.toJSON();
+        const res = await fetch('/api/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(subscriptionJSON),
+        })
+        return res.ok
+    }
+
+    const handleTestPush = async () => {
+        try {
+            const res = await fetch('/api/test-push', { method: 'POST' })
+            if (res.ok) toast.success('Test notification sent!')
+            else toast.error('Failed to send test push')
+        } catch (e) {
+            toast.error('Network error during test push')
         }
     }
 
@@ -198,7 +215,17 @@ export function NotificationBell({ className }: { className?: string }) {
             </PopoverTrigger>
             <PopoverContent align="end" className="w-80 md:w-96 p-0 border-white/10 bg-[#0f0510]/70 backdrop-blur-[8px] shadow-2xl text-white">
                 <div className="flex items-center justify-between p-4 border-b border-white/5">
-                    <h4 className="font-serif text-lg font-medium text-purple-100">Notifications</h4>
+                    <div className="flex items-center gap-2">
+                        <h4 className="font-serif text-lg font-medium text-purple-100">Notifications</h4>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-white/20 hover:text-white"
+                            onClick={(e) => { e.stopPropagation(); fetchNotifications(); fetchCount(); }}
+                        >
+                            <RotateCw className={cn("h-3 w-3", loading && "animate-spin")} />
+                        </Button>
+                    </div>
                     {notifications.length > 0 && (
                         <Button
                             variant="ghost"
@@ -212,24 +239,34 @@ export function NotificationBell({ className }: { className?: string }) {
                     )}
                 </div>
 
-                {/* Push Notification Prompt */}
-                {/* Push Notification Prompt */}
-                {!checkingPush && isPushSupported && !pushSubscription && (
-                    <div className="p-4 bg-amber-500/10 border-b border-amber-500/20">
+                {/* Push Notification Prompt - Show ONLY if Incognito (warning) or NOT Subscribed (prompt) */}
+                {!checkingPush && isPushSupported && (isIncognito || !pushSubscription) && (
+                    <div className={cn(
+                        "p-4 border-b",
+                        isIncognito ? "bg-red-500/10 border-red-500/20" : "bg-amber-500/10 border-amber-500/20"
+                    )}>
                         <div className="flex gap-3">
                             <div className="mt-0.5 shrink-0">
-                                <BellOff className="h-4 w-4 text-amber-400" />
+                                {isIncognito ? <BellOff className="h-4 w-4 text-red-400" /> : <BellOff className="h-4 w-4 text-amber-400" />}
                             </div>
                             <div className="flex-1 space-y-1">
-                                <p className="text-xs font-bold text-amber-200 uppercase tracking-tight">Enable Live Notifications</p>
-                                <p className="text-[10px] text-amber-200/60 leading-tight">Get real-time updates on your phone even when the app is closed.</p>
-                                <Button
-                                    onClick={handleSubscribe}
-                                    variant="link"
-                                    className="h-auto p-0 text-amber-400 text-[10px] font-black uppercase tracking-widest hover:text-amber-300"
-                                >
-                                    Enable Now →
-                                </Button>
+                                <p className={cn("text-xs font-bold uppercase tracking-tight", isIncognito ? "text-red-200" : "text-amber-200")}>
+                                    {isIncognito ? "Incognito Detected" : "Enable Live Notifications"}
+                                </p>
+                                <p className={cn("text-[10px] leading-tight", isIncognito ? "text-red-200/60" : "text-amber-200/60")}>
+                                    {isIncognito
+                                        ? "Live push notifications (popups) are disabled in Private/Incognito mode by your browser."
+                                        : "Get real-time updates on your phone even when the app is closed."}
+                                </p>
+                                {!isIncognito && !pushSubscription && (
+                                    <Button
+                                        onClick={handleSubscribe}
+                                        variant="link"
+                                        className="h-auto p-0 text-amber-400 text-[10px] font-black uppercase tracking-widest hover:text-amber-300"
+                                    >
+                                        Enable Now →
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     </div>
