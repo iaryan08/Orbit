@@ -58,6 +58,7 @@ export function DashboardHeader({
   const [scrolled, setScrolled] = useState(false)
   const [hoveredPath, setHoveredPath] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const { mode, activeLunaraTab, setActiveLunaraTab } = useAppMode()
 
   useEffect(() => {
@@ -65,13 +66,28 @@ export function DashboardHeader({
     const handleScroll = () => {
       setScrolled(window.scrollY > 40)
     }
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+
+    // Initial check
+    handleResize()
+
     window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    window.addEventListener('resize', handleResize)
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleResize)
+    }
   }, [])
 
   if (!mounted) {
     return null
   }
+
+  // Mobile: Always show default dock (dock-top style effectively)
+  // Desktop: Toggle between dock-top and dock-scrolled based on scrolled state
+  const isDesktopScrolled = scrolled && !isMobile
 
   return (
     <>
@@ -79,7 +95,7 @@ export function DashboardHeader({
       <div className={cn(
         "fixed top-6 md:top-10 left-6 md:left-10 z-50 hidden md:flex items-center gap-2 transition-all duration-700",
         mode === 'moon' ? "text-amber-100/90" : "text-purple-100/90",
-        scrolled ? "opacity-0 -translate-x-10 pointer-events-none" : "opacity-100 translate-x-0"
+        isDesktopScrolled ? "opacity-0 -translate-x-10 pointer-events-none" : "opacity-100 translate-x-0"
       )}>
         {mode === 'moon' ? (
           <div className="flex items-center gap-3">
@@ -109,8 +125,11 @@ export function DashboardHeader({
       </div>
 
       {/* 3. The Dock (Adaptive Positioning with Pop Animations) */}
+      {/* We use isDesktopScrolled to determine which dock to show. 
+          On Mobile (isMobile=true), isDesktopScrolled will always be false, so standard dock shows always. 
+      */}
       <AnimatePresence>
-        {scrolled ? (
+        {isDesktopScrolled ? (
           <motion.nav
             key="dock-scrolled"
             initial={{ x: -60, opacity: 0 }}
@@ -120,12 +139,12 @@ export function DashboardHeader({
             onMouseLeave={() => setHoveredPath(null)}
             className={cn(
               "fixed z-50 flex items-center gap-1 border shadow-2xl backdrop-blur-md",
-              "bottom-6 left-1/2 -translate-x-1/2", // Mobile / Default
+              "bottom-6 left-1/2 -translate-x-1/2", // Mobile / Default (Not used here mostly but fallback)
               "md:top-1/2 md:bottom-auto md:left-8 md:-translate-y-1/2 md:translate-x-0", // Desktop Scrolled specific
               "md:flex-col md:rounded-[40px] md:py-4 md:px-2",
               mode === 'moon' ? "border-white/10 bg-black/40" : "border-purple-500/20 bg-purple-950/40",
-              "rounded-full p-1.5", // Mobile fallback
-              "transition-[background-color,border-color,shadow] duration-300" // No transition-all
+              "rounded-full p-1.5",
+              "transition-[background-color,border-color,shadow] duration-300"
             )}
           >
             <TooltipProvider delayDuration={0}>
@@ -227,9 +246,9 @@ export function DashboardHeader({
         ) : (
           <motion.nav
             key="dock-top"
-            initial={{ y: -40, opacity: 0 }}
+            initial={isMobile ? false : { y: -40, opacity: 0 }} // No animation on initial load for mobile
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -20, opacity: 0, transition: { duration: 0.15 } }}
+            exit={isMobile ? undefined : { y: -20, opacity: 0, transition: { duration: 0.15 } }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
             onMouseLeave={() => setHoveredPath(null)}
             className={cn(
@@ -335,19 +354,8 @@ export function DashboardHeader({
 
       {/* 4. Profile Dropdown & Mode Toggle (Top Right Floating) */}
       <div className="fixed top-6 md:top-10 right-6 md:right-10 z-50 flex items-center gap-4">
-        {/* Lunara Mode Toggle Indicator */}
-        <AnimatePresence>
-          {!scrolled && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8, x: 20 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 0.8, x: 20 }}
-              transition={{ duration: 0.2 }}
-            >
-              <LunaraToggle />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Lunara Mode Toggle Indicator - ALWAYS VISIBLE TO PREVENT SHIFT */}
+        <LunaraToggle />
 
         {partnerName && daysTogetherCount !== undefined && mode === 'moon' && (
           <div className="hidden lg:flex flex-col items-end mr-2 text-white/90 drop-shadow-sm">
