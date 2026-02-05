@@ -295,11 +295,14 @@
   }
 
   .glass-card {
-    @apply backdrop-blur-[3px] shadow-2xl transition-all duration-700 rounded-[3rem] overflow-hidden;
+    @apply shadow-2xl rounded-[3rem] overflow-hidden;
+    transition: transform 0.7s, background 0.7s, box-shadow 0.7s, opacity 0.7s;
     background: linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.1));
     box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.3);
-    will-change: transform, backdrop-filter;
-    transform: translateZ(0);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
     backface-visibility: hidden;
     -webkit-font-smoothing: antialiased;
   }
