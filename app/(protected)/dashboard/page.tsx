@@ -28,73 +28,23 @@ const OnThisDay = dynamic(() => import('@/components/on-this-day').then(mod => m
 import { fetchDashboardData } from '@/lib/actions/consolidated'
 
 export default async function DashboardPage() {
-    const supabase = await createClient()
-
     // 1. Fetch Consolidated Data (Pre-loading for both modes)
     const result = await fetchDashboardData()
     if (!result.success || !result.data) return null
-
     const lunaraData = result.data
-    const { profile, partnerProfile } = result.data
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return null
+    const {
+        profile,
+        partnerProfile,
+        couple,
+        userTodayMoods,
+        partnerTodayMoods,
+        memoriesCount,
+        lettersCount,
+        onThisDayMemories,
+        onThisDayMilestones
+    } = result.data
 
-    // 2. Parallel fetching for remaining moon-specific data
-    let couple = null
-    let partnerTodayMoods: any[] = []
-    let memoriesCount = 0
-    let lettersCount = 0
-    let onThisDayMemories = []
-    let onThisDayMilestones = []
-    let userTodayMoods: any[] = []
-
-    if (profile.couple_id) {
-        const { data: coupleData } = await supabase
-            .from('couples')
-            .select('*')
-            .eq('id', profile.couple_id)
-            .single()
-
-        couple = coupleData
-
-        if (couple) {
-            const partnerId = profile.partner_id
-            const now = new Date()
-            const istDate = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }))
-            const month = istDate.getMonth() + 1
-            const day = istDate.getDate()
-
-            const todayStart = new Date(istDate)
-            todayStart.setHours(0, 0, 0, 0)
-            todayStart.setHours(todayStart.getHours() - 5)
-            todayStart.setMinutes(todayStart.getMinutes() - 30)
-
-            const [moodsRes, userMoodsRes, memCountRes, letCountRes, memoriesRes, milestonesRes] = await Promise.all([
-                partnerId ? supabase.from('moods').select('*, mood:emoji, note:mood_text').eq('user_id', partnerId).gte('created_at', todayStart.toISOString()).order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
-                supabase.from('moods').select('*, mood:emoji, note:mood_text').eq('user_id', user.id).gte('created_at', todayStart.toISOString()).order('created_at', { ascending: false }),
-                supabase.from('memories').select('*', { count: 'exact', head: true }).eq('couple_id', profile.couple_id),
-                supabase.from('love_letters').select('*', { count: 'exact', head: true }).eq('couple_id', profile.couple_id),
-                supabase.from('memories').select('*').eq('couple_id', profile.couple_id),
-                supabase.from('milestones').select('*').eq('couple_id', profile.couple_id)
-            ])
-
-            partnerTodayMoods = moodsRes.data || []
-            userTodayMoods = userMoodsRes.data || []
-            memoriesCount = memCountRes.count || 0
-            lettersCount = letCountRes.count || 0
-
-            const isToday = (dateStr: string) => {
-                if (!dateStr) return false
-                const [y, m, d] = dateStr.split('T')[0].split('-').map(Number)
-                return m === month && d === day
-            }
-
-            onThisDayMemories = (memoriesRes.data || []).filter(m => isToday(m.memory_date))
-            onThisDayMilestones = (milestonesRes.data || []).filter(m => isToday(m.milestone_date))
-        }
-    }
-
-    const hasPartner = !!couple?.user2_id
+    const hasPartner = !!couple
 
     // Quick actions for dashboard
     const quickActions = [
