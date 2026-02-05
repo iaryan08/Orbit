@@ -56,6 +56,9 @@ export function DailyContent() {
     const cached = localStorage.getItem("dailyContent");
     const cachedDate = localStorage.getItem("dailyContentDate");
 
+    const controller = new AbortController();
+    const signal = controller.signal;
+
     const loadContent = (data: any) => {
       // Check if data is valid and has required fields
       if (data && typeof data === 'object' && data.quote && data.challenge && data.tip) {
@@ -71,21 +74,22 @@ export function DailyContent() {
         if (!loadContent(parsed)) {
           // If cache is invalid structure, force refresh
           localStorage.removeItem("dailyContent");
-          fetchNew();
+          fetchNew(signal);
         }
       } catch (e) {
         localStorage.removeItem("dailyContent");
-        fetchNew();
+        fetchNew(signal);
       }
     } else {
-      fetchNew();
+      fetchNew(signal);
     }
 
-    function fetchNew() {
+    function fetchNew(signal?: AbortSignal) {
       setLoading(true);
-      fetch("/api/daily-content", { method: "POST" })
+      fetch("/api/daily-content", { method: "POST", signal })
         .then(res => res.ok ? res.json() : Promise.reject())
         .then(data => {
+          if (signal?.aborted) return;
           if (loadContent(data)) {
             localStorage.setItem("dailyContent", JSON.stringify(data));
             localStorage.setItem("dailyContentDate", today);
@@ -93,11 +97,16 @@ export function DailyContent() {
             setContent(fallbackContent);
           }
         })
-        .catch(() => {
+        .catch((err) => {
+          if (signal?.aborted || err.name === 'AbortError') return;
           setContent(fallbackContent);
         })
-        .finally(() => setLoading(false));
+        .finally(() => {
+          if (!signal?.aborted) setLoading(false);
+        });
     }
+
+    return () => controller.abort();
   }, []);
 
   const tabs = [

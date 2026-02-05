@@ -19,7 +19,7 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
 
         // Responsive element count: fewer on mobile for better performance
         const isMobile = window.innerWidth < 768;
-        const elementCount = isMobile ? 25 : 50;
+        const elementCount = isMobile ? 20 : 40;
 
         // Generate static hearts and stars
         const newElements = Array.from({ length: elementCount }).map((_, i) => {
@@ -29,8 +29,8 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
             const delay = Math.random() * -20; // Use negative delay for immediate start
 
             // Subtle color palette
-            const starColors = ["#fef3c7", "#fff9db", "#ffffff", "#fff0f6"]; // Amber, white, soft rose
-            const heartColors = ["#fda4af", "#fecdd3", "#fff1f2"]; // Rose-300, 200, 50
+            const starColors = ["#fef3c7", "#fff9db", "#ffffff", "#f3a65aff"]; // Amber, white, soft rose
+            const heartColors = ["#fda4af", "#fecdd3", "#fff1f2", "#de1867ff", "#cf638eff"]; // Rose-300, 200, 50
 
             return {
                 id: i,
@@ -119,7 +119,7 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
             ))}
 
             {/* Grain texture for premium feel - CSS only Noise */}
-            <div className="absolute inset-0 opacity-[0.1] pointer-events-none mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
+            <div className="absolute inset-0 opacity-[0.25] pointer-events-none mix-blend-overlay z-[2] brightness-150 contrast-150" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
         </div>
     );
 }

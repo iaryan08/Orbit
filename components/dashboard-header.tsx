@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -57,6 +57,9 @@ export function DashboardHeader({
   const router = useRouter()
   const [scrolled, setScrolled] = useState(false)
   const [hoveredPath, setHoveredPath] = useState<string | null>(null)
+  const [isVisible, setIsVisible] = useState(true)
+  const lastScrollYRef = useRef(0)
+
   const [mounted, setMounted] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const { mode, activeLunaraTab, setActiveLunaraTab } = useAppMode()
@@ -64,7 +67,18 @@ export function DashboardHeader({
   useEffect(() => {
     setMounted(true)
     const handleScroll = () => {
-      setScrolled(window.scrollY > 40)
+      const currentScrollY = window.scrollY
+
+      // Scrolled state for dock switching
+      setScrolled(currentScrollY > 40)
+
+      // Visibility logic (Hide on down, Show on up)
+      if (currentScrollY > lastScrollYRef.current && currentScrollY > 100) {
+        setIsVisible(false)
+      } else {
+        setIsVisible(true)
+      }
+      lastScrollYRef.current = currentScrollY
     }
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768)
@@ -93,9 +107,10 @@ export function DashboardHeader({
     <>
       {/* 1. Logo (Top Left Floating) */}
       <div className={cn(
-        "fixed top-6 md:top-10 left-6 md:left-10 z-50 hidden md:flex items-center gap-2 transition-all duration-700",
+        "fixed top-6 md:top-10 left-6 md:left-10 z-50 hidden md:flex items-center gap-2 transition-all duration-500",
         mode === 'moon' ? "text-amber-100/90" : "text-purple-100/90",
-        isDesktopScrolled ? "opacity-0 -translate-x-10 pointer-events-none" : "opacity-100 translate-x-0"
+        isDesktopScrolled ? "opacity-0 -translate-x-10 pointer-events-none" : "opacity-100 translate-x-0",
+        !isVisible && "-translate-y-32" // Hide when scrolling down
       )}>
         {mode === 'moon' ? (
           <div className="flex items-center gap-3">
@@ -181,7 +196,7 @@ export function DashboardHeader({
                                   initial={{ opacity: 0, scale: 0.8 }}
                                   animate={{ opacity: 1, scale: 1 }}
                                   exit={{ opacity: 0, scale: 0.8 }}
-                                  transition={{ type: "spring", bounce: 0.2, duration: 0.3 }}
+                                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
                                 />
                               )}
                             </AnimatePresence>
@@ -212,7 +227,7 @@ export function DashboardHeader({
                           <div className={cn("p-3 rounded-full flex items-center justify-center relative group transition-all duration-300", isActive ? "text-purple-200" : "text-purple-300/40 group-hover:text-purple-200")}>
                             <AnimatePresence>
                               {(isActive || isHovered) && (
-                                <motion.div layoutId="lunara-nav-indicator-scrolled" className="absolute inset-0 z-0 bg-purple-500/20 border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)] rounded-full px-4 md:rounded-[18px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ type: "spring", bounce: 0.2, duration: 0.3 }} />
+                                <motion.div layoutId="lunara-nav-indicator-scrolled" className="absolute inset-0 z-0 bg-purple-500/20 border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)] rounded-full px-4 md:rounded-[18px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ type: "spring", stiffness: 500, damping: 30 }} />
                               )}
                             </AnimatePresence>
                             <item.icon className={cn("w-5 h-5 relative z-10 transition-transform group-hover:scale-110", isActive && "text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]")} />
@@ -291,7 +306,7 @@ export function DashboardHeader({
                                   initial={{ opacity: 0, scale: 0.8 }}
                                   animate={{ opacity: 1, scale: 1 }}
                                   exit={{ opacity: 0, scale: 0.8 }}
-                                  transition={{ type: "spring", bounce: 0.2, duration: 0.3 }}
+                                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
                                 />
                               )}
                             </AnimatePresence>
@@ -322,7 +337,7 @@ export function DashboardHeader({
                           <div className={cn("p-3 rounded-full flex items-center justify-center relative group transition-all duration-300", isActive ? "text-purple-200" : "text-purple-300/40 group-hover:text-purple-200")}>
                             <AnimatePresence>
                               {(isActive || isHovered) && (
-                                <motion.div layoutId="lunara-nav-indicator-top" className="absolute inset-0 z-0 bg-purple-500/20 border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)] rounded-full px-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ type: "spring", bounce: 0.2, duration: 0.3 }} />
+                                <motion.div layoutId="lunara-nav-indicator-top" className="absolute inset-0 z-0 bg-purple-500/20 border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)] rounded-full px-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ type: "spring", stiffness: 500, damping: 30 }} />
                               )}
                             </AnimatePresence>
                             <item.icon className={cn("w-5 h-5 relative z-10 transition-transform group-hover:scale-110", isActive && "text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]")} />
@@ -353,7 +368,10 @@ export function DashboardHeader({
       </AnimatePresence>
 
       {/* 4. Profile Dropdown & Mode Toggle (Top Right Floating) */}
-      <div className="fixed top-6 md:top-10 right-6 md:right-10 z-50 flex items-center gap-4">
+      <div className={cn(
+        "fixed top-6 md:top-10 right-6 md:right-10 z-50 flex items-center gap-4 transition-transform duration-500",
+        !isVisible && "-translate-y-32"
+      )}>
         {/* Lunara Mode Toggle Indicator - ALWAYS VISIBLE TO PREVENT SHIFT */}
         <LunaraToggle />
 
