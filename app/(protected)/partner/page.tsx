@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-export const runtime = 'edge';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Heart, Calendar, Clock, Sparkles } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'

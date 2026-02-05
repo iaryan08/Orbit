@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-export const runtime = 'edge';
+
 import { getDailyInsights } from '@/lib/actions/insights'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Sparkles, BookOpen, Heart, Lightbulb } from 'lucide-react'
