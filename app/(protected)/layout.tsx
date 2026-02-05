@@ -6,6 +6,7 @@ import { RealtimeObserver } from '@/components/realtime-observer'
 import { fetchUnreadCounts } from '@/lib/actions/auth'
 import { AppModeProvider } from '@/components/app-mode-context'
 
+
 export default async function ProtectedLayout({
     children,
 }: {

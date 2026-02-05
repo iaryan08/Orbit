@@ -22,11 +22,9 @@ import {
   Heart,
   LogOut,
   Settings,
-  User,
   LayoutGrid,
   Mail,
   Image as ImageIcon,
-  Gamepad2,
   Moon,
   BookOpen
 } from 'lucide-react'
@@ -72,10 +70,8 @@ export function DashboardHeader({
   }, [])
 
   if (!mounted) {
-    return null // Or a simpler skeleton to avoid layout shift, but null is safest for hydration
+    return null
   }
-
-
 
   return (
     <>
@@ -112,212 +108,230 @@ export function DashboardHeader({
         )}
       </div>
 
-      {/* 2. Days Counter (Absolute Top Center - Optional, or kept in profile) */}
-
       {/* 3. The Dock (Adaptive Positioning with Pop Animations) */}
-      <div
-        key={scrolled ? 'vertical' : 'horizontal'}
-        className={cn(
-          "fixed z-50",
-          "bottom-6 left-1/2 -translate-x-1/2",
-          scrolled
-            ? "md:top-1/2 md:bottom-auto md:left-10 md:-translate-y-1/2 md:translate-x-0"
-            : "md:bottom-auto md:top-10 md:left-1/2 md:-translate-x-1/2"
-        )}
-      >
-        <nav
-          onMouseLeave={() => setHoveredPath(null)}
-          className={cn(
-            "flex items-center gap-1 p-1.5 rounded-full border shadow-2xl transition-all duration-500",
-            "animate-in fade-in slide-in-from-bottom-4 duration-500",
-            scrolled && "md:slide-in-from-left-4",
-            mode === 'moon' ? "border-white/10 bg-black/40" : "border-purple-500/20 bg-purple-950/40",
-            "backdrop-blur-[3px]",
-            scrolled ? "md:flex-col md:rounded-[40px] md:py-4 md:px-2" : "md:flex-row md:rounded-full md:p-1.5"
-          )}
-        >
-          <TooltipProvider delayDuration={0}>
-
-            {/* 1. Notification (FIRST) */}
-            <div className="flex items-center justify-center">
-              <NotificationBell />
-            </div>
-
-            {/* Separator */}
-            <div className={cn(
-              "bg-white/10 transition-all duration-300 ",
-              scrolled ? "md:w-6 md:h-px md:my-2 mx-0" : "md:w-px md:h-6 md:mx-2 my-0",
-              "w-px h-6 mx-2" // Mobile default
-            )} />
-
-            {/* 2. Nav Items (Conditional based on Mode) */}
-            {mode === 'moon' ? (
-              // MOON MODE ITEMS
-              [
-                { href: '/dashboard', icon: LayoutGrid, label: 'Home' },
-                { href: '/letters', icon: Mail, label: 'Letters' },
-                { href: '/memories', icon: ImageIcon, label: 'Memories' },
-                { href: '/intimacy', icon: Heart, label: 'Intimacy' },
-              ].map((item) => {
-                const isActive = pathname === item.href
-                const isHovered = hoveredPath === item.href
-
-                return (
-                  <Tooltip key={item.href}>
-                    <TooltipTrigger asChild>
-                      <Link
-                        href={item.href}
-                        onMouseEnter={() => setHoveredPath(item.href)}
-                        className="relative block"
-                      >
-                        <div className={cn(
-                          "p-3 rounded-full flex items-center justify-center relative group transition-all duration-300",
-                          isActive ? "text-white" : "text-white/40 group-hover:text-white"
-                        )}>
-                          {/* Smooth Sliding Pill Indicator */}
-                          <AnimatePresence>
-                            {(isActive || isHovered) && (
-                              <motion.div
-                                layoutId="nav-indicator"
-                                className={cn(
-                                  "absolute inset-0 z-0 bg-white/10 border border-white/10 shadow-xl rounded-full px-4",
-                                  scrolled ? "md:rounded-[18px]" : "md:rounded-full"
-                                )}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{
-                                  type: "spring",
-                                  bounce: 0.25,
-                                  stiffness: 130,
-                                  damping: 18,
-                                }}
-                              />
-                            )}
-                          </AnimatePresence>
-
-                          <item.icon className={cn(
-                            "w-5 h-5 relative z-10 transition-transform group-hover:scale-110",
-                            isActive && "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]"
-                          )} />
-
-                          {/* Red Dot Notification */}
-                          {item.label === 'Memories' && unreadCounts.memories > 0 && (
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />
-                          )}
-                          {item.label === 'Letters' && unreadCounts.letters > 0 && (
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />
-                          )}
-                        </div>
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side={scrolled ? "right" : "bottom"}
-                      sideOffset={15}
-                      className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl"
-                    >
-                      <p>{item.label}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )
-              })
-            ) : (
-              // LUNARA MODE ITEMS
-              [
-                { id: 'dashboard', icon: LayoutGrid, label: 'Dashboard' },
-                { id: 'insights', icon: BookOpen, label: 'Insights' },
-                { id: 'partner', icon: Heart, label: 'Partner' },
-              ].map((item) => {
-                const isActive = activeLunaraTab === item.id && pathname === '/dashboard'
-                const isHovered = hoveredPath === item.id
-
-                return (
-                  <Tooltip key={item.id}>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => {
-                          setActiveLunaraTab(item.id as any)
-                          if (pathname !== '/dashboard') {
-                            router.push('/dashboard')
-                          }
-                        }}
-                        onMouseEnter={() => setHoveredPath(item.id)}
-                        className="relative block cursor-pointer"
-                      >
-                        <div className={cn(
-                          "p-3 rounded-full flex items-center justify-center relative group transition-all duration-300",
-                          isActive ? "text-purple-200" : "text-purple-300/40 group-hover:text-purple-200"
-                        )}>
-                          {/* Smooth Sliding Pill Indicator (Purple for Lunara) */}
-                          <AnimatePresence>
-                            {(isActive || isHovered) && (
-                              <motion.div
-                                layoutId="lunara-nav-indicator"
-                                className={cn(
-                                  "absolute inset-0 z-0 bg-purple-500/20 border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)] rounded-full px-4",
-                                  scrolled ? "md:rounded-[18px]" : "md:rounded-full"
-                                )}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{
-                                  type: "spring",
-                                  bounce: 0.25,
-                                  stiffness: 130,
-                                  damping: 18,
-                                }}
-                              />
-                            )}
-                          </AnimatePresence>
-
-                          <item.icon className={cn(
-                            "w-5 h-5 relative z-10 transition-transform group-hover:scale-110",
-                            isActive && "text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]"
-                          )} />
-                        </div>
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side={scrolled ? "right" : "bottom"}
-                      sideOffset={15}
-                      className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl"
-                    >
-                      <p>{item.label}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )
-              })
+      <AnimatePresence>
+        {scrolled ? (
+          <motion.nav
+            key="dock-scrolled"
+            initial={{ x: -60, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -20, opacity: 0, transition: { duration: 0.15 } }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            onMouseLeave={() => setHoveredPath(null)}
+            className={cn(
+              "fixed z-50 flex items-center gap-1 border shadow-2xl backdrop-blur-md",
+              "bottom-6 left-1/2 -translate-x-1/2", // Mobile / Default
+              "md:top-1/2 md:bottom-auto md:left-8 md:-translate-y-1/2 md:translate-x-0", // Desktop Scrolled specific
+              "md:flex-col md:rounded-[40px] md:py-4 md:px-2",
+              mode === 'moon' ? "border-white/10 bg-black/40" : "border-purple-500/20 bg-purple-950/40",
+              "rounded-full p-1.5", // Mobile fallback
+              "transition-[background-color,border-color,shadow] duration-300" // No transition-all
             )}
-
-            {/* Separator before Settings */}
-            <div className={cn(
-              "bg-white/10 transition-all duration-300",
-              scrolled ? "md:w-6 md:h-px md:my-2 mx-0" : "md:w-px md:h-6 md:mx-2 my-0",
-              "w-px h-6 mx-2" // Mobile default
-            )} />
-
-            {/* 3. Settings (LAST) */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link href="/dashboard/settings" className={cn(
-                  "p-3 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-colors",
-                  scrolled && "md:mb-0"
-                )}>
-                  <Settings className="w-5 h-5 transition-colors" />
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent
-                side={scrolled ? "right" : "bottom"}
-                sideOffset={15}
-                className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl"
-              >
-                <p>Settings</p>
-              </TooltipContent>
-            </Tooltip>
-
-          </TooltipProvider>
-        </nav>
-      </div>
+          >
+            <TooltipProvider delayDuration={0}>
+              <div className="flex items-center justify-center">
+                <NotificationBell />
+              </div>
+              <div className={cn(
+                "bg-white/10 transition-all duration-300",
+                "md:w-6 md:h-px md:my-2 mx-0",
+                "w-px h-6 mx-2"
+              )} />
+              {mode === 'moon' ? (
+                [
+                  { href: '/dashboard', icon: LayoutGrid, label: 'Home' },
+                  { href: '/letters', icon: Mail, label: 'Letters' },
+                  { href: '/memories', icon: ImageIcon, label: 'Memories' },
+                  { href: '/intimacy', icon: Heart, label: 'Intimacy' },
+                ].map((item) => {
+                  const isActive = pathname === item.href || (pathname === '/dashboard' && item.href === '/dashboard' && !hoveredPath) // Keep Home active if nothing else
+                  const isHovered = hoveredPath === item.href
+                  return (
+                    <Tooltip key={item.href}>
+                      <TooltipTrigger asChild>
+                        <Link href={item.href} onMouseEnter={() => setHoveredPath(item.href)} className="relative block">
+                          <div className={cn(
+                            "p-3 rounded-full flex items-center justify-center relative group transition-all duration-300",
+                            isActive ? "text-white" : "text-white/40 group-hover:text-white"
+                          )}>
+                            <AnimatePresence>
+                              {(isActive || isHovered) && (
+                                <motion.div
+                                  layoutId="nav-indicator-scrolled"
+                                  className="absolute inset-0 z-0 bg-white/10 border border-white/10 shadow-xl rounded-full px-4 md:rounded-[18px]"
+                                  initial={{ opacity: 0, scale: 0.8 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.8 }}
+                                  transition={{ type: "spring", bounce: 0.2, duration: 0.3 }}
+                                />
+                              )}
+                            </AnimatePresence>
+                            <item.icon className={cn("w-5 h-5 relative z-10 transition-transform group-hover:scale-110", isActive && "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]")} />
+                            {item.label === 'Memories' && unreadCounts.memories > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />}
+                            {item.label === 'Letters' && unreadCounts.letters > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />}
+                          </div>
+                        </Link>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" sideOffset={15} className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl">
+                        <p>{item.label}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )
+                })
+              ) : (
+                [
+                  { id: 'dashboard', icon: LayoutGrid, label: 'Dashboard' },
+                  { id: 'insights', icon: BookOpen, label: 'Insights' },
+                  { id: 'partner', icon: Heart, label: 'Partner' },
+                ].map((item) => {
+                  const isActive = activeLunaraTab === item.id && pathname === '/dashboard'
+                  const isHovered = hoveredPath === item.id
+                  return (
+                    <Tooltip key={item.id}>
+                      <TooltipTrigger asChild>
+                        <button onClick={() => { setActiveLunaraTab(item.id as any); if (pathname !== '/dashboard') router.push('/dashboard') }} onMouseEnter={() => setHoveredPath(item.id)} className="relative block cursor-pointer">
+                          <div className={cn("p-3 rounded-full flex items-center justify-center relative group transition-all duration-300", isActive ? "text-purple-200" : "text-purple-300/40 group-hover:text-purple-200")}>
+                            <AnimatePresence>
+                              {(isActive || isHovered) && (
+                                <motion.div layoutId="lunara-nav-indicator-scrolled" className="absolute inset-0 z-0 bg-purple-500/20 border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)] rounded-full px-4 md:rounded-[18px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ type: "spring", bounce: 0.2, duration: 0.3 }} />
+                              )}
+                            </AnimatePresence>
+                            <item.icon className={cn("w-5 h-5 relative z-10 transition-transform group-hover:scale-110", isActive && "text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]")} />
+                          </div>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" sideOffset={15} className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl">
+                        <p>{item.label}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )
+                })
+              )}
+              <div className={cn(
+                "bg-white/10 transition-all duration-300",
+                "md:w-6 md:h-px md:my-2 mx-0",
+                "w-px h-6 mx-2"
+              )} />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/dashboard/settings" className={cn("p-3 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-colors", scrolled && "md:mb-0")}>
+                    <Settings className="w-5 h-5 transition-colors" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right" sideOffset={15} className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl">
+                  <p>Settings</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </motion.nav>
+        ) : (
+          <motion.nav
+            key="dock-top"
+            initial={{ y: -40, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -20, opacity: 0, transition: { duration: 0.15 } }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            onMouseLeave={() => setHoveredPath(null)}
+            className={cn(
+              "fixed z-50 flex items-center gap-1 border shadow-2xl backdrop-blur-md",
+              "bottom-6 left-1/2 -translate-x-1/2", // Mobile / Default
+              "md:bottom-auto md:top-10 md:left-1/2 md:-translate-x-1/2", // Desktop Top
+              "md:flex-row md:rounded-full md:p-1.5",
+              mode === 'moon' ? "border-white/10 bg-black/40" : "border-purple-500/20 bg-purple-950/40",
+              "rounded-full p-1.5", // Mobile fallback
+              "transition-[background-color,border-color,shadow] duration-300" // No transition-all
+            )}
+          >
+            <TooltipProvider delayDuration={0}>
+              <div className="flex items-center justify-center">
+                <NotificationBell />
+              </div>
+              <div className="bg-white/10 w-px h-6 mx-2" />
+              {mode === 'moon' ? (
+                [
+                  { href: '/dashboard', icon: LayoutGrid, label: 'Home' },
+                  { href: '/letters', icon: Mail, label: 'Letters' },
+                  { href: '/memories', icon: ImageIcon, label: 'Memories' },
+                  { href: '/intimacy', icon: Heart, label: 'Intimacy' },
+                ].map((item) => {
+                  const isActive = pathname === item.href || (pathname === '/dashboard' && item.href === '/dashboard' && !hoveredPath) // Keep active logic consistent
+                  const isHovered = hoveredPath === item.href
+                  return (
+                    <Tooltip key={item.href}>
+                      <TooltipTrigger asChild>
+                        <Link href={item.href} onMouseEnter={() => setHoveredPath(item.href)} className="relative block">
+                          <div className={cn(
+                            "p-3 rounded-full flex items-center justify-center relative group transition-all duration-300",
+                            isActive ? "text-white" : "text-white/40 group-hover:text-white"
+                          )}>
+                            <AnimatePresence>
+                              {(isActive || isHovered) && (
+                                <motion.div
+                                  layoutId="nav-indicator-top"
+                                  className="absolute inset-0 z-0 bg-white/10 border border-white/10 shadow-xl rounded-full px-4"
+                                  initial={{ opacity: 0, scale: 0.8 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.8 }}
+                                  transition={{ type: "spring", bounce: 0.2, duration: 0.3 }}
+                                />
+                              )}
+                            </AnimatePresence>
+                            <item.icon className={cn("w-5 h-5 relative z-10 transition-transform group-hover:scale-110", isActive && "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]")} />
+                            {item.label === 'Memories' && unreadCounts.memories > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />}
+                            {item.label === 'Letters' && unreadCounts.letters > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />}
+                          </div>
+                        </Link>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" sideOffset={15} className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl">
+                        <p>{item.label}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )
+                })
+              ) : (
+                [
+                  { id: 'dashboard', icon: LayoutGrid, label: 'Dashboard' },
+                  { id: 'insights', icon: BookOpen, label: 'Insights' },
+                  { id: 'partner', icon: Heart, label: 'Partner' },
+                ].map((item) => {
+                  const isActive = activeLunaraTab === item.id && pathname === '/dashboard'
+                  const isHovered = hoveredPath === item.id
+                  return (
+                    <Tooltip key={item.id}>
+                      <TooltipTrigger asChild>
+                        <button onClick={() => { setActiveLunaraTab(item.id as any); if (pathname !== '/dashboard') router.push('/dashboard') }} onMouseEnter={() => setHoveredPath(item.id)} className="relative block cursor-pointer">
+                          <div className={cn("p-3 rounded-full flex items-center justify-center relative group transition-all duration-300", isActive ? "text-purple-200" : "text-purple-300/40 group-hover:text-purple-200")}>
+                            <AnimatePresence>
+                              {(isActive || isHovered) && (
+                                <motion.div layoutId="lunara-nav-indicator-top" className="absolute inset-0 z-0 bg-purple-500/20 border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)] rounded-full px-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ type: "spring", bounce: 0.2, duration: 0.3 }} />
+                              )}
+                            </AnimatePresence>
+                            <item.icon className={cn("w-5 h-5 relative z-10 transition-transform group-hover:scale-110", isActive && "text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]")} />
+                          </div>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom" sideOffset={15} className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl">
+                        <p>{item.label}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  )
+                })
+              )}
+              <div className="bg-white/10 w-px h-6 mx-2" />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href="/dashboard/settings" className="p-3 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-colors">
+                    <Settings className="w-5 h-5 transition-colors" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" sideOffset={15} className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl">
+                  <p>Settings</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </motion.nav>
+        )}
+      </AnimatePresence>
 
       {/* 4. Profile Dropdown & Mode Toggle (Top Right Floating) */}
       <div className="fixed top-6 md:top-10 right-6 md:right-10 z-50 flex items-center gap-4">

@@ -89,7 +89,7 @@ export function LunaraLayout({ initialData }: { initialData?: any }) {
     ]
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 pt-12 pb-40 px-6 md:px-8">
+        <div className="max-w-7xl mx-auto space-y-8 pt-12 pb-8 px-6 md:px-8">
             {/* Header Area */}
             <ScrollReveal className="space-y-4 text-center lg:text-left relative">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">

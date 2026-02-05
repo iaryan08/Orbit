@@ -27,7 +27,10 @@ export function ScrollReveal({
                     if (once && ref.current) observer.unobserve(ref.current)
                 }
             },
-            { threshold: 0.1 }
+            {
+                threshold: 0.1,
+                rootMargin: "200px" // Trigger 200px before appearing
+            }
         )
 
         if (ref.current) observer.observe(ref.current)
@@ -43,11 +46,12 @@ export function ScrollReveal({
             initial={{ opacity: 0, y: 20 }}
             animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{
-                duration: 0.6,
+                duration: 0.4, // Faster animation
                 delay: delay,
-                ease: [0.16, 1, 0.3, 1] // Smooth cubic-bezier
+                ease: "easeOut"
             }}
             className={className}
+            style={{ willChange: 'opacity, transform' }}
         >
             {children}
         </motion.div>
