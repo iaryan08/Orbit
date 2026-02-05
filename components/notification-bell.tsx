@@ -74,18 +74,24 @@ export function NotificationBell({ className }: { className?: string }) {
         checkPushSubscription()
     }, [])
 
+    const [permission, setPermission] = useState<NotificationPermission>('default')
+
     const checkPushSubscription = async () => {
-        if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
-            setIsPushSupported(true)
-            try {
-                const registration = await navigator.serviceWorker.ready
-                const sub = await registration.pushManager.getSubscription()
-                setPushSubscription(sub)
-                if (sub) {
-                    await syncSubscription(sub)
+        if (typeof window !== 'undefined') {
+            setPermission(Notification.permission)
+
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
+                setIsPushSupported(true)
+                try {
+                    const registration = await navigator.serviceWorker.ready
+                    const sub = await registration.pushManager.getSubscription()
+                    setPushSubscription(sub)
+                    if (sub) {
+                        await syncSubscription(sub)
+                    }
+                } catch (e) {
+                    console.error('Error checking push sub:', e)
                 }
-            } catch (e) {
-                console.error('Error checking push sub:', e)
             }
         }
         setCheckingPush(false)
@@ -100,8 +106,10 @@ export function NotificationBell({ className }: { className?: string }) {
 
     const handleSubscribe = async () => {
         try {
-            const permission = await requestNotificationPermission()
-            if (permission !== 'granted') {
+            const result = await requestNotificationPermission()
+            setPermission(result)
+
+            if (result !== 'granted') {
                 toast.error('Notifications permission denied. Please enable in browser settings.')
                 return
             }
@@ -239,26 +247,28 @@ export function NotificationBell({ className }: { className?: string }) {
                     )}
                 </div>
 
-                {/* Push Notification Prompt - Show ONLY if Incognito (warning) or NOT Subscribed (prompt) */}
-                {!checkingPush && isPushSupported && (isIncognito || !pushSubscription) && (
+                {/* Notification Prompt - Show ONLY if not fully active */}
+                {!checkingPush && isPushSupported && (!pushSubscription || permission !== 'granted') && (
                     <div className={cn(
                         "p-4 border-b",
-                        isIncognito ? "bg-red-500/10 border-red-500/20" : "bg-amber-500/10 border-amber-500/20"
+                        isIncognito || permission === 'denied' ? "bg-red-500/10 border-red-500/20" : "bg-amber-500/10 border-amber-500/20"
                     )}>
                         <div className="flex gap-3">
                             <div className="mt-0.5 shrink-0">
-                                {isIncognito ? <BellOff className="h-4 w-4 text-red-400" /> : <BellOff className="h-4 w-4 text-amber-400" />}
+                                {isIncognito || permission === 'denied' ? <BellOff className="h-4 w-4 text-red-400" /> : <BellOff className="h-4 w-4 text-amber-400" />}
                             </div>
                             <div className="flex-1 space-y-1">
-                                <p className={cn("text-xs font-bold uppercase tracking-tight", isIncognito ? "text-red-200" : "text-amber-200")}>
-                                    {isIncognito ? "Incognito Detected" : "Enable Live Notifications"}
+                                <p className={cn("text-xs font-bold uppercase tracking-tight", isIncognito || permission === 'denied' ? "text-red-200" : "text-amber-200")}>
+                                    {isIncognito ? "Incognito Detected" : permission === 'denied' ? "Notifications Blocked" : "Enable Live Notifications"}
                                 </p>
-                                <p className={cn("text-[10px] leading-tight", isIncognito ? "text-red-200/60" : "text-amber-200/60")}>
+                                <p className={cn("text-[10px] leading-tight", isIncognito || permission === 'denied' ? "text-red-200/60" : "text-amber-200/60")}>
                                     {isIncognito
-                                        ? "Live push notifications (popups) are disabled in Private/Incognito mode by your browser."
-                                        : "Get real-time updates on your phone even when the app is closed."}
+                                        ? "Live push notifications (popups) are disabled in Private/Incognito mode."
+                                        : permission === 'denied'
+                                            ? "You have blocked notifications. Please reset the site permission in your browser settings to stay updated."
+                                            : "Get real-time updates on your phone even when the app is closed."}
                                 </p>
-                                {!isIncognito && !pushSubscription && (
+                                {!isIncognito && permission !== 'denied' && !pushSubscription && (
                                     <Button
                                         onClick={handleSubscribe}
                                         variant="link"

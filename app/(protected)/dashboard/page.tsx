@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+export const runtime = 'edge';
 import dynamic from 'next/dynamic'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'

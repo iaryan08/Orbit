@@ -2,6 +2,8 @@ import { createAdminClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import webPush from 'web-push';
 
+export const runtime = 'edge';
+
 export async function POST(request: Request) {
     try {
         if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
@@ -9,12 +11,6 @@ export async function POST(request: Request) {
             // Return 500 but don't crash, let the client know configuration is missing
             return NextResponse.json({ error: 'Server VAPID configuration missing' }, { status: 500 });
         }
-
-        webPush.setVapidDetails(
-            'mailto:support@moonbetweenus.com',
-            process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-            process.env.VAPID_PRIVATE_KEY
-        );
 
         const body = await request.json();
         const { message, title, url } = body;
@@ -45,7 +41,13 @@ export async function POST(request: Request) {
                         p256dh: sub.p256dh,
                         auth: sub.auth
                     }
-                }, payload);
+                }, payload, {
+                    vapidDetails: {
+                        subject: 'mailto:jhariyaaryan08@gmail.com',
+                        publicKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+                        privateKey: process.env.VAPID_PRIVATE_KEY!
+                    }
+                });
                 return { success: true };
             } catch (error: any) {
                 if (error.statusCode === 410 || error.statusCode === 404) {

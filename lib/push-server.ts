@@ -2,14 +2,10 @@ import 'server-only';
 import { createAdminClient } from '@/lib/supabase/server';
 import webPush from 'web-push';
 
+const VAPID_SUBJECT = 'mailto:jhariyaaryan08@gmail.com';
+
 if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
     console.warn('VAPID keys are missing. Push notifications will not work.');
-} else {
-    webPush.setVapidDetails(
-        'mailto:support@moonbetweenus.com',
-        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-        process.env.VAPID_PRIVATE_KEY
-    );
 }
 
 export async function sendPushNotification(userId: string, title: string, message: string, url: string = '/') {
@@ -50,7 +46,13 @@ export async function sendPushNotification(userId: string, title: string, messag
                         p256dh: sub.p256dh,
                         auth: sub.auth
                     }
-                }, payload);
+                }, payload, {
+                    vapidDetails: {
+                        subject: VAPID_SUBJECT,
+                        publicKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+                        privateKey: process.env.VAPID_PRIVATE_KEY!
+                    }
+                });
                 return { success: true };
             } catch (error: any) {
                 if (error.statusCode === 410 || error.statusCode === 404) {
