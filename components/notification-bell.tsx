@@ -85,18 +85,32 @@ export function NotificationBell({ className }: { className?: string }) {
         setCheckingPush(false)
     }
 
+
     const handleSubscribe = async () => {
         try {
-            await requestNotificationPermission()
+            const permission = await requestNotificationPermission()
+            if (permission !== 'granted') {
+                toast.error('Notifications permission denied. Please enable in browser settings.')
+                return
+            }
+
             const sub = await subscribeUserToPush()
             setPushSubscription(sub)
 
             // Save to backend
-            await fetch('/api/subscribe', {
+            const subscriptionJSON = sub.toJSON();
+            console.log('Sending subscription to backend:', subscriptionJSON);
+
+            const res = await fetch('/api/subscribe', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(sub),
+                body: JSON.stringify(subscriptionJSON),
             })
+
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Failed to save subscription');
+            }
 
             toast.success('Live notifications enabled!')
         } catch (error) {
@@ -199,6 +213,7 @@ export function NotificationBell({ className }: { className?: string }) {
                 </div>
 
                 {/* Push Notification Prompt */}
+                {/* Push Notification Prompt */}
                 {!checkingPush && isPushSupported && !pushSubscription && (
                     <div className="p-4 bg-amber-500/10 border-b border-amber-500/20">
                         <div className="flex gap-3">
@@ -219,6 +234,7 @@ export function NotificationBell({ className }: { className?: string }) {
                         </div>
                     </div>
                 )}
+
 
                 <ScrollArea className="h-[400px]">
                     {loading && notifications.length === 0 ? (
@@ -274,7 +290,7 @@ export function NotificationBell({ className }: { className?: string }) {
                         </div>
                     )}
                 </ScrollArea>
-            </PopoverContent>
-        </Popover>
+            </PopoverContent >
+        </Popover >
     )
 }

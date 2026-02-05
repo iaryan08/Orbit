@@ -10,7 +10,7 @@ import { DashboardShell } from '@/components/dashboard-shell'
 import { ScrollReveal } from '@/components/scroll-reveal'
 
 // Dynamic Imports with Loading Skeletons
-const MoodCheckIn = dynamic(() => import('@/components/mood-check-in').then(mod => mod.MoodCheckIn), {
+const MoodCheckIn = dynamic<{ hasPartner: boolean; userMoods?: any[] }>(() => import('@/components/mood-check-in').then(mod => mod.MoodCheckIn), {
     ssr: true,
     loading: () => <div className="h-64 rounded-3xl bg-white/5 animate-pulse" />
 })
@@ -46,6 +46,7 @@ export default async function DashboardPage() {
     let lettersCount = 0
     let onThisDayMemories = []
     let onThisDayMilestones = []
+    let userTodayMoods: any[] = []
 
     if (profile.couple_id) {
         const { data: coupleData } = await supabase
@@ -68,8 +69,9 @@ export default async function DashboardPage() {
             todayStart.setHours(todayStart.getHours() - 5)
             todayStart.setMinutes(todayStart.getMinutes() - 30)
 
-            const [moodsRes, memCountRes, letCountRes, memoriesRes, milestonesRes] = await Promise.all([
+            const [moodsRes, userMoodsRes, memCountRes, letCountRes, memoriesRes, milestonesRes] = await Promise.all([
                 partnerId ? supabase.from('moods').select('*, mood:emoji, note:mood_text').eq('user_id', partnerId).gte('created_at', todayStart.toISOString()).order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
+                supabase.from('moods').select('*, mood:emoji, note:mood_text').eq('user_id', user.id).gte('created_at', todayStart.toISOString()).order('created_at', { ascending: false }),
                 supabase.from('memories').select('*', { count: 'exact', head: true }).eq('couple_id', profile.couple_id),
                 supabase.from('love_letters').select('*', { count: 'exact', head: true }).eq('couple_id', profile.couple_id),
                 supabase.from('memories').select('*').eq('couple_id', profile.couple_id),
@@ -77,6 +79,7 @@ export default async function DashboardPage() {
             ])
 
             partnerTodayMoods = moodsRes.data || []
+            userTodayMoods = userMoodsRes.data || []
             memoriesCount = memCountRes.count || 0
             lettersCount = letCountRes.count || 0
 
@@ -268,7 +271,7 @@ export default async function DashboardPage() {
                     {/* Your Interaction Center */}
                     <ScrollReveal className={cn("lg:col-span-2", (onThisDayMemories.length > 0 || onThisDayMilestones.length > 0) ? "lg:col-span-1" : "lg:col-span-2")} delay={0.5}>
                         <div className="glass-card p-2 h-full">
-                            <MoodCheckIn hasPartner={hasPartner} />
+                            <MoodCheckIn hasPartner={hasPartner} userMoods={userTodayMoods} />
                         </div>
                     </ScrollReveal>
 

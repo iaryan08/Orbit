@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { sendPushNotification } from '@/lib/push-server'
 
 export type NotificationType =
     | 'mood'
@@ -53,6 +54,14 @@ export async function sendNotification({
             })
 
         if (error) throw error
+
+        // Attempt to send push notification
+        try {
+            await sendPushNotification(recipientId, title, message, actionUrl || '/')
+        } catch (pushError) {
+            console.error('Failed to send push notification:', pushError)
+            // Don't fail the main action, just log it
+        }
 
         return { success: true }
     } catch (error: any) {

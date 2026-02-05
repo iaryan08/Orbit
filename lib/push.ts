@@ -18,7 +18,8 @@ export function urlBase64ToUint8Array(base64String: string) {
 export async function requestNotificationPermission() {
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
-        throw new Error('Permission not granted for Notification');
+        // Just return, don't throw. Let consumer handle it.
+        return permission;
     }
     return permission;
 }

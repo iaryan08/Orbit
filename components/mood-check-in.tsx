@@ -14,15 +14,21 @@ const MOODS: MoodType[] = ['happy', 'loved', 'excited', 'calm', 'sad', 'anxious'
 
 interface MoodCheckInProps {
   hasPartner: boolean
+  userMoods?: any[]
 }
 
-export function MoodCheckIn({ hasPartner }: MoodCheckInProps) {
+export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
+  const latestMood = userMoods[0] // Since they are ordered by descending created_at
   const [selectedMood, setSelectedMood] = useState<MoodType | null>(null)
   const [note, setNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
   const { toast } = useToast()
+
+  // If there's a mood today and we haven't just submitted, 
+  // we can show the "last shared" state unless user wants to update
+  const hasSharedToday = userMoods.length > 0
 
   async function handleSubmit() {
     if (!selectedMood) return
@@ -61,25 +67,47 @@ export function MoodCheckIn({ hasPartner }: MoodCheckInProps) {
     )
   }
 
-  if (submitted) {
+  // Show shared state if submitted OR if we have shared today and not currently expanded/updating
+  if (submitted || (hasSharedToday && !isExpanded)) {
+    const moodToShow = submitted ? selectedMood : latestMood.mood
+    const noteToShow = submitted ? note : latestMood.note
+
     return (
-      <Card className="bg-transparent border-none shadow-none">
-        <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="text-6xl mb-4">{selectedMood && MOOD_EMOJIS[selectedMood]}</div>
-          <h3 className="font-semibold text-lg mb-2 text-white">Mood Shared!</h3>
-          <p className="text-sm text-white/80">
-            Your partner can now see how you are feeling today.
-          </p>
+      <Card
+        className="bg-transparent border-none shadow-none cursor-pointer group"
+        onClick={() => setIsExpanded(true)}
+      >
+        <CardContent className="flex flex-col items-center justify-center py-3 md:py-10 text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="text-6xl mb-4 animate-in zoom-in duration-500">
+            {moodToShow && MOOD_EMOJIS[moodToShow as MoodType]}
+          </div>
+          <h3 className="font-semibold text-[10px] uppercase tracking-[0.3em] mb-1 text-white/40">You are feeling</h3>
+          <p className="text-xl font-medium text-white capitalize">{moodToShow}</p>
+          {noteToShow && (
+            <p className="text-xs text-white/50 italic mt-2 max-w-[200px] truncate px-4">
+              "{noteToShow}"
+            </p>
+          )}
+          {userMoods.length > 1 && (
+            <div className="space-y-2 pt-4 md:pt-6 border-t border-white/5 w-full mt-4">
+              <p className="text-[9px] uppercase tracking-widest font-bold text-white/20 mb-2">Previous moods today</p>
+              <div className="flex gap-2 pb-2 overflow-x-auto no-scrollbar justify-center">
+                {userMoods.slice(1, 5).map((m, i) => (
+                  <div key={i} className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xl grayscale hover:grayscale-0 transition-all" title={m.note || m.mood} onClick={(e) => { e.stopPropagation(); }}>
+                    {MOOD_EMOJIS[m.mood as MoodType]}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <Button
-            variant="rosy"
-            className="mt-4"
-            onClick={() => {
-              setSubmitted(false)
-              setSelectedMood(null)
-              setNote('')
-            }}
+            variant="ghost"
+            size="sm"
+            className="mt-6 text-[10px] uppercase tracking-widest text-white/30 hover:text-white"
           >
-            Update My Mood
+            Update Mood
           </Button>
         </CardContent>
       </Card>

@@ -10,20 +10,33 @@ export function LunaraToggle() {
 
     return (
         <div className="flex items-center gap-3">
-            <span className={cn(
-                "text-[10px] uppercase tracking-[0.2em] font-bold transition-colors duration-300 hidden sm:block",
-                mode === 'moon' ? "text-rose-200" : "text-white/30"
-            )}>
-                Moon
-            </span>
+            <AnimatePresence mode="wait">
+                {(mode === 'moon' || typeof window !== 'undefined' && window.innerWidth >= 640) && (
+                    <motion.span
+                        key="moon-label"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        transition={{ duration: 0.3 }}
+                        className={cn(
+                            "text-[10px] uppercase tracking-[0.2em] font-bold transition-all duration-500 selection:bg-rose-500/40 selection:text-white",
+                            mode === 'moon'
+                                ? "text-rose-100 drop-shadow-[0_0_12px_rgba(251,113,133,0.6)] scale-110"
+                                : "text-white/20 hover:text-white/40"
+                        )}
+                    >
+                        Moon
+                    </motion.span>
+                )}
+            </AnimatePresence>
 
             <button
                 onClick={toggleMode}
                 className={cn(
                     "relative flex items-center h-7 w-14 sm:h-8 sm:w-16 rounded-full p-1 cursor-pointer transition-all duration-500",
                     mode === 'moon'
-                        ? "bg-rose-950/40 border-rose-500/30"
-                        : "bg-purple-950/40 border-purple-500/30",
+                        ? "bg-rose-950/40 border-rose-500/30 shadow-[0_0_20px_rgba(251,113,133,0.15)]"
+                        : "bg-purple-950/40 border-purple-500/30 shadow-[0_0_20px_rgba(168,85,247,0.15)]",
                     "border backdrop-blur-lg shadow-xl"
                 )}
             >
@@ -39,28 +52,28 @@ export function LunaraToggle() {
                     }}
                     transition={{
                         type: "spring",
-                        stiffness: 400,
-                        damping: 30
+                        stiffness: 450,
+                        damping: 35
                     }}
                 >
                     <AnimatePresence mode="wait">
                         {mode === 'moon' ? (
                             <motion.div
                                 key="moon-icon"
-                                initial={{ scale: 0, rotate: -90 }}
-                                animate={{ scale: 1, rotate: 0 }}
-                                exit={{ scale: 0, rotate: 90 }}
-                                transition={{ duration: 0.2 }}
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0, opacity: 0 }}
+                                transition={{ duration: 0.15 }} // Quick disappear before reaching Label
                             >
                                 <Heart className="w-3.5 h-3.5 text-white fill-white" />
                             </motion.div>
                         ) : (
                             <motion.div
                                 key="lunara-icon"
-                                initial={{ scale: 0, rotate: -90 }}
-                                animate={{ scale: 1, rotate: 0 }}
-                                exit={{ scale: 0, rotate: 90 }}
-                                transition={{ duration: 0.2 }}
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0, opacity: 0 }}
+                                transition={{ duration: 0.15 }} // Quick disappear before reaching Label
                             >
                                 <Moon className="w-3.5 h-3.5 text-white fill-white" />
                             </motion.div>
@@ -75,12 +88,25 @@ export function LunaraToggle() {
                 </div>
             </button>
 
-            <span className={cn(
-                "text-[10px] uppercase tracking-[0.2em] font-bold transition-colors duration-300 hidden sm:block",
-                mode === 'lunara' ? "text-purple-200" : "text-white/30"
-            )}>
-                Lunara
-            </span>
+            <AnimatePresence mode="wait">
+                {(mode === 'lunara' || typeof window !== 'undefined' && window.innerWidth >= 640) && (
+                    <motion.span
+                        key="lunara-label"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        transition={{ duration: 0.3 }}
+                        className={cn(
+                            "text-[10px] uppercase tracking-[0.2em] font-bold transition-all duration-500 selection:bg-purple-500/40 selection:text-white",
+                            mode === 'lunara'
+                                ? "text-purple-100 drop-shadow-[0_0_12px_rgba(168,85,247,0.6)] scale-110"
+                                : "text-white/20 hover:text-white/40"
+                        )}
+                    >
+                        Lunara
+                    </motion.span>
+                )}
+            </AnimatePresence>
         </div>
     )
 }

@@ -83,8 +83,7 @@ export function PartnerMood({ partnerName, partnerAvatar, moods }: PartnerMoodPr
               <Clock className="w-12 h-12 text-white" />
             </div>
             <p className={cn(
-              "text-sm leading-relaxed relative z-10 font-medium",
-              MOOD_COLORS[latestMood.mood]?.split(' ').find(c => c.startsWith('text-')) || "text-white/90"
+              "text-sm leading-relaxed relative z-10 font-medium text-rose-50"
             )}>
               {latestMood.note ? `"${latestMood.note}"` : `Feeling ${latestMood.mood} right now`}
             </p>
