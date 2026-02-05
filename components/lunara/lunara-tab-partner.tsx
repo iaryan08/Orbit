@@ -10,8 +10,12 @@ import { getTodayIST } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import { SupportModal } from '../support-modal'
+import { motion, AnimatePresence } from 'framer-motion'
+import { LibidoMeter } from './libido-meter'
+import { LibidoSlider } from './libido-slider'
 
 export function LunaraTabPartner({ data }: { data: any }) {
+    const router = useRouter()
     const { profile, partnerProfile, supportLogs, cycleLogs, userCycle, partnerCycle, currentDateIST } = data
     // Determine which cycle to show for specific stats
     // Logic: If I am male, I want to see Her cycle stats (partnerCycle).
@@ -69,35 +73,23 @@ export function LunaraTabPartner({ data }: { data: any }) {
         return "You might feel more introspective. Prioritize self-care and communicate your needs clearly to your partner."
     }
 
-    // Initialize todays logs
+    // Sync state with incoming props data (Realtime updates from parent)
     React.useEffect(() => {
         const today = currentDateIST || getTodayIST()
 
-        console.log('[LunaraPartner] Initializing logs:', {
-            today,
-            myUserId: profile.id,
-            partnerUserId: partnerProfile?.id,
-            cycleLogsCount: cycleLogs?.length,
-            cycleLogs: cycleLogs
-        })
-
+        // Update My Logs
         const myLog = cycleLogs?.find((l: any) => l.user_id === profile.id && l.log_date === today)
         if (myLog) {
-            console.log('[LunaraPartner] Found MY log:', myLog)
             setSharedSymptoms(myLog.symptoms || [])
             setMySexDrive(myLog.sex_drive || null)
-        } else {
-            console.log('[LunaraPartner] MY log NOT found')
         }
 
+        // Update Partner Logs
         const partnerLog = cycleLogs?.find((l: any) => l.user_id === partnerProfile?.id && l.log_date === today)
         if (partnerLog) {
-            console.log('[LunaraPartner] Found PARTNER log:', partnerLog)
             setPartnerSexDrive(partnerLog.sex_drive || null)
-        } else {
-            console.log('[LunaraPartner] PARTNER log NOT found. Looking for user_id:', partnerProfile?.id)
         }
-    }, [cycleLogs, profile.id, partnerProfile?.id, currentDateIST])
+    }, [data, cycleLogs, profile.id, partnerProfile?.id, currentDateIST])
 
     const getSuggestedSymptoms = (day: number) => {
         if (!isFemale) return ["Stressed", "Happy", "Tired", "Energetic", "Calm", "Anxious", "Inspired"]
@@ -152,53 +144,63 @@ export function LunaraTabPartner({ data }: { data: any }) {
 
                 {/* 2. Sex Drive Tracker */}
                 <ScrollReveal delay={0.2}>
-                    <div className="glass-card p-8 bg-black/40 border-white/5 h-full relative overflow-hidden">
+                    <div className="glass-card p-8 bg-black/40 border-white/5 h-full relative overflow-hidden flex flex-col">
                         <div className="flex items-center gap-3 mb-8">
                             <div className="p-2.5 rounded-2xl bg-orange-500/10">
                                 <Activity className="w-5 h-5 text-orange-400" />
                             </div>
-                            <h3 className="text-lg font-bold text-white">Libido & Connection</h3>
+                            <h3 className="text-lg font-bold text-white">Libido</h3>
                         </div>
 
-                        <div className="space-y-8">
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-xs font-bold uppercase tracking-widest text-white/40">Your Level</span>
-                                    {mySexDrive && <span className="text-[10px] text-orange-400 font-black uppercase tracking-tighter">{mySexDrive.replace('_', ' ')}</span>}
-                                </div>
-                                <div className="flex gap-2">
-                                    {['low', 'medium', 'high', 'very_high'].map((level) => (
-                                        <button
-                                            key={level}
-                                            onClick={async () => {
-                                                setMySexDrive(level)
-                                                await logSexDrive(level)
-                                                toast({ title: `Logged ${level.replace('_', ' ')} libido`, className: "bg-green-900 border-green-500 shadow-green-500/20 text-white" })
-                                            }}
-                                            className={cn(
-                                                "flex-1 h-12 rounded-xl border text-[10px] font-black uppercase tracking-tighter transition-all",
-                                                mySexDrive === level ? "bg-orange-500/20 border-orange-500 text-orange-200" : "bg-white/5 border-white/5 text-white/20 hover:bg-white/10"
-                                            )}
-                                        >
-                                            {level[0]}
-                                        </button>
-                                    ))}
+                        <div className="flex-1 flex flex-col justify-between space-y-8">
+                            {/* Visual Meter (CSS Animated) - Showing PARTNER'S Level */}
+                            <div className="py-4">
+                                <LibidoMeter level={partnerSexDrive} />
+                                <div className="text-center mt-4 mb-2 relative z-10">
+                                    <span className="text-[10px] uppercase font-bold tracking-[0.2em] text-white/30">
+                                        {isFemale ? partnerName : "Her"} Level
+                                    </span>
+                                    {partnerSexDrive && (
+                                        <div className={cn("text-xs font-black uppercase tracking-widest mt-1",
+                                            partnerSexDrive === 'low' ? "text-green-500" :
+                                                partnerSexDrive === 'medium' ? "text-yellow-500" :
+                                                    partnerSexDrive === 'high' ? "text-orange-500" : "text-red-500"
+                                        )}>
+                                            {partnerSexDrive.replace('_', ' ')}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
-                            {partnerProfile && (
-                                <div className="space-y-4 pt-6 border-t border-white/5">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-xs font-bold uppercase tracking-widest text-white/40">{isFemale ? partnerName : "Her"} Level</span>
-                                    </div>
-                                    <div className={cn(
-                                        "w-full py-4 rounded-2xl border text-center text-xs font-bold uppercase tracking-widest",
-                                        partnerSexDrive ? "bg-rose-500/10 border-rose-500/30 text-rose-300" : "bg-white/5 border-white/5 text-white/10 italic"
-                                    )}>
-                                        {partnerSexDrive ? partnerSexDrive.replace('_', ' ') : "Not logged today"}
-                                    </div>
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-xs font-bold uppercase tracking-widest text-white/40">Your Level</span>
+                                    {mySexDrive && <span className={cn("text-[10px] font-black uppercase tracking-tighter",
+                                        mySexDrive === 'low' ? "text-green-500" :
+                                            mySexDrive === 'medium' ? "text-yellow-500" :
+                                                mySexDrive === 'high' ? "text-orange-500" : "text-red-500"
+                                    )}>{mySexDrive.replace('_', ' ')}</span>}
                                 </div>
-                            )}
+                                <div className="pt-2">
+                                    <LibidoSlider
+                                        key={mySexDrive}
+                                        defaultValue={mySexDrive || 'medium'}
+                                        onValueChange={async (val) => {
+                                            setMySexDrive(val) // Optimistic update
+                                            // await logSexDrive(val) // Removed for "not sync" mode as requested momentarily, 
+                                            // BUT the user said "not sync - Do not load data from database". 
+                                            // Logging TO database is fine (it's a write), but "Do not load data" implies 
+                                            // we shouldn't rely on the refresh to get the new state back.
+                                            // So we keep the write, but remove the refresh.
+                                            await logSexDrive(val)
+                                            // router.refresh() <-- REMOVED based on "Do not load data from database... keep the prev logic"
+                                            toast({ title: "Libido Updated", className: "bg-zinc-800 text-white border-zinc-700" })
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Partner Profile Section Removed - Redundant */}
                         </div>
                     </div>
                 </ScrollReveal>

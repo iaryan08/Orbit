@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { CalendarIcon, Heart, Save } from "lucide-react";
+import { CalendarIcon, Heart, Unlock, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -18,6 +18,8 @@ interface MilestoneCardProps {
     milestone: any;
     myContentField: string;
     partnerContentField: string;
+    icon?: React.ReactNode;
+    image?: string;
     onSave: (id: string, date: Date | undefined, content: string) => Promise<void>;
 }
 
@@ -28,6 +30,8 @@ export function MilestoneCard({
     milestone,
     myContentField,
     partnerContentField,
+    icon,
+    image,
     onSave
 }: MilestoneCardProps) {
     const [isOpen, setIsOpen] = useState(false);
@@ -62,17 +66,20 @@ export function MilestoneCard({
     };
 
     return (
-        <Card className={cn("border-rose-900/30 transition-all duration-500 overflow-hidden", isOpen ? "bg-rose-950/20 ring-1 ring-rose-500/50" : "bg-black/20 hover:bg-rose-900/10")}>
+        <Card className={cn("border-rose-900/30 transition-all duration-500 overflow-hidden shadow-none", isOpen ? "bg-rose-950/20 ring-1 ring-rose-500/50" : "bg-black/20 hover:bg-rose-900/10")}>
             <CardHeader
                 className="cursor-pointer flex flex-row items-center justify-between p-6"
                 onClick={() => setIsOpen(!isOpen)}
             >
-                <div className="space-y-1">
-                    <CardTitle className="text-xl text-rose-100 font-serif flex items-center gap-2">
-                        {label}
-                        {isCompleted && <Heart className="w-4 h-4 text-rose-500 fill-rose-500 animate-pulse" />}
-                    </CardTitle>
-                    <p className="text-rose-200/50 text-sm font-light">{question}</p>
+                <div className="space-y-1 flex items-center gap-4">
+                    {icon && <div className="p-3 rounded-2xl bg-white/5 border border-white/5">{icon}</div>}
+                    <div className="space-y-1">
+                        <CardTitle className="text-xl text-rose-100 font-serif flex items-center gap-2">
+                            {label}
+                            {isCompleted && <Heart className="w-4 h-4 text-rose-50 fill-rose-500 animate-pulse" />}
+                        </CardTitle>
+                        <p className="text-rose-200/50 text-sm font-light">{question}</p>
+                    </div>
                 </div>
                 <div className="flex items-center gap-2">
                     {date && <span className="text-xs text-rose-200/40 font-mono">{format(date, "MMM yyyy")}</span>}
@@ -90,6 +97,20 @@ export function MilestoneCard({
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                     >
+                        {image && (
+                            <div className="px-6 pb-6">
+                                <div className="relative h-40 w-full flex items-center justify-center">
+                                    <img
+                                        src={image}
+                                        alt={label}
+                                        className="w-full h-full object-contain mix-blend-lighten opacity-90 transition-all duration-700"
+                                        style={{
+                                            filter: image.includes('icon') ? 'invert(1) contrast(2) brightness(1.2)' : 'brightness(1.1) contrast(1.2)',
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        )}
                         <CardContent className="space-y-6 pt-0 px-6 pb-6">
                             {/* Date Input */}
                             <div className="space-y-2">

@@ -1,25 +1,41 @@
 'use client'
 
 import React from 'react'
-import { Moon, Calendar } from 'lucide-react'
+import { Moon, Calendar, Sparkles, Plus, Activity, Heart, Info, Loader2, Settings, Bell } from 'lucide-react'
 import { differenceInDays, addDays, format, startOfDay } from 'date-fns'
 import { cn, getTodayIST } from '@/lib/utils'
 import { ScrollReveal } from '@/components/scroll-reveal'
 import { Button } from '@/components/ui/button'
-import { Loader2, Settings } from 'lucide-react'
 import { LunaraSettings } from '../lunara-settings'
-import { logPeriodStart } from '@/lib/actions/auth'
+import { logPeriodStart, logSymptoms } from '@/lib/actions/auth'
 import { useToast } from '@/hooks/use-toast'
 import { useRouter } from 'next/navigation'
+import { CycleCalendar } from './cycle-calendar'
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 export function LunaraTabDashboard({ data }: { data: any }) {
-    const { profile, userCycle, partnerCycle } = data
+    const { profile, userCycle, partnerCycle, cycleLogs, currentDateIST } = data
     // Local state for immediate updates
     const [cycleProfile, setCycleProfile] = React.useState<any>(
         profile.gender === 'female' ? userCycle : partnerCycle
     )
     const [showSettings, setShowSettings] = React.useState(false)
     const [isLogging, setIsLogging] = React.useState(false)
+
+    // Find today's log for the person being tracked (female partner)
+    const trackedUserId = profile.gender === 'female' ? profile.id : profile.partner_id
+    const todayLog = cycleLogs?.find((l: any) => l.user_id === trackedUserId && l.log_date === currentDateIST)
+
+    const [selectedSymptoms, setSelectedSymptoms] = React.useState<string[]>(
+        todayLog?.symptoms || []
+    )
+    const [isSavingSymptoms, setIsSavingSymptoms] = React.useState(false)
+    const [showCustomInput, setShowCustomInput] = React.useState(false)
+    const [customValue, setCustomValue] = React.useState('')
     const { toast } = useToast()
     const router = useRouter()
 
@@ -43,13 +59,6 @@ export function LunaraTabDashboard({ data }: { data: any }) {
         return { name: "Luteal Phase", color: "text-indigo-400", advice: "Focus on gentle self-care and winding down." }
     }
 
-    const currentDay = getCycleDay()
-    const phase = currentDay ? getPhaseInfo(currentDay) : null
-    const nextPeriodDate = cycleProfile?.last_period_start
-        ? addDays(new Date(cycleProfile.last_period_start),
-            (Math.floor(differenceInDays(new Date(), new Date(cycleProfile.last_period_start)) / (cycleProfile.avg_cycle_length || 28)) + 1) * (cycleProfile.avg_cycle_length || 28)
-        )
-        : null
 
     const handleLogPeriod = async () => {
         setIsLogging(true)
@@ -68,6 +77,82 @@ export function LunaraTabDashboard({ data }: { data: any }) {
         }
     }
 
+    const toggleSymptom = async (symptom: string) => {
+        if (profile.gender !== 'female') return
+
+        const newSymptoms = selectedSymptoms.includes(symptom)
+            ? selectedSymptoms.filter(s => s !== symptom)
+            : [...selectedSymptoms, symptom]
+
+        setSelectedSymptoms(newSymptoms)
+        setIsSavingSymptoms(true)
+
+        try {
+            const result = await logSymptoms(newSymptoms)
+            if (!result.success) {
+                toast({ title: "Update Failed", variant: "destructive" })
+                // Revert on failure
+                setSelectedSymptoms(selectedSymptoms)
+            }
+        } catch (e) {
+            console.error(e)
+            setSelectedSymptoms(selectedSymptoms)
+        } finally {
+            setIsSavingSymptoms(false)
+        }
+    }
+
+    const handleAddCustomSymptom = async () => {
+        if (!customValue.trim()) return
+        const symptom = customValue.trim()
+        if (!selectedSymptoms.includes(symptom)) {
+            const newSymptoms = [...selectedSymptoms, symptom]
+            setSelectedSymptoms(newSymptoms)
+            setIsSavingSymptoms(true)
+            const result = await logSymptoms(newSymptoms)
+            if (!result.success) {
+                toast({ title: "Update Failed", variant: "destructive" })
+                setSelectedSymptoms(selectedSymptoms)
+            }
+            setIsSavingSymptoms(false)
+        }
+        setCustomValue('')
+        setShowCustomInput(false)
+    }
+
+    const getPregnancyChance = (day: number) => {
+        if (day >= 12 && day <= 16) return { level: "High", color: "text-rose-400" }
+        if (day >= 10 && day <= 11) return { level: "Medium", color: "text-amber-400" }
+        if (day === 17) return { level: "Medium", color: "text-amber-400" }
+        return { level: "Low", color: "text-emerald-400" }
+    }
+
+    const getSupportAdvice = (phaseName: string) => {
+        switch (phaseName) {
+            case "Menstrual Phase":
+                return "Comfort is top priority. Think hot water bottles, dark chocolate, and lots of hugs."
+            case "Follicular Phase":
+                return "She's feeling new energy! Perfect time for a fun date or trying something new together."
+            case "Ovulatory Phase":
+                return "Confidence is high. Major romance points for compliments and quality time tonight."
+            case "Luteal Phase":
+                return "Be patient and extra gentle. Emotional support and help with chores go a long way now."
+            default:
+                return "Being present and listening is the best support you can offer right now."
+        }
+    }
+
+    const currentDay = getCycleDay()
+    const phase = currentDay ? getPhaseInfo(currentDay) : null
+    const chance = currentDay ? getPregnancyChance(currentDay) : { level: "—", color: "text-white/20" }
+    const supportAdvice = phase ? getSupportAdvice(phase.name) : "Stay synced and supportive."
+
+    const nextPeriodDate = cycleProfile?.last_period_start
+        ? addDays(new Date(cycleProfile.last_period_start),
+            (Math.floor(differenceInDays(new Date(), new Date(cycleProfile.last_period_start)) / (cycleProfile.avg_cycle_length || 28)) + 1) * (cycleProfile.avg_cycle_length || 28)
+        )
+        : null
+
     if (showSettings) {
         return (
             <LunaraSettings
@@ -83,28 +168,28 @@ export function LunaraTabDashboard({ data }: { data: any }) {
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Main Cycle Widget */}
-            <ScrollReveal className="lg:col-span-2 row-span-2" delay={0.1}>
-                <div className="glass-card p-10 flex flex-col items-center justify-center h-full relative overflow-hidden group border-purple-500/20 bg-purple-950/20 transition-all hover:bg-purple-900/20">
+        <div className="space-y-8 pb-20">
+            {/* 1. Main Cycle Widget (Hero - Day Count) */}
+            <ScrollReveal className="w-full">
+                <div className="glass-card p-6 sm:p-10 flex flex-col items-center justify-center relative overflow-hidden group border-purple-500/20 bg-purple-950/20 transition-all hover:bg-purple-900/20 shadow-xl">
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-500 opacity-50" />
 
                     {profile?.gender === 'female' && (
                         <button
                             onClick={() => setShowSettings(true)}
-                            className="absolute top-4 right-4 z-10 p-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 hover:bg-purple-500/20 transition-all"
+                            className="absolute top-4 right-4 z-10 p-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 hover:bg-purple-500/20 transition-all scale-90 sm:scale-100"
                         >
                             <Settings className="w-4 h-4" />
                         </button>
                     )}
 
-                    <div className="relative w-64 h-64 flex items-center justify-center">
+                    <div className="relative w-48 h-48 sm:w-64 sm:h-64 flex items-center justify-center">
                         <div className="absolute inset-0 rounded-full border-4 border-dashed border-purple-500/10 animate-spin-slow" />
                         <div className="absolute inset-4 rounded-full border-2 border-purple-500/20" />
 
-                        <div className="flex flex-col items-center text-center space-y-2 relative z-10">
-                            <Moon className={cn("w-12 h-12 mb-2", phase?.color || "text-purple-300")} />
-                            <span className="text-5xl font-bold text-white">
+                        <div className="flex flex-col items-center text-center space-y-1 sm:space-y-2 relative z-10">
+                            <Moon className={cn("w-8 h-8 sm:w-12 sm:h-12 mb-1 sm:mb-2", phase?.color || "text-purple-300")} />
+                            <span className="text-4xl sm:text-5xl font-bold text-white">
                                 {profile?.gender === 'female'
                                     ? (currentDay ? `Day ${currentDay}` : 'Rhythm')
                                     : (currentDay && (cycleProfile?.sharing_enabled || cycleProfile?.privacy_level !== 'hidden')
@@ -112,11 +197,11 @@ export function LunaraTabDashboard({ data }: { data: any }) {
                                         : 'Support Mode')}
                             </span>
                             {cycleProfile?.last_period_start && (
-                                <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] pt-1">
+                                <span className="text-[9px] sm:text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] pt-1">
                                     {format(new Date(cycleProfile.last_period_start), "MMM dd, yyyy")}
                                 </span>
                             )}
-                            <span className={cn("text-[10px] uppercase tracking-[0.2em] font-bold", phase?.color || "text-purple-300/60")}>
+                            <span className={cn("text-[8px] sm:text-[10px] uppercase tracking-[0.2em] font-bold", phase?.color || "text-purple-300/60")}>
                                 {(profile?.gender === 'female' || cycleProfile?.sharing_enabled) && phase?.name
                                     ? phase.name
                                     : 'Partner Sync'}
@@ -124,12 +209,12 @@ export function LunaraTabDashboard({ data }: { data: any }) {
                         </div>
                     </div>
 
-                    <div className="mt-8 flex gap-4">
+                    <div className="mt-6 sm:mt-8 flex gap-4">
                         {profile?.gender === 'female' && (
                             <button
                                 onClick={handleLogPeriod}
                                 disabled={isLogging}
-                                className="px-6 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-200 text-xs font-bold uppercase tracking-widest cursor-pointer hover:bg-purple-500/20 transition-all flex items-center gap-2 disabled:opacity-50"
+                                className="px-5 py-2 sm:px-6 sm:py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-200 text-[10px] sm:text-xs font-bold uppercase tracking-widest cursor-pointer hover:bg-purple-500/20 transition-all flex items-center gap-2 disabled:opacity-50 shadow-lg shadow-purple-500/5 active:scale-95"
                             >
                                 {isLogging && <Loader2 className="w-3 h-3 animate-spin" />}
                                 Log Period
@@ -139,29 +224,122 @@ export function LunaraTabDashboard({ data }: { data: any }) {
                 </div>
             </ScrollReveal>
 
-            {/* Quick Stats / Next Period */}
-            <ScrollReveal className="lg:col-span-1" delay={0.2}>
-                <div className="glass-card p-6 bg-purple-900/10 border-purple-500/10 h-full flex flex-col justify-center">
-                    <Calendar className="w-6 h-6 text-purple-400 mb-4" />
-                    <span className="block text-2xl font-bold text-white">
-                        {nextPeriodDate ? format(nextPeriodDate, "MMM dd") : "—"}
-                    </span>
-                    <span className="text-[10px] uppercase tracking-widest font-bold text-white/30">Next Period</span>
-                    <div className="mt-4 pt-4 border-t border-purple-500/10">
-                        <span className="text-[10px] text-purple-200/50">Likely Ovulation: {nextPeriodDate ? format(addDays(nextPeriodDate, -14), "MMM dd") : "—"}</span>
-                    </div>
+            {/* 2. Horizontal Calendar "Flo-style" Strip */}
+            <ScrollReveal delay={0.1}>
+                <div className="glass-card py-6 bg-purple-950/20 border-purple-500/20 shadow-xl shadow-purple-500/5">
+                    <CycleCalendar cycleProfile={cycleProfile} />
                 </div>
             </ScrollReveal>
 
-            {/* Daily Phase Insight  */}
-            <ScrollReveal className="lg:col-span-1" delay={0.3}>
-                <div className="glass-card p-6 bg-black/40 border-white/5 h-full relative overflow-hidden flex flex-col justify-center">
-                    <h3 className="text-[10px] uppercase tracking-widest font-bold text-white/40 mb-3">Daily Rhythm</h3>
-                    <p className="text-lg text-purple-50 italic font-serif leading-relaxed">
-                        {phase?.advice || "Track to unlock personalized insights."}
-                    </p>
-                </div>
-            </ScrollReveal>
+            {/* 3 & 4. Insights Grid: Enhanced with Symptoms, Pregnancy Chance, and Advice */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* 1. Log Symptoms Card */}
+                <ScrollReveal delay={0.2}>
+                    <div className="glass-card p-6 bg-purple-950/20 border-purple-500/20 h-full flex flex-col items-start relative overflow-hidden group hover:bg-purple-900/10 transition-all duration-500">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-8 h-8 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-300">
+                                <Bell className="w-4 h-4" />
+                            </div>
+                            <h4 className="text-sm font-bold text-white/90 leading-tight">
+                                How are you feeling{profile.gender === 'female' ? '' : ', Female'}?
+                            </h4>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2.5 mb-6">
+                            {["Cramps", "Fatigue", "Back Pain", "Headache", "Mood Swings", ...selectedSymptoms.filter(s => !["Cramps", "Fatigue", "Back Pain", "Headache", "Mood Swings"].includes(s))].map(s => (
+                                <button
+                                    key={s}
+                                    onClick={() => toggleSymptom(s)}
+                                    disabled={profile.gender !== 'female'}
+                                    className={cn(
+                                        "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border",
+                                        selectedSymptoms.includes(s)
+                                            ? "bg-purple-500/20 border-purple-400/50 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.2)]"
+                                            : "bg-white/5 border-white/5 text-white/40 hover:bg-white/10"
+                                    )}
+                                >
+                                    {s}
+                                </button>
+                            ))}
+                        </div>
+
+                        {showCustomInput ? (
+                            <div className="flex items-center gap-2 mb-4 w-full h-10">
+                                <input
+                                    autoFocus
+                                    type="text"
+                                    value={customValue}
+                                    onChange={(e) => setCustomValue(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && handleAddCustomSymptom()}
+                                    className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 text-xs text-white outline-none focus:border-purple-500/40 transition-all h-full"
+                                    placeholder="Enter symptom..."
+                                />
+                                <button
+                                    onClick={handleAddCustomSymptom}
+                                    className="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center hover:bg-purple-400 transition-all shrink-0"
+                                >
+                                    <Plus className="w-5 h-5" />
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="mt-auto pt-4 border-t border-white/5 w-full flex items-center justify-between">
+                                <button
+                                    onClick={() => setShowCustomInput(true)}
+                                    className="text-[10px] text-white/40 font-bold uppercase tracking-widest hover:text-white/80 transition-all flex items-center gap-2"
+                                >
+                                    <Plus className="w-3.5 h-3.5" />
+                                    {isSavingSymptoms ? 'Syncing...' : 'Add custom symptom'}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </ScrollReveal>
+
+                {/* 2. Pregnancy Chance Card */}
+                <ScrollReveal delay={0.25}>
+                    <div className="glass-card p-6 bg-purple-950/20 border-purple-500/20 h-full flex flex-col justify-center items-center text-center shadow-lg group hover:bg-purple-900/10 transition-all duration-500">
+                        <Activity className="w-6 h-6 text-rose-400 mb-4 group-hover:scale-110 transition-transform" />
+                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-white/60 mb-1">Pregnancy Chance</h3>
+
+                        <div className="relative mt-2 mb-4">
+                            <span className={cn("text-4xl font-black uppercase tracking-tighter", chance.color)}>
+                                {chance.level}
+                            </span>
+                            <div className="flex gap-1 justify-center mt-2">
+                                <span className={cn("w-1.5 h-1.5 rounded-full bg-white/20", chance.level === 'Low' && "bg-emerald-400 shadow-glow")} />
+                                <span className={cn("w-1.5 h-1.5 rounded-full bg-white/20", chance.level === 'Medium' && "bg-amber-400 shadow-glow")} />
+                                <span className={cn("w-1.5 h-1.5 rounded-full bg-white/20", chance.level === 'High' && "bg-rose-400 shadow-glow")} />
+                            </div>
+                        </div>
+                    </div>
+                </ScrollReveal>
+
+                {/* 3. Daily Rhythm Advice Card */}
+                <ScrollReveal delay={0.3}>
+                    <div className="glass-card p-6 bg-purple-950/20 border-purple-500/20 h-full relative overflow-hidden flex flex-col justify-center shadow-lg hover:bg-purple-900/10 transition-colors">
+                        <div className="absolute top-0 right-0 p-4 opacity-10">
+                            <Sparkles className="w-12 h-12 text-purple-300" />
+                        </div>
+                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-white/60 mb-3 flex items-center gap-2">
+                            ADVICE
+                        </h3>
+                        <p className="text-sm sm:text-base text-purple-50 font-medium italic font-serif leading-relaxed line-clamp-4">
+                            "{phase?.advice || "Track to unlock personalized insights."}"
+                        </p>
+                    </div>
+                </ScrollReveal>
+
+                {/* 4. How He's Helping / Support Card */}
+                <ScrollReveal delay={0.35}>
+                    <div className="glass-card p-6 bg-purple-950/20 border-purple-500/20 h-full flex flex-col items-center justify-center text-center shadow-lg hover:bg-purple-900/10 transition-colors">
+                        <Heart className="w-6 h-6 text-rose-400 mb-4 animate-pulse-slow" />
+                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-white/60 mb-3">How He's Helping</h3>
+                        <p className="text-sm text-purple-100 font-medium leading-relaxed italic">
+                            {supportAdvice}
+                        </p>
+                    </div>
+                </ScrollReveal>
+            </div>
         </div>
     )
 }

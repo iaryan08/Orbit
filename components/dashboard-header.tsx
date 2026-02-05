@@ -225,16 +225,16 @@ export function DashboardHeader({
                 })
               ) : (
                 [
-                  { id: 'dashboard', icon: LayoutGrid, label: 'Dashboard' },
-                  { id: 'insights', icon: BookOpen, label: 'Insights' },
-                  { id: 'partner', icon: Heart, label: 'Partner' },
+                  { id: 'dashboard', href: '/dashboard', icon: LayoutGrid, label: 'Dashboard' },
+                  { id: 'insights', href: '/insights', icon: BookOpen, label: 'Insights' },
+                  { id: 'partner', href: '/partner', icon: Heart, label: 'Partner' },
                 ].map((item) => {
-                  const isActive = activeLunaraTab === item.id && pathname === '/dashboard'
+                  const isActive = pathname === item.href
                   const isHovered = hoveredPath === item.id
                   return (
                     <Tooltip key={item.id}>
                       <TooltipTrigger asChild>
-                        <button onClick={() => { setActiveLunaraTab(item.id as any); if (pathname !== '/dashboard') router.push('/dashboard') }} onMouseEnter={() => setHoveredPath(item.id)} className="relative block cursor-pointer">
+                        <Link href={item.href} onMouseEnter={() => setHoveredPath(item.id)} className="relative block">
                           <div className={cn("p-3 rounded-full flex items-center justify-center relative group transition-all duration-300", isActive ? "text-purple-200" : "text-purple-300/40 group-hover:text-purple-200")}>
                             <AnimatePresence>
                               {(isActive || isHovered) && (
@@ -243,7 +243,7 @@ export function DashboardHeader({
                             </AnimatePresence>
                             <item.icon className={cn("w-5 h-5 relative z-10 transition-transform group-hover:scale-110", isActive && "text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]")} />
                           </div>
-                        </button>
+                        </Link>
                       </TooltipTrigger>
                       <TooltipContent side="right" sideOffset={15} className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl">
                         <p>{item.label}</p>
@@ -335,16 +335,16 @@ export function DashboardHeader({
                 })
               ) : (
                 [
-                  { id: 'dashboard', icon: LayoutGrid, label: 'Dashboard' },
-                  { id: 'insights', icon: BookOpen, label: 'Insights' },
-                  { id: 'partner', icon: Heart, label: 'Partner' },
+                  { id: 'dashboard', href: '/dashboard', icon: LayoutGrid, label: 'Dashboard' },
+                  { id: 'insights', href: '/insights', icon: BookOpen, label: 'Insights' },
+                  { id: 'partner', href: '/partner', icon: Heart, label: 'Partner' },
                 ].map((item) => {
-                  const isActive = activeLunaraTab === item.id && pathname === '/dashboard'
+                  const isActive = pathname === item.href
                   const isHovered = hoveredPath === item.id
                   return (
                     <Tooltip key={item.id}>
                       <TooltipTrigger asChild>
-                        <button onClick={() => { setActiveLunaraTab(item.id as any); if (pathname !== '/dashboard') router.push('/dashboard') }} onMouseEnter={() => setHoveredPath(item.id)} className="relative block cursor-pointer">
+                        <Link href={item.href} onMouseEnter={() => setHoveredPath(item.id)} className="relative block">
                           <div className={cn("p-3 rounded-full flex items-center justify-center relative group transition-all duration-300", isActive ? "text-purple-200" : "text-purple-300/40 group-hover:text-purple-200")}>
                             <AnimatePresence>
                               {(isActive || isHovered) && (
@@ -353,7 +353,7 @@ export function DashboardHeader({
                             </AnimatePresence>
                             <item.icon className={cn("w-5 h-5 relative z-10 transition-transform group-hover:scale-110", isActive && "text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]")} />
                           </div>
-                        </button>
+                        </Link>
                       </TooltipTrigger>
                       <TooltipContent side="bottom" sideOffset={15} className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl">
                         <p>{item.label}</p>

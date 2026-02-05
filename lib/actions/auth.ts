@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { sendNotification } from '@/lib/actions/notifications'
 import { getTodayIST } from '@/lib/utils'
 
@@ -654,7 +654,11 @@ export async function logSexDrive(level: string) {
 
   console.log('[logSexDrive] Result:', { data, error })
 
-  // Notify Partner
+  // Revalidate Caches (Surgical)
+  // 1. My dashboard needs fresh data
+  revalidateTag(`dashboard-${user.id}`, 'default')
+
+  // 2. Partner's dashboard needs fresh data (to see my update)
   if (profile?.couple_id) {
     const { data: couple } = await supabase
       .from('couples')
@@ -665,6 +669,8 @@ export async function logSexDrive(level: string) {
     if (couple) {
       const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
       if (partnerId) {
+        revalidateTag(`dashboard-${partnerId}`, 'default')
+
         await sendNotification({
           recipientId: partnerId,
           actorId: user.id,
@@ -678,6 +684,7 @@ export async function logSexDrive(level: string) {
     }
   }
 
-  revalidatePath('/dashboard', 'layout')
+  // Fallback path revalidation just in case
+  revalidatePath('/dashboard')
   return { success: true }
 }

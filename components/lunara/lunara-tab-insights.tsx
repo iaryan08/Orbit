@@ -20,7 +20,7 @@ interface Insight {
 }
 
 // Helper component for responsive images
-const ResponsiveImage = ({ src, alt, fill, className }: { src: string, alt: string, fill?: boolean, className?: string }) => {
+const ResponsiveImage = ({ src, alt, fill, className, sizes }: { src: string, alt: string, fill?: boolean, className?: string, sizes?: string }) => {
     // Check if src is one of our special IDs "1", "2", "3", "4"
     const isSpecialId = ["1", "2", "3", "4"].includes(src)
 
@@ -33,6 +33,7 @@ const ResponsiveImage = ({ src, alt, fill, className }: { src: string, alt: stri
                         src={`/images/${src}-m.jpg`}
                         alt={alt}
                         fill={fill}
+                        sizes={sizes || "(max-width: 768px) 100vw, 33vw"}
                         className="object-cover"
                     />
                 </div>
@@ -42,6 +43,7 @@ const ResponsiveImage = ({ src, alt, fill, className }: { src: string, alt: stri
                         src={`/images/${src}.jpg`}
                         alt={alt}
                         fill={fill}
+                        sizes={sizes || "(max-width: 768px) 100vw, 33vw"}
                         className="object-cover"
                     />
                 </div>
@@ -54,6 +56,7 @@ const ResponsiveImage = ({ src, alt, fill, className }: { src: string, alt: stri
             src={src}
             alt={alt}
             fill={fill}
+            sizes={sizes || "(max-width: 768px) 100vw, 33vw"}
             className={className}
         />
     )

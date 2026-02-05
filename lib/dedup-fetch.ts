@@ -7,7 +7,7 @@ type PendingRequest = {
 }
 
 const pendingRequests = new Map<string, PendingRequest>()
-const CACHE_DURATION = 5000 // 5 seconds - prevents duplicate calls in quick succession
+const CACHE_DURATION = 500 // 0.5 seconds - strictly to dedup simultaneous calls, basically fresh on every reload
 
 /**
  * Deduplicates API requests by caching in-flight requests
