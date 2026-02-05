@@ -174,9 +174,13 @@ export function DashboardHeader({
             )}
           >
             <TooltipProvider delayDuration={0}>
-              <div className="flex items-center justify-center">
+              <motion.div
+                whileHover={{ scale: 0.95 }}
+                whileTap={{ scale: 0.9, y: 1 }}
+                className="flex items-center justify-center cursor-pointer"
+              >
                 <NotificationBell />
-              </div>
+              </motion.div>
               <div className={cn(
                 "bg-white/10 transition-all duration-300",
                 "md:w-6 md:h-px md:my-2 mx-0",
@@ -195,10 +199,15 @@ export function DashboardHeader({
                     <Tooltip key={item.href}>
                       <TooltipTrigger asChild>
                         <Link href={item.href} onMouseEnter={() => setHoveredPath(item.href)} className="relative block">
-                          <div className={cn(
-                            "p-3 rounded-full flex items-center justify-center relative group transition-all duration-300",
-                            isActive ? "text-white" : "text-white/40 group-hover:text-white"
-                          )}>
+                          <motion.div
+                            whileHover={{ scale: 0.95 }}
+                            whileTap={{ scale: 0.92, y: 1, filter: "brightness(1.2)" }}
+                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                            className={cn(
+                              "p-3 rounded-full flex items-center justify-center relative group transition-all duration-300",
+                              isActive ? "text-white" : "text-white/40 group-hover:text-white"
+                            )}
+                          >
                             <AnimatePresence>
                               {(isActive || isHovered) && (
                                 <motion.div
@@ -214,7 +223,7 @@ export function DashboardHeader({
                             <item.icon className={cn("w-5 h-5 relative z-10 transition-transform group-hover:scale-110", isActive && "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]")} />
                             {item.label === 'Memories' && unreadCounts.memories > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />}
                             {item.label === 'Letters' && unreadCounts.letters > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />}
-                          </div>
+                          </motion.div>
                         </Link>
                       </TooltipTrigger>
                       <TooltipContent side="right" sideOffset={15} className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl">
@@ -235,14 +244,19 @@ export function DashboardHeader({
                     <Tooltip key={item.id}>
                       <TooltipTrigger asChild>
                         <Link href={item.href} onMouseEnter={() => setHoveredPath(item.id)} className="relative block">
-                          <div className={cn("p-3 rounded-full flex items-center justify-center relative group transition-all duration-300", isActive ? "text-purple-200" : "text-purple-300/40 group-hover:text-purple-200")}>
+                          <motion.div
+                            whileHover={{ scale: 0.95 }}
+                            whileTap={{ scale: 0.92, y: 1, filter: "brightness(1.2)" }}
+                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                            className={cn("p-3 rounded-full flex items-center justify-center relative group transition-all duration-300", isActive ? "text-purple-200" : "text-purple-300/40 group-hover:text-purple-200")}
+                          >
                             <AnimatePresence>
                               {(isActive || isHovered) && (
                                 <motion.div layoutId="lunara-nav-indicator-scrolled" className="absolute inset-0 z-0 bg-purple-500/20 border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)] rounded-full px-4 md:rounded-[18px]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ type: "spring", stiffness: 500, damping: 30 }} />
                               )}
                             </AnimatePresence>
                             <item.icon className={cn("w-5 h-5 relative z-10 transition-transform group-hover:scale-110", isActive && "text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]")} />
-                          </div>
+                          </motion.div>
                         </Link>
                       </TooltipTrigger>
                       <TooltipContent side="right" sideOffset={15} className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl">
@@ -260,7 +274,13 @@ export function DashboardHeader({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/dashboard/settings" className={cn("p-3 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-colors", scrolled && "md:mb-0")}>
-                    <Settings className="w-5 h-5 transition-colors" />
+                    <motion.div
+                      whileHover={{ scale: 0.95 }}
+                      whileTap={{ scale: 0.9, y: 1 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                    >
+                      <Settings className="w-5 h-5 transition-colors" />
+                    </motion.div>
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent side="right" sideOffset={15} className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl">
@@ -288,9 +308,13 @@ export function DashboardHeader({
             )}
           >
             <TooltipProvider delayDuration={0}>
-              <div className="flex items-center justify-center">
+              <motion.div
+                whileHover={{ scale: 0.95 }}
+                whileTap={{ scale: 0.9, y: 1 }}
+                className="flex items-center justify-center cursor-pointer"
+              >
                 <NotificationBell />
-              </div>
+              </motion.div>
               <div className="bg-white/10 w-px h-6 mx-2" />
               {mode === 'moon' ? (
                 [
@@ -305,10 +329,15 @@ export function DashboardHeader({
                     <Tooltip key={item.href}>
                       <TooltipTrigger asChild>
                         <Link href={item.href} onMouseEnter={() => setHoveredPath(item.href)} className="relative block">
-                          <div className={cn(
-                            "p-3 rounded-full flex items-center justify-center relative group transition-all duration-300",
-                            isActive ? "text-white" : "text-white/40 group-hover:text-white"
-                          )}>
+                          <motion.div
+                            whileHover={{ scale: 0.95 }}
+                            whileTap={{ scale: 0.92, y: 1, filter: "brightness(1.2)" }}
+                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                            className={cn(
+                              "p-3 rounded-full flex items-center justify-center relative group transition-all duration-300",
+                              isActive ? "text-white" : "text-white/40 group-hover:text-white"
+                            )}
+                          >
                             <AnimatePresence>
                               {(isActive || isHovered) && (
                                 <motion.div
@@ -324,7 +353,7 @@ export function DashboardHeader({
                             <item.icon className={cn("w-5 h-5 relative z-10 transition-transform group-hover:scale-110", isActive && "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]")} />
                             {item.label === 'Memories' && unreadCounts.memories > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />}
                             {item.label === 'Letters' && unreadCounts.letters > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />}
-                          </div>
+                          </motion.div>
                         </Link>
                       </TooltipTrigger>
                       <TooltipContent side="bottom" sideOffset={15} className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl">
@@ -345,14 +374,19 @@ export function DashboardHeader({
                     <Tooltip key={item.id}>
                       <TooltipTrigger asChild>
                         <Link href={item.href} onMouseEnter={() => setHoveredPath(item.id)} className="relative block">
-                          <div className={cn("p-3 rounded-full flex items-center justify-center relative group transition-all duration-300", isActive ? "text-purple-200" : "text-purple-300/40 group-hover:text-purple-200")}>
+                          <motion.div
+                            whileHover={{ scale: 0.95 }}
+                            whileTap={{ scale: 0.92, y: 1, filter: "brightness(1.2)" }}
+                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                            className={cn("p-3 rounded-full flex items-center justify-center relative group transition-all duration-300", isActive ? "text-purple-200" : "text-purple-300/40 group-hover:text-purple-200")}
+                          >
                             <AnimatePresence>
                               {(isActive || isHovered) && (
                                 <motion.div layoutId="lunara-nav-indicator-top" className="absolute inset-0 z-0 bg-purple-500/20 border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)] rounded-full px-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ type: "spring", stiffness: 500, damping: 30 }} />
                               )}
                             </AnimatePresence>
                             <item.icon className={cn("w-5 h-5 relative z-10 transition-transform group-hover:scale-110", isActive && "text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]")} />
-                          </div>
+                          </motion.div>
                         </Link>
                       </TooltipTrigger>
                       <TooltipContent side="bottom" sideOffset={15} className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl">
@@ -366,7 +400,13 @@ export function DashboardHeader({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link href="/dashboard/settings" className="p-3 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-colors">
-                    <Settings className="w-5 h-5 transition-colors" />
+                    <motion.div
+                      whileHover={{ scale: 0.95 }}
+                      whileTap={{ scale: 0.9, y: 1 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                    >
+                      <Settings className="w-5 h-5 transition-colors" />
+                    </motion.div>
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" sideOffset={15} className="bg-black/90 text-white border-white/10 rounded-2xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest backdrop-blur-xl">
@@ -405,13 +445,19 @@ export function DashboardHeader({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-12 w-12 rounded-full p-0 border-2 border-white/10 shadow-lg hover:scale-105 transition-transform">
-              <Avatar className="h-full w-full">
-                <AvatarImage src={userAvatar || undefined} alt={userName} />
-                <AvatarFallback className="bg-primary/20 text-primary font-bold">
-                  {userName?.charAt(0) || 'U'}
-                </AvatarFallback>
-              </Avatar>
+            <Button variant="ghost" className="relative h-12 w-12 rounded-full p-0 border-2 border-white/10 shadow-lg transition-all overflow-hidden focus-visible:ring-0">
+              <motion.div
+                whileHover={{ scale: 0.95 }}
+                whileTap={{ scale: 0.9, y: 2 }}
+                className="w-full h-full"
+              >
+                <Avatar className="h-full w-full">
+                  <AvatarImage src={userAvatar || undefined} alt={userName} />
+                  <AvatarFallback className="bg-primary/20 text-primary font-bold">
+                    {userName?.charAt(0) || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+              </motion.div>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56 glass-card border-white/10 backdrop-blur-xl text-white rounded-2xl mr-4 mt-2" align="end" forceMount>

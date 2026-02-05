@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { MoodType } from '@/lib/constants'
 import { getTodayIST, getISTDate } from '@/lib/utils'
 
@@ -47,6 +47,9 @@ export async function submitMood(mood: MoodType, note?: string) {
     return { error: error.message }
   }
 
+  // Surgical Cache Invalidation
+  revalidateTag(`dashboard-${user.id}`, 'default')
+
   // Calculate Partner ID from Couples Table
   const { data: couple } = await supabase
     .from('couples')
@@ -58,6 +61,7 @@ export async function submitMood(mood: MoodType, note?: string) {
     const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
 
     if (partnerId) {
+      revalidateTag(`dashboard-${partnerId}`, 'default')
       await sendNotification({
         recipientId: partnerId,
         actorId: user.id,

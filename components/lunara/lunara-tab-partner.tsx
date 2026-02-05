@@ -75,21 +75,26 @@ export function LunaraTabPartner({ data }: { data: any }) {
 
     // Sync state with incoming props data (Realtime updates from parent)
     React.useEffect(() => {
-        const today = currentDateIST || getTodayIST()
+        // cycleLogs is already filtered by 24h updated_at and sorted DESC in server action
 
         // Update My Logs
-        const myLog = cycleLogs?.find((l: any) => l.user_id === profile.id && l.log_date === today)
+        const myLog = cycleLogs?.find((l: any) => l.user_id === profile.id)
         if (myLog) {
             setSharedSymptoms(myLog.symptoms || [])
             setMySexDrive(myLog.sex_drive || null)
+        } else {
+            setSharedSymptoms([])
+            setMySexDrive(null)
         }
 
         // Update Partner Logs
-        const partnerLog = cycleLogs?.find((l: any) => l.user_id === partnerProfile?.id && l.log_date === today)
+        const partnerLog = cycleLogs?.find((l: any) => l.user_id === partnerProfile?.id)
         if (partnerLog) {
             setPartnerSexDrive(partnerLog.sex_drive || null)
+        } else {
+            setPartnerSexDrive(null)
         }
-    }, [data, cycleLogs, profile.id, partnerProfile?.id, currentDateIST])
+    }, [data, cycleLogs, profile.id, partnerProfile?.id])
 
     const getSuggestedSymptoms = (day: number) => {
         if (!isFemale) return ["Stressed", "Happy", "Tired", "Energetic", "Calm", "Anxious", "Inspired"]
@@ -187,13 +192,8 @@ export function LunaraTabPartner({ data }: { data: any }) {
                                         defaultValue={mySexDrive || 'medium'}
                                         onValueChange={async (val) => {
                                             setMySexDrive(val) // Optimistic update
-                                            // await logSexDrive(val) // Removed for "not sync" mode as requested momentarily, 
-                                            // BUT the user said "not sync - Do not load data from database". 
-                                            // Logging TO database is fine (it's a write), but "Do not load data" implies 
-                                            // we shouldn't rely on the refresh to get the new state back.
-                                            // So we keep the write, but remove the refresh.
-                                            await logSexDrive(val)
-                                            // router.refresh() <-- REMOVED based on "Do not load data from database... keep the prev logic"
+                                            await logSexDrive(val) // Save to DB (Background)
+                                            // No router.refresh() to avoid re-fetching
                                             toast({ title: "Libido Updated", className: "bg-zinc-800 text-white border-zinc-700" })
                                         }}
                                     />
@@ -221,7 +221,7 @@ export function LunaraTabPartner({ data }: { data: any }) {
 
                         {isFemale ? (
                             <div className="flex flex-wrap gap-2.5">
-                                {getSuggestedSymptoms(currentDay || 1).map(s => {
+                                {[...getSuggestedSymptoms(currentDay || 1), ...sharedSymptoms.filter(s => !getSuggestedSymptoms(currentDay || 1).includes(s))].map(s => {
                                     const isShared = sharedSymptoms.includes(s)
                                     return (
                                         <button
@@ -243,15 +243,18 @@ export function LunaraTabPartner({ data }: { data: any }) {
                             </div>
                         ) : (
                             <div className="flex flex-wrap gap-2.5">
-                                {cycleLogs?.find((l: any) => l.user_id === partnerProfile?.id && l.log_date === (currentDateIST || getTodayIST()))?.symptoms?.length > 0 ? (
-                                    cycleLogs.find((l: any) => l.user_id === partnerProfile?.id && l.log_date === (currentDateIST || getTodayIST())).symptoms.map((s: string) => (
-                                        <div key={s} className="px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-purple-500/20 border border-purple-400/50 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
-                                            {s}
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="text-sm text-white/20 italic">No symptoms logged by {partnerName} today.</p>
-                                )}
+                                {(() => {
+                                    const latestPartnerLog = cycleLogs?.find((l: any) => l.user_id === partnerProfile?.id)
+                                    return latestPartnerLog?.symptoms?.length > 0 ? (
+                                        latestPartnerLog.symptoms.map((s: string) => (
+                                            <div key={s} className="px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-purple-500/20 border border-purple-400/50 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
+                                                {s}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-[10px] text-white/20 uppercase font-bold">No symptoms shared yet</p>
+                                    )
+                                })()}
                             </div>
                         )}
                     </div>

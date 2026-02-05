@@ -83,7 +83,7 @@ export async function fetchDashboardData() {
                     // 7. Cycle Logs (Rolling 24h check based on updated_at, or fallback to recent log_date)
                     // We fetch recent logs and filter in JS or use updated_at if possible. 
                     // Using updated_at > 24h ago ensures we capture recent edits even if log_date was "yesterday"
-                    coupleId ? supabase.from('cycle_logs').select('*').eq('couple_id', coupleId).gte('updated_at', rolling24hStart.toISOString()).order('log_date', { ascending: false }) : Promise.resolve({ data: [] }),
+                    coupleId ? supabase.from('cycle_logs').select('*').eq('couple_id', coupleId).gte('updated_at', rolling24hStart.toISOString()).order('updated_at', { ascending: false }) : Promise.resolve({ data: [] }),
 
                     // 8. On This Day Content (Calendar Based)
                     coupleId ? supabase.from('memories').select('*').eq('couple_id', coupleId) : Promise.resolve({ data: [] }),

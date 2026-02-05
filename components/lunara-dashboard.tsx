@@ -16,7 +16,7 @@ import { createClient } from '@/lib/supabase/client'
 import { saveLunaraOnboarding, toggleLunaraSharing, logPeriodStart, logSymptoms } from '@/lib/actions/auth'
 import { fetchDashboardData } from '@/lib/actions/consolidated'
 import { getTodayIST } from '@/lib/utils'
-import { Loader2, Share2, Shield, UserCheck } from 'lucide-react'
+import { Loader2, Share2, Shield, UserCheck, Flame } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/hooks/use-toast'
 import { useRouter } from 'next/navigation'
@@ -27,80 +27,52 @@ import { cn } from '@/lib/utils'
 
 import { NotificationBell } from './notification-bell'
 
-export function LunaraDashboard() {
-    const [loading, setLoading] = React.useState(true)
-    const [profile, setProfile] = React.useState<any>(null)
-    const [cycleProfile, setCycleProfile] = React.useState<any>(null)
-    const [partnerProfile, setPartnerProfile] = React.useState<any>(null)
-    const [partnerId, setPartnerId] = React.useState<string | null>(null)
-    const [cycleLogs, setCycleLogs] = React.useState<any[]>([])
-    const [supportLogs, setSupportLogs] = React.useState<any[]>([])
+export function LunaraDashboard({ initialData }: { initialData: any }) {
+    const [loading, setLoading] = React.useState(false)
+    const [profile, setProfile] = React.useState<any>(initialData.profile)
+    const [cycleProfile, setCycleProfile] = React.useState<any>(initialData.userCycle)
+    const [partnerProfile, setPartnerProfile] = React.useState<any>(initialData.partnerProfile)
+    const [partnerId, setPartnerId] = React.useState<string | null>(initialData.profile.partner_id)
+    const [cycleLogs, setCycleLogs] = React.useState<any[]>(initialData.cycleLogs)
+    const [supportLogs, setSupportLogs] = React.useState<any[]>(initialData.supportLogs)
     const [showSettings, setShowSettings] = React.useState(false)
     const [showSupportModal, setShowSupportModal] = React.useState(false)
     const [isSyncing, setIsSyncing] = React.useState(false)
     const [isLogging, setIsLogging] = React.useState(false)
     const [sharedSymptoms, setSharedSymptoms] = React.useState<string[]>([])
     const supabase = createClient()
+    const { toast } = useToast()
+    const router = useRouter()
 
+    // Sync state with props when router.refresh() fetches new data
+    React.useEffect(() => {
+        if (initialData) {
+            setProfile(initialData.profile)
+            setCycleProfile(initialData.userCycle)
+            setPartnerProfile(initialData.partnerProfile)
+            setPartnerId(initialData.profile.partner_id)
+            setCycleLogs(initialData.cycleLogs || [])
+            setSupportLogs(initialData.supportLogs || [])
+        }
+    }, [initialData])
 
     React.useEffect(() => {
-        let channel: any = null
-
-        const loadData = async () => {
-            // Use consolidated fetch
-            const result = await fetchDashboardData()
-            if (result.success && result.data) {
-                const d = result.data
-                setProfile(d.profile)
-                setPartnerProfile(d.partnerProfile)
-                setCycleProfile(d.userCycle)
-                setCycleLogs(d.cycleLogs)
-                setSupportLogs(d.supportLogs)
-                setPartnerId(d.profile.partner_id)
-
-                // Handle partner cycle separately if needed or if it returns mixed data
-                // The consolidated action returns 'partnerCycle' explicitly
-                // But existing code expects 'cycleProfile' to be the one we show? 
-                // Logic in original: if female, show hers. if male, show partner's.
-
-                if (d.profile.gender === 'female') {
-                    setCycleProfile(d.userCycle)
-                } else {
-                    setCycleProfile(d.partnerCycle)
+        const channel = supabase
+            .channel('lunara-dashboard-updates')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', filter: `couple_id=eq.${profile.couple_id}` },
+                () => {
+                    console.log('Realtime update received, refreshing...')
+                    router.refresh()
                 }
-
-                // Log for today
-                const today = d.currentDateIST
-                const todaysLog = d.cycleLogs?.find((l: any) => l.log_date === today)
-                if (todaysLog?.symptoms) {
-                    setSharedSymptoms(todaysLog.symptoms)
-                } else {
-                    setSharedSymptoms([])
-                }
-
-                setLoading(false)
-
-                // Setup Subs if we have couple_id
-                if (d.profile.couple_id && !channel) {
-                    channel = supabase
-                        .channel('lunara-changes-consolidated')
-                        .on('postgres_changes', { event: '*', schema: 'public', table: 'cycle_profiles', filter: `couple_id=eq.${d.profile.couple_id}` }, loadData)
-                        .on('postgres_changes', { event: '*', schema: 'public', table: 'cycle_logs', filter: `couple_id=eq.${d.profile.couple_id}` }, loadData)
-                        .on('postgres_changes', { event: '*', schema: 'public', table: 'support_logs', filter: `couple_id=eq.${d.profile.couple_id}` }, loadData)
-                        .subscribe()
-                }
-            } else {
-                console.error("Failed to load dashboard data:", result.error)
-                setLoading(false)
-            }
-        }
-
-        loadData()
+            )
+            .subscribe()
 
         return () => {
-            if (channel) supabase.removeChannel(channel)
+            supabase.removeChannel(channel)
         }
-    }, [])
+    }, [router, profile?.couple_id])
 
     const getCycleDay = () => {
         if (!cycleProfile?.last_period_start) return null
@@ -140,8 +112,7 @@ export function LunaraDashboard() {
         )
         : null
 
-    const { toast } = useToast()
-    const router = useRouter()
+
 
     const handleOnboardingComplete = async (onboardingData: any) => {
         setLoading(true)
@@ -261,22 +232,15 @@ export function LunaraDashboard() {
 
                     // 2. Force Refresh to ensure server state is consistent
                     router.refresh()
-
-                    // 3. Explicitly reload dashboard data to ensure we have the DB state
-                    // (Small delay to allow DB propagation if needed, though server action should handle it)
-                    setTimeout(() => {
-                        const loadData = async () => {
-                            const result = await fetchDashboardData()
-                            if (result.success && result.data) {
-                                setCycleProfile((prev: any) => ({ ...prev, ...result.data.userCycle }))
-                            }
-                        }
-                        loadData()
-                    }, 500)
                 }}
             />
         )
     }
+
+    // Determine libido for display
+    const today = getTodayIST()
+    const partnerLog = cycleLogs?.find((l: any) => l.user_id === partnerId && l.log_date === today)
+    const partnerLibido = partnerLog?.sex_drive
 
     return (
         <div className="max-w-7xl mx-auto space-y-12 pt-12 pb-40 px-6 md:px-8">
@@ -319,6 +283,32 @@ export function LunaraDashboard() {
             </ScrollReveal>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Libido Alert (Only if High) - High Priority */}
+                {partnerLibido === 'very_high' && (
+                    <ScrollReveal className="lg:col-span-4" delay={0}>
+                        <div className="glass-card p-6 bg-gradient-to-r from-orange-600/30 to-red-600/30 border-orange-500/50 flex items-center justify-between relative overflow-hidden group shadow-[0_0_30px_rgba(234,88,12,0.2)]">
+                            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-red-600/10 animate-pulse" />
+                            {/* Fire particles effect overlay */}
+                            <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay" />
+
+                            <div className="relative z-10 flex w-full items-center gap-6 justify-center md:justify-start text-center md:text-left">
+                                <div className="relative shrink-0">
+                                    <div className="absolute inset-0 bg-orange-500/40 blur-xl rounded-full animate-pulse" />
+                                    <div className="p-3 rounded-full bg-orange-500/20 border border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.6)] relative z-10">
+                                        <Flame className="w-8 h-8 text-orange-500 drop-shadow-[0_0_10px_rgba(255,165,0,0.8)] animate-pulse" fill="currentColor" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-white mb-1 drop-shadow-md">Intense Passion Alert</h3>
+                                    <p className="text-white/90 italic font-medium text-sm">
+                                        {profile?.gender === 'female' ? "He's feeling a burning desire for you right now." : "She's feeling a burning desire for you right now."}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </ScrollReveal>
+                )}
+
                 {/* Main Cycle Widget */}
                 <ScrollReveal className="lg:col-span-2 row-span-2" delay={0.1}>
                     <div className="glass-card p-10 flex flex-col items-center justify-center h-full relative overflow-hidden group border-purple-500/20 bg-purple-950/20">
@@ -516,10 +506,7 @@ export function LunaraDashboard() {
                 </div>
             </ScrollReveal>
 
-            {/* Coming Soon Message */}
-            <div className="text-center py-10 opacity-30">
-                <p className="text-sm italic tracking-widest uppercase">Deep body insights & Log history coming soon</p>
-            </div>
+
 
             <SupportModal
                 isOpen={showSupportModal}

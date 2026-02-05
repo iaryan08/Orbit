@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Moon, Calendar, Sparkles, Plus, Activity, Heart, Info, Loader2, Settings, Bell } from 'lucide-react'
+import { Moon, Calendar, Sparkles, Plus, Activity, Heart, Info, Loader2, Settings, Bell, Flame } from 'lucide-react'
 import { differenceInDays, addDays, format, startOfDay } from 'date-fns'
 import { cn, getTodayIST } from '@/lib/utils'
 import { ScrollReveal } from '@/components/scroll-reveal'
@@ -26,12 +26,18 @@ export function LunaraTabDashboard({ data }: { data: any }) {
     const [showSettings, setShowSettings] = React.useState(false)
     const [isLogging, setIsLogging] = React.useState(false)
 
-    // Find today's log for the person being tracked (female partner)
+    // Find partner libido for the alert
+    const partnerId = profile.partner_id
+    const partnerLog = cycleLogs?.find((l: any) => l.user_id === partnerId && l.log_date === (currentDateIST || getTodayIST()))
+    const partnerLibido = partnerLog?.sex_drive
+
+    // Find the LATEST log for the person being tracked (within 24h rolling window)
     const trackedUserId = profile.gender === 'female' ? profile.id : profile.partner_id
-    const todayLog = cycleLogs?.find((l: any) => l.user_id === trackedUserId && l.log_date === currentDateIST)
+    // cycleLogs is already filtered by 24h updated_at and sorted DESC in server action
+    const latestLog = cycleLogs?.find((l: any) => l.user_id === trackedUserId)
 
     const [selectedSymptoms, setSelectedSymptoms] = React.useState<string[]>(
-        todayLog?.symptoms || []
+        latestLog?.symptoms || []
     )
     const [isSavingSymptoms, setIsSavingSymptoms] = React.useState(false)
     const [showCustomInput, setShowCustomInput] = React.useState(false)
@@ -41,7 +47,11 @@ export function LunaraTabDashboard({ data }: { data: any }) {
 
     React.useEffect(() => {
         setCycleProfile(profile.gender === 'female' ? userCycle : partnerCycle)
-    }, [userCycle, partnerCycle, profile.gender])
+        // Sync symptoms if fresh data comes in
+        if (latestLog) {
+            setSelectedSymptoms(latestLog.symptoms || [])
+        }
+    }, [userCycle, partnerCycle, profile.gender, latestLog])
 
     const getCycleDay = () => {
         if (!cycleProfile?.last_period_start) return null
@@ -53,10 +63,69 @@ export function LunaraTabDashboard({ data }: { data: any }) {
     }
 
     const getPhaseInfo = (day: number) => {
-        if (day <= 5) return { name: "Menstrual Phase", color: "text-rose-400", advice: "Rest and warmth are key today." }
-        if (day <= 13) return { name: "Follicular Phase", color: "text-emerald-400", advice: "You're likely feeling more energetic." }
-        if (day === 14 || day === 15) return { name: "Ovulatory Phase", color: "text-amber-400", advice: "Energy and mood are at their peak." }
-        return { name: "Luteal Phase", color: "text-indigo-400", advice: "Focus on gentle self-care and winding down." }
+        const phases = [
+            {
+                name: "Menstrual Phase",
+                color: "text-rose-400",
+                female: [
+                    "Your body is working hard. Prioritize deep rest, warm teas, and iron-rich meals.",
+                    "Focus on your inner world. It's okay to decline social invites. Magnesium is your best friend today.",
+                    "Gentle heat and restorative movements will soothe you. Honor your need for boundaries and softness."
+                ],
+                male: [
+                    "Comfort is everything. Keep her environment warm and have her favorite snacks ready.",
+                    "Offer gentle physical comfort without expectations. Think hot water bottles and soft blankets.",
+                    "Patience is your superpower today. Listen deeply and provide a steady, grounding presence."
+                ]
+            },
+            {
+                name: "Follicular Phase",
+                color: "text-emerald-400",
+                female: [
+                    "A surge of creativity and optimism is blooming. Perfect time to start a new project.",
+                    "Harness your rising ambition. Your brain is primed for learning and socializing.",
+                    "You're feeling a fresh wave of energy. Try a new workout or a bold creative challenge today."
+                ],
+                male: [
+                    "She's feeling a fresh wave of energy. Surprise her with an active date—a hike or a new restaurant.",
+                    "Match her rising optimism. Be her biggest cheerleader as she starts new projects or ideas.",
+                    "Social energy is high. Suggest a double date or a fun evening out with friends."
+                ]
+            },
+            {
+                name: "Ovulatory Phase",
+                color: "text-amber-400",
+                female: [
+                    "You're at your most vibrant and magnetic. Use this peak energy for important social events.",
+                    "Your communication is at its most persuasive and clear. Be open about your deepest desires.",
+                    "You're radiating confidence. This is a great time for deep connection and bold moves."
+                ],
+                male: [
+                    "This is her most magnetic phase. Compliment her sincerely and plan a romantic evening.",
+                    "Match her peak energy with quality presence and passion. She's feeling vibrant and seen.",
+                    "Confidence is peaking. Major romance points for compliments and high-energy quality time."
+                ]
+            },
+            {
+                name: "Luteal Phase",
+                color: "text-indigo-400",
+                female: [
+                    "The season of grounding. Honor your need for nesting and restorative, gentle movement.",
+                    "Prioritize self-care and protein-rich meals to help stabilize your mood as energy dips.",
+                    "Peaceful boundaries are vital now. Create a relaxing environment and finish up pending tasks."
+                ],
+                male: [
+                    "Patience and emotional safety are vital now. Take over household chores without being asked.",
+                    "Listen without trying to 'fix' things. Provide a steady, grounding presence as her energy shifts.",
+                    "Be extra gentle today. Physical comfort and a listening ear go a long way in this phase."
+                ]
+            }
+        ]
+
+        if (day <= 5) return phases[0]
+        if (day <= 13) return phases[1]
+        if (day === 14 || day === 15) return phases[2]
+        return phases[3]
     }
 
 
@@ -93,6 +162,8 @@ export function LunaraTabDashboard({ data }: { data: any }) {
                 toast({ title: "Update Failed", variant: "destructive" })
                 // Revert on failure
                 setSelectedSymptoms(selectedSymptoms)
+            } else {
+                router.refresh()
             }
         } catch (e) {
             console.error(e)
@@ -113,6 +184,8 @@ export function LunaraTabDashboard({ data }: { data: any }) {
             if (!result.success) {
                 toast({ title: "Update Failed", variant: "destructive" })
                 setSelectedSymptoms(selectedSymptoms)
+            } else {
+                router.refresh()
             }
             setIsSavingSymptoms(false)
         }
@@ -127,25 +200,23 @@ export function LunaraTabDashboard({ data }: { data: any }) {
         return { level: "Low", color: "text-emerald-400" }
     }
 
-    const getSupportAdvice = (phaseName: string) => {
-        switch (phaseName) {
-            case "Menstrual Phase":
-                return "Comfort is top priority. Think hot water bottles, dark chocolate, and lots of hugs."
-            case "Follicular Phase":
-                return "She's feeling new energy! Perfect time for a fun date or trying something new together."
-            case "Ovulatory Phase":
-                return "Confidence is high. Major romance points for compliments and quality time tonight."
-            case "Luteal Phase":
-                return "Be patient and extra gentle. Emotional support and help with chores go a long way now."
-            default:
-                return "Being present and listening is the best support you can offer right now."
-        }
-    }
 
     const currentDay = getCycleDay()
     const phase = currentDay ? getPhaseInfo(currentDay) : null
     const chance = currentDay ? getPregnancyChance(currentDay) : { level: "—", color: "text-white/20" }
-    const supportAdvice = phase ? getSupportAdvice(phase.name) : "Stay synced and supportive."
+
+    // Logic for frequently refreshing advice
+    const getInsightContent = () => {
+        if (!phase) return "Stay synced and supportive."
+
+        // Use current date to pick an index (0, 1, or 2)
+        const now = new Date()
+        const index = now.getDate() % 3
+
+        return profile.gender === 'female' ? phase.female[index] : phase.male[index]
+    }
+
+    const dailyInsight = getInsightContent()
 
     const nextPeriodDate = cycleProfile?.last_period_start
         ? addDays(new Date(cycleProfile.last_period_start),
@@ -169,9 +240,34 @@ export function LunaraTabDashboard({ data }: { data: any }) {
 
     return (
         <div className="space-y-8 pb-20">
+            {/* Libido Alert (Only if High) - High Priority */}
+            {partnerLibido === 'very_high' && (
+                <ScrollReveal className="w-full" delay={0}>
+                    <div className="glass-card p-6 bg-gradient-to-r from-orange-600/30 to-red-600/30 border-orange-500/50 flex items-center justify-between relative overflow-hidden group shadow-[0_0_30px_rgba(234,88,12,0.2)]">
+                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-red-600/10 animate-pulse" />
+                        {/* Fire particles effect overlay */}
+                        <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay" />
+
+                        <div className="relative z-10 flex w-full items-center gap-6 justify-center md:justify-start text-center md:text-left">
+                            <div className="relative shrink-0">
+                                <div className="absolute inset-0 bg-orange-500/40 blur-xl rounded-full animate-pulse" />
+                                <div className="p-3 rounded-full bg-orange-500/20 border border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.6)] relative z-10">
+                                    <Flame className="w-8 h-8 text-orange-500 drop-shadow-[0_0_10px_rgba(255,165,0,0.8)] animate-pulse" fill="currentColor" />
+                                </div>
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-white mb-1 drop-shadow-md">Intense Passion Alert</h3>
+                                <p className="text-white/90 italic font-medium text-sm">
+                                    {profile?.gender === 'female' ? "He's feeling a burning desire for you right now." : "She's feeling a burning desire for you right now."}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </ScrollReveal>
+            )}
             {/* 1. Main Cycle Widget (Hero - Day Count) */}
             <ScrollReveal className="w-full">
-                <div className="glass-card p-6 sm:p-10 flex flex-col items-center justify-center relative overflow-hidden group border-purple-500/20 bg-purple-950/20 transition-all hover:bg-purple-900/20 shadow-xl">
+                <div className="glass-card p-6 sm:p-10 flex flex-col items-center justify-center relative overflow-hidden group border-purple-500/20 bg-purple-950/20 transition-all hover:bg-purple-900/10 shadow-xl">
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-500 opacity-50" />
 
                     {profile?.gender === 'female' && (
@@ -231,7 +327,7 @@ export function LunaraTabDashboard({ data }: { data: any }) {
                 </div>
             </ScrollReveal>
 
-            {/* 3 & 4. Insights Grid: Enhanced with Symptoms, Pregnancy Chance, and Advice */}
+            {/* 3. Insights Grid: Merged for Clarity and Freshness */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* 1. Log Symptoms Card */}
                 <ScrollReveal delay={0.2}>
@@ -241,55 +337,74 @@ export function LunaraTabDashboard({ data }: { data: any }) {
                                 <Bell className="w-4 h-4" />
                             </div>
                             <h4 className="text-sm font-bold text-white/90 leading-tight">
-                                How are you feeling{profile.gender === 'female' ? '' : ', Female'}?
+                                {profile.gender === 'female' ? "How are you feeling?" : "How She's Feeling"}
                             </h4>
                         </div>
 
-                        <div className="flex flex-wrap gap-2.5 mb-6">
-                            {["Cramps", "Fatigue", "Back Pain", "Headache", "Mood Swings", ...selectedSymptoms.filter(s => !["Cramps", "Fatigue", "Back Pain", "Headache", "Mood Swings"].includes(s))].map(s => (
-                                <button
-                                    key={s}
-                                    onClick={() => toggleSymptom(s)}
-                                    disabled={profile.gender !== 'female'}
-                                    className={cn(
-                                        "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border",
-                                        selectedSymptoms.includes(s)
-                                            ? "bg-purple-500/20 border-purple-400/50 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.2)]"
-                                            : "bg-white/5 border-white/5 text-white/40 hover:bg-white/10"
-                                    )}
-                                >
-                                    {s}
-                                </button>
-                            ))}
-                        </div>
+                        {profile.gender === 'female' ? (
+                            <>
+                                <div className="flex flex-wrap gap-2.5 mb-6">
+                                    {["Cramps", "Fatigue", "Back Pain", "Headache", "Mood Swings", ...selectedSymptoms.filter(s => !["Cramps", "Fatigue", "Back Pain", "Headache", "Mood Swings"].includes(s))].map(s => (
+                                        <button
+                                            key={s}
+                                            onClick={() => toggleSymptom(s)}
+                                            className={cn(
+                                                "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border",
+                                                selectedSymptoms.includes(s)
+                                                    ? "bg-purple-500/20 border-purple-400/50 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.2)]"
+                                                    : "bg-white/5 border-white/5 text-white/40 hover:bg-white/10"
+                                            )}
+                                        >
+                                            {s}
+                                        </button>
+                                    ))}
+                                </div>
 
-                        {showCustomInput ? (
-                            <div className="flex items-center gap-2 mb-4 w-full h-10">
-                                <input
-                                    autoFocus
-                                    type="text"
-                                    value={customValue}
-                                    onChange={(e) => setCustomValue(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && handleAddCustomSymptom()}
-                                    className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 text-xs text-white outline-none focus:border-purple-500/40 transition-all h-full"
-                                    placeholder="Enter symptom..."
-                                />
-                                <button
-                                    onClick={handleAddCustomSymptom}
-                                    className="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center hover:bg-purple-400 transition-all shrink-0"
-                                >
-                                    <Plus className="w-5 h-5" />
-                                </button>
-                            </div>
+                                {showCustomInput ? (
+                                    <div className="flex items-center gap-2 mb-4 w-full h-10">
+                                        <input
+                                            autoFocus
+                                            type="text"
+                                            value={customValue}
+                                            onChange={(e) => setCustomValue(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleAddCustomSymptom()}
+                                            className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 text-xs text-white outline-none focus:border-purple-500/40 transition-all h-full"
+                                            placeholder="Enter symptom..."
+                                        />
+                                        <button
+                                            onClick={handleAddCustomSymptom}
+                                            className="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center hover:bg-purple-400 transition-all shrink-0"
+                                        >
+                                            <Plus className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="mt-auto pt-4 border-t border-white/5 w-full flex items-center justify-between">
+                                        <button
+                                            onClick={() => setShowCustomInput(true)}
+                                            className="text-[10px] text-white/40 font-bold uppercase tracking-widest hover:text-white/80 transition-all flex items-center gap-2"
+                                        >
+                                            <Plus className="w-3.5 h-3.5" />
+                                            {isSavingSymptoms ? 'Syncing...' : 'Add custom symptom'}
+                                        </button>
+                                    </div>
+                                )}
+                            </>
                         ) : (
-                            <div className="mt-auto pt-4 border-t border-white/5 w-full flex items-center justify-between">
-                                <button
-                                    onClick={() => setShowCustomInput(true)}
-                                    className="text-[10px] text-white/40 font-bold uppercase tracking-widest hover:text-white/80 transition-all flex items-center gap-2"
-                                >
-                                    <Plus className="w-3.5 h-3.5" />
-                                    {isSavingSymptoms ? 'Syncing...' : 'Add custom symptom'}
-                                </button>
+                            <div className="flex-1 flex flex-col">
+                                {latestLog?.symptoms?.length > 0 ? (
+                                    <div className="flex flex-wrap gap-2.5">
+                                        {latestLog.symptoms.map((s: string) => (
+                                            <div key={s} className="px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-purple-500/20 border border-purple-400/50 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
+                                                {s}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-white/40 italic my-auto">
+                                        She hasn't logged any symptoms in the last 24h.
+                                    </p>
+                                )}
                             </div>
                         )}
                     </div>
@@ -314,29 +429,21 @@ export function LunaraTabDashboard({ data }: { data: any }) {
                     </div>
                 </ScrollReveal>
 
-                {/* 3. Daily Rhythm Advice Card */}
-                <ScrollReveal delay={0.3}>
-                    <div className="glass-card p-6 bg-purple-950/20 border-purple-500/20 h-full relative overflow-hidden flex flex-col justify-center shadow-lg hover:bg-purple-900/10 transition-colors">
-                        <div className="absolute top-0 right-0 p-4 opacity-10">
-                            <Sparkles className="w-12 h-12 text-purple-300" />
+                {/* 3. Merged Daily Insight Card (Spans 2 columns) */}
+                <ScrollReveal delay={0.3} className="lg:col-span-2">
+                    <div className="glass-card p-8 bg-purple-950/20 border-purple-500/20 h-full relative overflow-hidden flex flex-col justify-center shadow-lg hover:bg-purple-900/10 transition-colors group">
+                        <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                            {profile.gender === 'female' ? <Sparkles className="w-16 h-16 text-purple-300" /> : <Heart className="w-16 h-16 text-rose-400" />}
                         </div>
-                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-white/60 mb-3 flex items-center gap-2">
-                            ADVICE
+                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-white/60 mb-4 flex items-center gap-2">
+                            {profile.gender === 'female' ? "DAILY ADVICE" : "HOW YOU CAN HELP"}
                         </h3>
-                        <p className="text-sm sm:text-base text-purple-50 font-medium italic font-serif leading-relaxed line-clamp-4">
-                            "{phase?.advice || "Track to unlock personalized insights."}"
+                        <p className="text-base sm:text-xl text-purple-50 font-medium italic font-serif leading-relaxed">
+                            "{dailyInsight}"
                         </p>
-                    </div>
-                </ScrollReveal>
-
-                {/* 4. How He's Helping / Support Card */}
-                <ScrollReveal delay={0.35}>
-                    <div className="glass-card p-6 bg-purple-950/20 border-purple-500/20 h-full flex flex-col items-center justify-center text-center shadow-lg hover:bg-purple-900/10 transition-colors">
-                        <Heart className="w-6 h-6 text-rose-400 mb-4 animate-pulse-slow" />
-                        <h3 className="text-[10px] uppercase tracking-widest font-bold text-white/60 mb-3">How He's Helping</h3>
-                        <p className="text-sm text-purple-100 font-medium leading-relaxed italic">
-                            {supportAdvice}
-                        </p>
+                        <div className="mt-6 flex items-center gap-2">
+                            <div className="w-8 h-1 bg-purple-500/40 rounded-full" />
+                        </div>
                     </div>
                 </ScrollReveal>
             </div>

@@ -428,9 +428,19 @@ export async function saveLunaraOnboarding(onboardingData: any) {
       updated_at: new Date().toISOString(),
     })
 
-  if (error) {
-    console.error('Error saving Lunara onboarding:', error)
-    return { error: error.message }
+  // Surgical Cache Invalidation
+  revalidateTag(`dashboard-${user.id}`, 'default')
+
+  if (profile?.couple_id) {
+    const { data: couple } = await supabase
+      .from('couples')
+      .select('user1_id, user2_id')
+      .eq('id', profile.couple_id)
+      .single()
+    if (couple) {
+      const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
+      if (partnerId) revalidateTag(`dashboard-${partnerId}`, 'default')
+    }
   }
 
   revalidatePath('/dashboard', 'layout')
@@ -462,9 +472,18 @@ export async function logSupportAction(trackerId: string, actionText: string, ca
       log_date: new Date().toISOString().split('T')[0]
     })
 
-  if (error) {
-    console.error('Error logging support action:', error)
-    return { error: error.message }
+  // Surgical Cache Invalidation
+  revalidateTag(`dashboard-${user.id}`, 'default')
+  if (profile?.couple_id) {
+    const { data: couple } = await supabase
+      .from('couples')
+      .select('user1_id, user2_id')
+      .eq('id', profile.couple_id)
+      .single()
+    if (couple) {
+      const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
+      if (partnerId) revalidateTag(`dashboard-${partnerId}`, 'default')
+    }
   }
 
   revalidatePath('/dashboard', 'layout')
@@ -482,9 +501,25 @@ export async function toggleLunaraSharing(enabled: boolean) {
     .update({ sharing_enabled: enabled })
     .eq('user_id', user.id)
 
-  if (error) {
-    console.error('Error toggling Lunara sharing:', error)
-    return { error: error.message }
+  // Surgical Cache Invalidation
+  revalidateTag(`dashboard-${user.id}`, 'default')
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('couple_id')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.couple_id) {
+    const { data: couple } = await supabase
+      .from('couples')
+      .select('user1_id, user2_id')
+      .eq('id', profile.couple_id)
+      .single()
+    if (couple) {
+      const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
+      if (partnerId) revalidateTag(`dashboard-${partnerId}`, 'default')
+    }
   }
 
   revalidatePath('/dashboard', 'layout')
@@ -558,6 +593,21 @@ export async function logPeriodStart() {
     }
   }
 
+  // Surgical Cache Invalidation
+  revalidateTag(`dashboard-${user.id}`, 'default')
+  if (profile?.couple_id) {
+    const { data: couple } = await supabase
+      .from('couples')
+      .select('user1_id, user2_id')
+      .eq('id', profile.couple_id)
+      .single()
+
+    if (couple) {
+      const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
+      if (partnerId) revalidateTag(`dashboard-${partnerId}`, 'default')
+    }
+  }
+
   revalidatePath('/dashboard', 'layout')
   return { success: true }
 }
@@ -580,15 +630,16 @@ export async function logSymptoms(symptoms: string[]) {
   const today = getTodayIST()
 
   // Upsert symptoms into cycle_logs
-  // Note: Assuming 'symptoms' is a text[] or jsonb column. If it doesn't exist, this will fail.
-  // Given standard Supabase usage, we'll try to pass it.
+  // Ensure unique symptoms and no empty strings
+  const uniqueSymptoms = Array.from(new Set(symptoms.map(s => s.trim()).filter(Boolean)))
+
   const { error } = await supabase
     .from('cycle_logs')
     .upsert({
       user_id: user.id,
       couple_id: profile?.couple_id,
       log_date: today,
-      symptoms: symptoms,
+      symptoms: uniqueSymptoms,
       updated_at: new Date().toISOString()
     }, { onConflict: 'user_id, log_date' })
 
@@ -613,6 +664,21 @@ export async function logSymptoms(symptoms: string[]) {
           metadata: { log_date: today }
         })
       }
+    }
+  }
+
+  // Surgical Cache Invalidation
+  revalidateTag(`dashboard-${user.id}`, 'default')
+  if (profile?.couple_id) {
+    const { data: couple } = await supabase
+      .from('couples')
+      .select('user1_id, user2_id')
+      .eq('id', profile.couple_id)
+      .single()
+
+    if (couple) {
+      const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
+      if (partnerId) revalidateTag(`dashboard-${partnerId}`, 'default')
     }
   }
 

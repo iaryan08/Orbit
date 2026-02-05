@@ -4,8 +4,35 @@ import { useAppMode } from './app-mode-context'
 import { LunaraLayout } from './lunara/lunara-layout'
 import { motion, AnimatePresence } from 'framer-motion'
 
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+
 export function DashboardShell({ children, lunaraData }: { children: React.ReactNode, lunaraData?: any }) {
     const { mode } = useAppMode()
+    const router = useRouter()
+    const supabase = createClient()
+    const coupleId = lunaraData?.profile?.couple_id
+
+    useEffect(() => {
+        if (!coupleId) return
+
+        const channel = supabase
+            .channel('dashboard-realtime-sync')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', filter: `couple_id=eq.${coupleId}` },
+                () => {
+                    console.log('Realtime update received in Shell, refreshing...')
+                    router.refresh()
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [router, coupleId])
 
     return (
         <AnimatePresence mode="wait">

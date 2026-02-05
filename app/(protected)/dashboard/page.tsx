@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import dynamic from 'next/dynamic'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Heart, PenLine, ImageIcon, Gamepad2, Calendar, Sparkles } from 'lucide-react'
+import { Heart, PenLine, ImageIcon, Gamepad2, Calendar, Sparkles, Flame } from 'lucide-react'
 import Link from 'next/link'
 import type { MoodType } from '@/lib/constants'
 import { cn } from '@/lib/utils'
@@ -115,6 +115,41 @@ export default async function DashboardPage() {
 
                 {/* Unified Bento Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-8 md:mt-12">
+
+                    {/* Heat Alert (Conditional) */}
+                    {(() => {
+                        const today = result.data.currentDateIST // Use server-provided date
+                        const pId = partnerProfile?.id
+                        const pLog = result.data.cycleLogs?.find((l: any) => l.user_id === pId && l.log_date === today)
+                        if (pLog?.sex_drive === 'very_high') {
+                            return (
+                                <ScrollReveal className="lg:col-span-4" delay={0}>
+                                    <div className="glass-card p-6 bg-gradient-to-r from-orange-600/30 to-red-600/30 border-orange-500/50 flex items-center justify-between relative overflow-hidden group shadow-[0_0_30px_rgba(234,88,12,0.2)]">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-red-600/10 animate-pulse" />
+
+                                        {/* Fire particles effect overlay (simulated with dots) */}
+                                        <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay" />
+
+                                        <div className="flex items-center gap-5 relative z-10 w-full justify-center text-center md:text-left md:justify-start">
+                                            <div className="relative">
+                                                <div className="absolute inset-0 bg-orange-500/40 blur-xl rounded-full animate-pulse" />
+                                                <div className="p-3 rounded-full bg-orange-500/20 border border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.6)] relative z-10">
+                                                    <Flame className="w-8 h-8 text-orange-500 drop-shadow-[0_0_10px_rgba(255,165,0,0.8)] animate-pulse" fill="currentColor" />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-bold text-white leading-tight drop-shadow-md">Intense Passion Alert</h3>
+                                                <p className="text-sm text-orange-100/90 font-medium">
+                                                    {partnerProfile?.display_name || 'Partner'} is feeling a burning desire for you right now.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </ScrollReveal>
+                            )
+                        }
+                        return null
+                    })()}
 
                     {/* Big Widget: Together Counter (Reference Weather Style) */}
                     <ScrollReveal className="lg:col-span-2" delay={0.1}>
