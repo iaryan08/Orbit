@@ -77,7 +77,7 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
         className="bg-transparent border-none shadow-none cursor-pointer group"
         onClick={() => setIsExpanded(true)}
       >
-        <CardContent className="flex flex-col items-center justify-center py-3 md:py-10 text-center relative overflow-hidden">
+        <CardContent className="flex flex-col items-center justify-center py-1.5 md:py-10 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="text-6xl mb-4 animate-in zoom-in duration-500">
             {moodToShow && MOOD_EMOJIS[moodToShow as MoodType]}

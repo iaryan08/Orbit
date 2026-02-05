@@ -110,7 +110,7 @@ export function DashboardHeader({
         "fixed top-6 md:top-10 left-6 md:left-10 z-50 hidden md:flex items-center gap-2 transition-all duration-500",
         mode === 'moon' ? "text-amber-100/90" : "text-purple-100/90",
         isDesktopScrolled ? "opacity-0 -translate-x-10 pointer-events-none" : "opacity-100 translate-x-0",
-        !isVisible && "-translate-y-32" // Hide when scrolling down
+        !isVisible && "-translate-x-40" // Hide horizontally to the left
       )}>
         {mode === 'moon' ? (
           <div className="flex items-center gap-3">
@@ -369,8 +369,8 @@ export function DashboardHeader({
 
       {/* 4. Profile Dropdown & Mode Toggle (Top Right Floating) */}
       <div className={cn(
-        "fixed top-6 md:top-10 right-6 md:right-10 z-50 flex items-center gap-4 transition-transform duration-500",
-        !isVisible && "-translate-y-32"
+        "fixed top-6 md:top-10 right-6 md:right-10 z-50 flex items-center gap-4 transition-all duration-500",
+        !isVisible && "-translate-x-40 opacity-0"
       )}>
         {/* Lunara Mode Toggle Indicator - ALWAYS VISIBLE TO PREVENT SHIFT */}
         <LunaraToggle />
