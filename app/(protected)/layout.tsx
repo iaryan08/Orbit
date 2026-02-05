@@ -5,6 +5,7 @@ import { DashboardHeader } from '@/components/dashboard-header'
 import { RealtimeObserver } from '@/components/realtime-observer'
 import { fetchUnreadCounts } from '@/lib/actions/auth'
 import { AppModeProvider } from '@/components/app-mode-context'
+import { AmbientTopLoader } from '@/components/ambient-top-loader'
 
 
 export default async function ProtectedLayout({
@@ -63,6 +64,7 @@ export default async function ProtectedLayout({
 
     return (
         <AppModeProvider initialProfile={profile} initialCoupleId={profile?.couple_id}>
+            <AmbientTopLoader />
             <div className="min-h-screen bg-transparent pb-10 md:pb-0">
                 {/* Top Viewport Fade Overlay */}
                 <div className="fixed top-0 left-0 right-0 h-32 bg-gradient-to-b from-background via-background/60 to-transparent z-[30] pointer-events-none" />

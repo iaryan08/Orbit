@@ -3,6 +3,7 @@
 import React from 'react'
 import { Moon, Calendar, Sparkles, Plus, Activity, Heart, Info, Loader2, Settings, Bell, Flame } from 'lucide-react'
 import { differenceInDays, addDays, format, startOfDay } from 'date-fns'
+import { motion } from 'framer-motion'
 import { cn, getTodayIST } from '@/lib/utils'
 import { ScrollReveal } from '@/components/scroll-reveal'
 import { Button } from '@/components/ui/button'
@@ -194,10 +195,17 @@ export function LunaraTabDashboard({ data }: { data: any }) {
     }
 
     const getPregnancyChance = (day: number) => {
-        if (day >= 12 && day <= 16) return { level: "High", color: "text-rose-400" }
-        if (day >= 10 && day <= 11) return { level: "Medium", color: "text-amber-400" }
-        if (day === 17) return { level: "Medium", color: "text-amber-400" }
+        // Based on a standard 28-day cycle approximation
+        if (day === 14) return { level: "Very High", color: "text-rose-500" }
+        if (day >= 12 && day <= 15) return { level: "High", color: "text-rose-400" }
+        if (day >= 10 && day <= 17) return { level: "Medium", color: "text-amber-400" }
         return { level: "Low", color: "text-emerald-400" }
+    }
+
+    const triggerHaptic = () => {
+        if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+            window.navigator.vibrate(10)
+        }
     }
 
 
@@ -307,14 +315,16 @@ export function LunaraTabDashboard({ data }: { data: any }) {
 
                     <div className="mt-6 sm:mt-8 flex gap-4">
                         {profile?.gender === 'female' && (
-                            <button
+                            <motion.button
                                 onClick={handleLogPeriod}
+                                whileTap={{ scale: 0.92 }}
+                                onTapStart={triggerHaptic}
                                 disabled={isLogging}
-                                className="px-5 py-2 sm:px-6 sm:py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-200 text-[10px] sm:text-xs font-bold uppercase tracking-widest cursor-pointer hover:bg-purple-500/20 transition-all flex items-center gap-2 disabled:opacity-50 shadow-lg shadow-purple-500/5 active:scale-95"
+                                className="px-5 py-2 sm:px-6 sm:py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-200 text-[10px] sm:text-xs font-bold uppercase tracking-widest cursor-pointer hover:bg-purple-500/20 transition-all flex items-center gap-2 disabled:opacity-50 shadow-lg shadow-purple-500/5"
                             >
                                 {isLogging && <Loader2 className="w-3 h-3 animate-spin" />}
                                 Log Period
-                            </button>
+                            </motion.button>
                         )}
                     </div>
                 </div>
@@ -345,9 +355,11 @@ export function LunaraTabDashboard({ data }: { data: any }) {
                             <>
                                 <div className="flex flex-wrap gap-2.5 mb-6">
                                     {["Cramps", "Fatigue", "Back Pain", "Headache", "Mood Swings", ...selectedSymptoms.filter(s => !["Cramps", "Fatigue", "Back Pain", "Headache", "Mood Swings"].includes(s))].map(s => (
-                                        <button
+                                        <motion.button
                                             key={s}
                                             onClick={() => toggleSymptom(s)}
+                                            whileTap={{ scale: 0.9 }}
+                                            onTapStart={triggerHaptic}
                                             className={cn(
                                                 "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border",
                                                 selectedSymptoms.includes(s)
@@ -356,7 +368,7 @@ export function LunaraTabDashboard({ data }: { data: any }) {
                                             )}
                                         >
                                             {s}
-                                        </button>
+                                        </motion.button>
                                     ))}
                                 </div>
 
@@ -420,10 +432,11 @@ export function LunaraTabDashboard({ data }: { data: any }) {
                             <span className={cn("text-4xl font-black uppercase tracking-tighter", chance.color)}>
                                 {chance.level}
                             </span>
-                            <div className="flex gap-1 justify-center mt-2">
-                                <span className={cn("w-1.5 h-1.5 rounded-full bg-white/20", chance.level === 'Low' && "bg-emerald-400 shadow-glow")} />
-                                <span className={cn("w-1.5 h-1.5 rounded-full bg-white/20", chance.level === 'Medium' && "bg-amber-400 shadow-glow")} />
-                                <span className={cn("w-1.5 h-1.5 rounded-full bg-white/20", chance.level === 'High' && "bg-rose-400 shadow-glow")} />
+                            <div className="flex gap-1.5 justify-center mt-3">
+                                <span className={cn("w-2 h-2 rounded-full transition-all duration-500 bg-white/10", chance.level === 'Low' && "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.6)]")} />
+                                <span className={cn("w-2 h-2 rounded-full transition-all duration-500 bg-white/10", chance.level === 'Medium' && "bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.6)]")} />
+                                <span className={cn("w-2 h-2 rounded-full transition-all duration-500 bg-white/10", chance.level === 'High' && "bg-rose-400 shadow-[0_0_10px_rgba(251,113,133,0.6)]")} />
+                                <span className={cn("w-2 h-2 rounded-full transition-all duration-500 bg-white/10", chance.level === 'Very High' && "bg-rose-600 shadow-[0_0_15px_rgba(225,29,72,0.8)] scale-125")} />
                             </div>
                         </div>
                     </div>

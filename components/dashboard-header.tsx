@@ -103,6 +103,12 @@ export function DashboardHeader({
   // Desktop: Toggle between dock-top and dock-scrolled based on scrolled state
   const isDesktopScrolled = scrolled && !isMobile
 
+  const triggerHaptic = () => {
+    if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+      window.navigator.vibrate(10) // Ultra-short pulse for tactile feel
+    }
+  }
+
   return (
     <>
       {/* 1. Logo (Top Left Floating) */}
@@ -176,7 +182,8 @@ export function DashboardHeader({
             <TooltipProvider delayDuration={0}>
               <motion.div
                 whileHover={{ scale: 0.95 }}
-                whileTap={{ scale: 0.9, y: 1 }}
+                whileTap={{ scale: 0.85, y: 1 }}
+                onTapStart={triggerHaptic}
                 className="flex items-center justify-center cursor-pointer"
               >
                 <NotificationBell />
@@ -201,8 +208,9 @@ export function DashboardHeader({
                         <Link href={item.href} onMouseEnter={() => setHoveredPath(item.href)} className="relative block">
                           <motion.div
                             whileHover={{ scale: 0.95 }}
-                            whileTap={{ scale: 0.92, y: 1, filter: "brightness(1.2)" }}
-                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                            whileTap={{ scale: 0.88, y: 2, filter: "brightness(1.3)" }}
+                            onTapStart={triggerHaptic}
+                            transition={{ type: "spring", stiffness: 450, damping: 15 }}
                             className={cn(
                               "p-3 rounded-full flex items-center justify-center relative group transition-all duration-300",
                               isActive ? "text-white" : "text-white/40 group-hover:text-white"
@@ -246,8 +254,9 @@ export function DashboardHeader({
                         <Link href={item.href} onMouseEnter={() => setHoveredPath(item.id)} className="relative block">
                           <motion.div
                             whileHover={{ scale: 0.95 }}
-                            whileTap={{ scale: 0.92, y: 1, filter: "brightness(1.2)" }}
-                            transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                            whileTap={{ scale: 0.88, y: 2, filter: "brightness(1.3)" }}
+                            onTapStart={triggerHaptic}
+                            transition={{ type: "spring", stiffness: 450, damping: 15 }}
                             className={cn("p-3 rounded-full flex items-center justify-center relative group transition-all duration-300", isActive ? "text-purple-200" : "text-purple-300/40 group-hover:text-purple-200")}
                           >
                             <AnimatePresence>
@@ -276,8 +285,9 @@ export function DashboardHeader({
                   <Link href="/dashboard/settings" className={cn("p-3 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-colors", scrolled && "md:mb-0")}>
                     <motion.div
                       whileHover={{ scale: 0.95 }}
-                      whileTap={{ scale: 0.9, y: 1 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                      whileTap={{ scale: 0.85, y: 1 }}
+                      onTapStart={triggerHaptic}
+                      transition={{ type: "spring", stiffness: 450, damping: 15 }}
                     >
                       <Settings className="w-5 h-5 transition-colors" />
                     </motion.div>
@@ -310,7 +320,8 @@ export function DashboardHeader({
             <TooltipProvider delayDuration={0}>
               <motion.div
                 whileHover={{ scale: 0.95 }}
-                whileTap={{ scale: 0.9, y: 1 }}
+                whileTap={{ scale: 0.85, y: 1 }}
+                onTapStart={triggerHaptic}
                 className="flex items-center justify-center cursor-pointer"
               >
                 <NotificationBell />
@@ -331,7 +342,8 @@ export function DashboardHeader({
                         <Link href={item.href} onMouseEnter={() => setHoveredPath(item.href)} className="relative block">
                           <motion.div
                             whileHover={{ scale: 0.95 }}
-                            whileTap={{ scale: 0.92, y: 1, filter: "brightness(1.2)" }}
+                            whileTap={{ scale: 0.88, y: 2, filter: "brightness(1.3)" }}
+                            onTapStart={triggerHaptic}
                             transition={{ type: "spring", stiffness: 400, damping: 17 }}
                             className={cn(
                               "p-3 rounded-full flex items-center justify-center relative group transition-all duration-300",
@@ -376,7 +388,8 @@ export function DashboardHeader({
                         <Link href={item.href} onMouseEnter={() => setHoveredPath(item.id)} className="relative block">
                           <motion.div
                             whileHover={{ scale: 0.95 }}
-                            whileTap={{ scale: 0.92, y: 1, filter: "brightness(1.2)" }}
+                            whileTap={{ scale: 0.88, y: 2, filter: "brightness(1.3)" }}
+                            onTapStart={triggerHaptic}
                             transition={{ type: "spring", stiffness: 400, damping: 17 }}
                             className={cn("p-3 rounded-full flex items-center justify-center relative group transition-all duration-300", isActive ? "text-purple-200" : "text-purple-300/40 group-hover:text-purple-200")}
                           >
@@ -402,8 +415,9 @@ export function DashboardHeader({
                   <Link href="/dashboard/settings" className="p-3 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-colors">
                     <motion.div
                       whileHover={{ scale: 0.95 }}
-                      whileTap={{ scale: 0.9, y: 1 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                      whileTap={{ scale: 0.85, y: 1 }}
+                      onTapStart={triggerHaptic}
+                      transition={{ type: "spring", stiffness: 450, damping: 15 }}
                     >
                       <Settings className="w-5 h-5 transition-colors" />
                     </motion.div>
@@ -448,7 +462,8 @@ export function DashboardHeader({
             <Button variant="ghost" className="relative h-12 w-12 rounded-full p-0 border-2 border-white/10 shadow-lg transition-all overflow-hidden focus-visible:ring-0">
               <motion.div
                 whileHover={{ scale: 0.95 }}
-                whileTap={{ scale: 0.9, y: 2 }}
+                whileTap={{ scale: 0.85, y: 2 }}
+                onTapStart={triggerHaptic}
                 className="w-full h-full"
               >
                 <Avatar className="h-full w-full">
