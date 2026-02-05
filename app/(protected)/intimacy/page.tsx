@@ -117,7 +117,7 @@ export default function IntimacyPage() {
     if (loading) return <div className="p-10 text-center text-rose-200">Loading intimacy mode...</div>;
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-4xl space-y-8 pb-20 pt-8">
+        <div className="container mx-auto px-4 py-8 max-w-4xl space-y-8 pb-20 pt-24">
             <div className="flex items-center justify-start gap-3 z-10">
                 <Flame className="h-6 w-6 text-rose-500 drop-shadow-[0_0_10px_rgba(251,113,133,0.8)]" />
                 <h1 className="text-2xl md:text-5xl font-serif font-bold text-rose-100 flex items-center gap-3">

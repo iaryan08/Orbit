@@ -23,7 +23,7 @@ interface AppModeProviderProps {
     initialCoupleId?: string | null
 }
 
-const MIN_SWIPE_DISTANCE = 75
+const MIN_SWIPE_DISTANCE = 50
 
 export function AppModeProvider({
     children,
@@ -100,21 +100,23 @@ export function AppModeProvider({
                 const isLeftSwipe = xDistance > 0
                 const isRightSwipe = xDistance < 0
 
-                if (mode === 'moon') {
-                    const moonRoutes = ['/dashboard', '/letters', '/memories', '/intimacy']
-                    const currentIndex = moonRoutes.indexOf(pathname)
+                // Moon Routes List
+                const moonRoutes = ['/dashboard', '/letters', '/memories', '/intimacy']
+                // Check if current page is a known Moon route
+                const moonIndex = moonRoutes.indexOf(pathname)
 
-                    if (currentIndex === -1) return
-
-                    if (isLeftSwipe && currentIndex < moonRoutes.length - 1) {
-                        router.push(moonRoutes[currentIndex + 1])
-                    } else if (isRightSwipe && currentIndex > 0) {
-                        router.push(moonRoutes[currentIndex - 1])
+                // PRIORITY 1: Moon Navigation (Works if we are on a Moon Page, regardless of "mode" setting)
+                if (moonIndex !== -1) {
+                    if (isLeftSwipe && moonIndex < moonRoutes.length - 1) {
+                        router.push(moonRoutes[moonIndex + 1])
+                    } else if (isRightSwipe && moonIndex > 0) {
+                        router.push(moonRoutes[moonIndex - 1])
                     }
-                } else {
-                    // Lunara Mode - Tab Navigation
-                    if (pathname !== '/dashboard') return
+                    return // Handled
+                }
 
+                // PRIORITY 2: Lunara Navigation (Only on Dashboard when in Lunara Mode)
+                if (mode === 'lunara' && pathname === '/dashboard') {
                     const lunaraTabs = ['dashboard', 'insights', 'partner'] as const
                     const currentIndex = lunaraTabs.indexOf(activeLunaraTab)
 
