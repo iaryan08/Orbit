@@ -89,7 +89,7 @@ export function MilestoneCard({
             case 'first_memory': return 'Your memory date 📸';
             case 'first_french_kiss': return 'When deeper sparks flew 💋';
             case 'first_hug': return `When you held ${partnerName} close 🤗`;
-            case 'first_sex': return 'The night of passion 🔥';
+            case 'first_sex': return 'The moment of passion 🔥';
             case 'first_oral': return 'That intimate moment 👅';
             case 'first_time_together': return 'When you stayed over 🌙';
             default: return 'When did it happen?';

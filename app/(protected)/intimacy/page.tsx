@@ -73,8 +73,8 @@ const questions = [
     },
     {
         id: "first_time_together",
-        label: "First Time Together",
-        q: "When did you first spend a night with {{partner}}?",
+        label: "First Bedtime Together",
+        q: "When did you first bedtime with {{partner}}?",
         icon: <MoonIcon className="w-6 h-6 text-indigo-400" />,
         image: "/images/intimacy/together.webp"
     },

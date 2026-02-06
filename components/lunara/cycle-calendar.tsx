@@ -37,6 +37,13 @@ function getDayStatus(date: Date, profile: CycleProfile) {
     if (cycleDay <= 0) cycleDay += avgCycle
 
     if (cycleDay <= avgPeriod) {
+        // Distinguish between current/past period and future predicted periods
+        const isFutureCycle = diff >= avgCycle
+
+        if (isFutureCycle) {
+            return { phase: 'predicted', cycleDay }
+        }
+
         // If period ended early for THIS cycle, return follicular for subsequent days
         if (profile.period_ended_at && profile.last_period_start) {
             const periodEnd = startOfDay(new Date(profile.period_ended_at))
@@ -179,12 +186,14 @@ export function CycleCalendar({ cycleProfile }: CalendarProps) {
                                 <div className={cn(
                                     "w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-lg font-bold transition-all relative",
                                     phase === 'menstrual' ? "bg-rose-500 text-white shadow-[0_0_15px_rgba(244,63,94,0.4)]" :
-                                        phase === 'ovulation' ? "bg-teal-400 text-black shadow-[0_0_15px_rgba(45,212,191,0.4)]" :
-                                            phase === 'fertile' ? "bg-teal-400/20 text-teal-200 border border-teal-400/30" :
-                                                isToday ? "bg-white text-black shadow-lg" : "bg-white/5 text-white"
+                                        phase === 'predicted' ? "bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]" :
+                                            phase === 'ovulation' ? "bg-teal-400 text-black shadow-[0_0_15px_rgba(45,212,191,0.4)]" :
+                                                phase === 'fertile' ? "bg-teal-400/20 text-teal-200 border border-teal-400/30" :
+                                                    isToday ? "bg-white text-black shadow-lg" : "bg-white/5 text-white"
                                 )}>
                                     {format(day.date, 'd')}
                                     {phase === 'menstrual' && <Droplets className="w-2 h-2 sm:w-3 h-3 absolute -bottom-1 text-white" fill="currentColor" />}
+                                    {phase === 'predicted' && <Droplets className="w-2 h-2 sm:w-3 h-3 absolute -bottom-1 text-white/60" fill="currentColor" />}
                                     {phase === 'ovulation' && <Sparkles className="w-2 h-2 sm:w-3 h-3 absolute -bottom-1 text-black" fill="currentColor" />}
                                     {phase === 'fertile' && <Baby className="w-2 h-2 sm:w-3 h-3 absolute -bottom-1 text-teal-400" />}
                                 </div>
@@ -192,9 +201,10 @@ export function CycleCalendar({ cycleProfile }: CalendarProps) {
                                 <span className={cn(
                                     "text-[7px] sm:text-[9px] font-bold uppercase tracking-widest",
                                     phase === 'menstrual' ? "text-rose-400" :
-                                        phase === 'ovulation' ? "text-teal-400" :
-                                            phase === 'fertile' ? "text-teal-400/60" :
-                                                "text-purple-300/20"
+                                        phase === 'predicted' ? "text-purple-400" :
+                                            phase === 'ovulation' ? "text-teal-400" :
+                                                phase === 'fertile' ? "text-teal-400/60" :
+                                                    "text-purple-300/20"
                                 )}>
                                     Day {cycleDay}
                                 </span>
