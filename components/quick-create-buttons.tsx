@@ -21,7 +21,7 @@ export function QuickCreateButtons() {
             toast({
                 title: "Spark Sent! ✨",
                 description: "Your partner knows you're thinking of them.",
-                className: "bg-purple-600 border-none text-white font-bold"
+                className: "bg-purple-50 text-purple-900 border border-purple-200 p-4 rounded-lg shadow-inner bg-opacity-90 border-none text-white font-bold"
             });
         } else {
             toast({

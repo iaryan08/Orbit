@@ -43,7 +43,6 @@ export const metadata: Metadata = {
 }
 
 import { RomanticBackground } from '@/components/romantic-background'
-import { MoonBackdrop } from '@/components/MoonBackdrop'
 import { ScrollManager } from '@/components/scroll-manager'
 
 import PushNotificationManager from '@/components/PushNotificationManager'
@@ -62,7 +61,6 @@ export default function RootLayout({
     <html lang="en" className="dark" data-scroll-behavior="smooth">
       <body suppressHydrationWarning className={`${_outfit.variable} ${_cormorant.variable} ${_pinyon.variable} font-sans antialiased min-h-screen relative overflow-x-hidden`}>
         <ScrollManager />
-        <MoonBackdrop />
         <RomanticBackground initialImage={initialImage} />
         <div className="relative z-10">
           {children}

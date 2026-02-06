@@ -13,6 +13,7 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
     const [bgImage, setBgImage] = useState<string | null>(null);
     const [theme, setTheme] = useState(getAtmosphereTheme());
     const [mounted, setMounted] = useState(false);
+    const [isDay, setIsDay] = useState(false); // Local state for immediate access
 
     useEffect(() => {
         setMounted(true);
@@ -20,7 +21,9 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
         const randomId = Math.floor(Math.random() * 4) + 1;
         setBgImage(`/images/${randomId}.jpg`);
 
-        const isDay = isDaytime();
+        const currentIsDay = isDaytime();
+        setIsDay(currentIsDay);
+
         const isMobile = window.innerWidth < 768;
 
         // Balanced: Increased counts for atmosphere
@@ -28,17 +31,23 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
         const elementCount = isMobile ? 18 : 35;
 
         const newElements = Array.from({ length: elementCount }).map((_, i) => {
-            const type = isDay ? "heart" : "star";
-            const size = type === "heart" ? Math.random() * 10 + 6 : Math.random() * 3 + 2;
-            const duration = Math.random() * 40 + 40; // Even slower (40-80s)
+            const type = currentIsDay ? "heart" : "star";
+            const isSharp = !currentIsDay && Math.random() > 0.4; // 60% sharp stars for night
+
+            const size = type === "heart"
+                ? Math.random() * 10 + 6
+                : (isSharp ? Math.random() * 2 + 1 : Math.random() * 5 + 3);
+
+            const duration = Math.random() * 40 + 40;
             const delay = Math.random() * -60;
 
-            const starColors = ["#ffffff", "#fef3c7", "#f3a65aff"];
+            const starColors = ["#ffffff", "#fef3c7", "#e0f2fe"]; // Added cool/warm tones
             const heartColors = ["#fda4af", "#fecdd3", "#fb7185"];
 
             return {
-                id: `${isDay ? 'd' : 'n'}-${i}`,
+                id: `${currentIsDay ? 'd' : 'n'}-${i}`,
                 type: type as "star" | "heart",
+                isSharp,
                 style: {
                     left: `${Math.random() * 100}%`,
                     top: `${Math.random() * 100}%`,
@@ -46,7 +55,9 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
                     height: `${size}px`,
                     animationDuration: `${duration}s`,
                     animationDelay: `${delay}s`,
-                    opacity: Math.random() * 0.10 + 0.05, // reduced max opacity (0.05-0.15)
+                    opacity: currentIsDay
+                        ? Math.random() * 0.10 + 0.05
+                        : (isSharp ? Math.random() * 0.3 + 0.2 : Math.random() * 0.15 + 0.05),
                     color: type === "heart"
                         ? heartColors[Math.floor(Math.random() * heartColors.length)]
                         : starColors[Math.floor(Math.random() * starColors.length)]
@@ -57,11 +68,13 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
         setTheme(getAtmosphereTheme());
     }, []);
 
-    // Periodic theme sync
+    // Periodic theme sync (every minute)
     useEffect(() => {
         const interval = setInterval(() => {
             const newTheme = getAtmosphereTheme();
+            const newIsDay = isDaytime();
             setTheme(newTheme);
+            setIsDay(newIsDay);
         }, 60000);
         return () => clearInterval(interval);
     }, []);
@@ -106,14 +119,55 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
                 style={{ background: theme.overlay }}
             />
 
-            {/* Atmospheric Depth Orbs */}
+            {/* INTEGRATED MOON BACKDROP (Night Only) */}
+            {!isDay && (
+                <svg
+                    className="absolute inset-0 z-[0] w-full h-full opacity-[0.4] pointer-events-none transition-opacity duration-[3000ms]"
+                    viewBox="0 0 1000 1000"
+                    preserveAspectRatio="xMidYMid slice"
+                >
+                    <title>Moon and Constellations</title>
+                    {/* Crescent Moon - Reduced size slightly for subtlety */}
+                    <path
+                        d="M600 200a180 180 0 1 0 0 360a140 180 0 1 1 0-360z"
+                        fill="white"
+                        opacity="0.15"
+                    />
+
+                    {/* Constellation lines */}
+                    <g stroke="white" strokeWidth="0.5" opacity="0.3">
+                        <line x1="200" y1="300" x2="260" y2="260" />
+                        <line x1="260" y1="260" x2="330" y2="300" />
+                        <line x1="330" y1="300" x2="380" y2="250" />
+                    </g>
+
+                    {/* Constellation stars */}
+                    <g fill="white" opacity="0.5">
+                        <circle cx="200" cy="300" r="1.5" />
+                        <circle cx="260" cy="260" r="1.5" />
+                        <circle cx="330" cy="300" r="1.5" />
+                        <circle cx="380" cy="250" r="1.5" />
+                    </g>
+
+                    {/* Zodiac arc - Very subtle */}
+                    <path
+                        d="M150 800 A500 500 0 0 1 850 800"
+                        stroke="white"
+                        strokeWidth="0.5"
+                        fill="none"
+                        opacity="0.1"
+                    />
+                </svg>
+            )}
+
+            {/* Atmospheric Depth Orbs - Optimized: Lower blur radius for mobile perf if needed, keeping simple */}
             <div
-                className="absolute top-[5%] left-[-5%] w-[70vh] h-[70vh] blur-[150px] rounded-full animate-pulse-slow mix-blend-overlay transition-colors duration-[3000ms]"
-                style={{ backgroundColor: theme.orb1, opacity: 0.6 }}
+                className="absolute top-[5%] left-[-5%] w-[70vh] h-[70vh] blur-[150px] rounded-full animate-pulse-slow mix-blend-overlay transition-colors duration-[3000ms] opacity-60"
+                style={{ backgroundColor: theme.orb1 }}
             />
             <div
-                className="absolute bottom-[5%] right-[-5%] w-[70vh] h-[70vh] blur-[150px] rounded-full animate-pulse-slow delay-1500 mix-blend-overlay transition-colors duration-[3000ms]"
-                style={{ backgroundColor: theme.orb2, opacity: 0.6 }}
+                className="absolute bottom-[5%] right-[-5%] w-[70vh] h-[70vh] blur-[150px] rounded-full animate-pulse-slow delay-1500 mix-blend-overlay transition-colors duration-[3000ms] opacity-60"
+                style={{ backgroundColor: theme.orb2 }}
             />
 
             {/* Minimalist Floating Elements (Hearts or Stars) */}
