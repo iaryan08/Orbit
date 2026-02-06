@@ -140,14 +140,37 @@ export function DistanceTimeWidget({ userProfile, partnerProfile }: DistanceWidg
 
                 <div className="flex items-center justify-between gap-4">
                     {/* User */}
-                    <div className="text-left">
+                    <div className="text-left relative z-10">
                         <div className="text-2xl font-bold text-white leading-none">
                             {formatTime(userProfile?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone)}
                         </div>
                         <div className="text-xs text-white/40 font-medium mt-1 flex items-center gap-1">
-                            {userProfile?.city || 'You'}
+                            {userProfile?.city || 'Your Time'}
                         </div>
                     </div>
+
+                    {/* Prominent Prompt if Location is missing */}
+                    {!hasUserLoc && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="absolute inset-0 z-20 bg-indigo-950/40 backdrop-blur-md flex flex-col items-center justify-center p-4 rounded-[inherit] border border-indigo-500/30 shadow-[0_0_30px_rgba(79,70,229,0.2)]"
+                        >
+                            <div className="p-2 rounded-full bg-indigo-500/10 mb-2">
+                                <MapPin className="w-5 h-5 text-indigo-400 animate-bounce" />
+                            </div>
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-200 mb-3 text-center">
+                                Location Not Set
+                            </p>
+                            <button
+                                onClick={handleUpdateLocation}
+                                disabled={updating}
+                                className="px-6 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(99,102,241,0.4)]"
+                            >
+                                {updating ? 'Locating...' : 'Enable Connectivity'}
+                            </button>
+                        </motion.div>
+                    )}
 
                     {/* Center Graph */}
                     <div className="flex-1 flex flex-col items-center justify-center relative h-full min-h-[40px]">

@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import dynamic from 'next/dynamic'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Heart, PenLine, ImageIcon, Gamepad2, Calendar, Sparkles, Flame } from 'lucide-react'
+import { Heart, PenLine, ImageIcon, Gamepad2, Calendar, Sparkles, Flame, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import type { MoodType } from '@/lib/constants'
 import { cn } from '@/lib/utils'
@@ -35,6 +35,7 @@ const DistanceTimeWidget = dynamic(() => import('@/components/distance-time-widg
     ssr: true,
     loading: () => <div className="h-32 rounded-3xl bg-white/5 animate-pulse" />
 })
+const PartnerStatus = dynamic(() => import('@/components/partner-status').then(mod => mod.PartnerStatus), { ssr: true })
 
 import { fetchDashboardData } from '@/lib/actions/consolidated'
 
@@ -118,18 +119,29 @@ export default async function DashboardPage() {
                             </div>
 
                         </div>
-                        <p className="text-rose-100/70 uppercase text-xs tracking-[0.2em]">
-                            Connected with <span className="text-rose-300 font-bold">{partnerProfile?.display_name || 'Partner'}</span>
-                        </p>
+                        <div className="flex flex-col items-center lg:items-start space-y-0.5">
+                            <div className="flex items-center gap-2">
+                                <p className="text-rose-100/70 uppercase text-xs tracking-[0.2em] whitespace-nowrap">
+                                    Connected with <span className="text-rose-300 font-bold">{partnerProfile?.display_name || 'Partner'}</span>
+                                </p>
+                                <PartnerStatus partnerId={partnerProfile?.id} />
+                            </div>
 
-                        <div className="flex items-center justify-center lg:justify-start gap-3 mt-1.5 ml-1">
-                            {partnerProfile && (
-                                <WeatherBadge
-                                    lat={partnerProfile.latitude}
-                                    lon={partnerProfile.longitude}
-                                    city={partnerProfile.city || partnerProfile.display_name}
-                                />
-                            )}
+                            <div className="flex items-center justify-center lg:justify-start">
+                                {partnerProfile && (
+                                    <WeatherBadge
+                                        lat={partnerProfile.latitude}
+                                        lon={partnerProfile.longitude}
+                                        city={partnerProfile.city || partnerProfile.display_name}
+                                    />
+                                )}
+                                {!profile?.latitude && (
+                                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 animate-pulse">
+                                        <MapPin className="w-3 h-3" />
+                                        <span className="text-[10px] font-bold uppercase tracking-wider">Enable Your Location</span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 

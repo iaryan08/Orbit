@@ -94,32 +94,33 @@ export function SharedBucketList({ initialItems = [] }: { initialItems: any[] })
 
     return (
         <Card className="glass-card border-none overflow-hidden relative group">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/10 via-transparent to-purple-900/10 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-rose-500/10 via-transparent to-amber-500/10 pointer-events-none" />
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-rose-500/20 to-transparent" />
 
             <CardHeader className="pb-4 relative z-10">
                 <div className="flex items-center justify-between">
                     <div className="space-y-1">
-                        <CardTitle className="text-xl font-serif text-white flex items-center gap-2">
-                            <Target className="h-5 w-5 text-indigo-300" />
+                        <CardTitle className="text-xl font-romantic tracking-wider text-rose-50 flex items-center gap-2">
+                            <Target className="h-5 w-5 text-rose-300" />
                             Our Bucket List
                         </CardTitle>
-                        <p className="text-xs text-indigo-200/60 uppercase tracking-widest font-medium">
+                        <p className="text-[10px] text-rose-200/40 uppercase tracking-[0.3em] font-bold">
                             Dreams we'll chase together
                         </p>
                     </div>
 
                     {/* Progress Circle */}
-                    <div className="relative w-10 h-10 flex items-center justify-center">
+                    <div className="relative w-12 h-12 flex items-center justify-center">
                         <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
                             <path
-                                className="text-white/10"
+                                className="text-white/5"
                                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                                 fill="none"
                                 stroke="currentColor"
                                 strokeWidth="3"
                             />
                             <motion.path
-                                className="text-indigo-400"
+                                className="text-rose-400"
                                 initial={{ strokeDasharray: "0, 100" }}
                                 animate={{ strokeDasharray: `${progress}, 100` }}
                                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
@@ -127,11 +128,20 @@ export function SharedBucketList({ initialItems = [] }: { initialItems: any[] })
                                 stroke="currentColor"
                                 strokeWidth="3"
                                 strokeLinecap="round"
+                                style={{
+                                    filter: 'drop-shadow(0 0 3px rgba(251, 113, 133, 0.4))'
+                                }}
                             />
                         </svg>
-                        <span className="absolute text-[10px] font-bold text-indigo-200">
-                            {completedCount}
-                        </span>
+                        <div className="absolute flex flex-col items-center justify-center">
+                            <span className="text-xs font-bold text-rose-200 leading-none">
+                                {completedCount}
+                            </span>
+                            <div className="h-[1px] w-3 bg-rose-500/30 my-0.5" />
+                            <span className="text-[8px] font-bold text-rose-100/30">
+                                {totalCount}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </CardHeader>
@@ -145,72 +155,72 @@ export function SharedBucketList({ initialItems = [] }: { initialItems: any[] })
                         placeholder="Add a new dream..."
                         value={newItemTitle}
                         onChange={(e) => setNewItemTitle(e.target.value)}
-                        className="w-full bg-black/20 border border-white/5 rounded-2xl px-4 py-3 pl-11 text-sm text-white focus:outline-none focus:bg-black/40 focus:border-indigo-500/50 transition-all placeholder:text-white/30"
+                        className="w-full bg-rose-500/5 border border-white/5 rounded-2xl px-4 py-3 pl-11 text-sm text-white focus:outline-none focus:bg-rose-500/10 focus:border-rose-500/30 transition-all placeholder:text-rose-100/20"
                     />
-                    <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-indigo-400/50 group-focus-within/input:text-indigo-400 transition-colors" />
+                    <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-rose-400/30 group-focus-within/input:text-rose-400 transition-colors" />
                     <button
                         type="submit"
                         disabled={!newItemTitle.trim() || isAdding}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-xl bg-indigo-500/20 text-indigo-200 opacity-0 group-focus-within/input:opacity-100 hover:bg-indigo-500 hover:text-white transition-all disabled:opacity-0"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-xl bg-rose-500/20 text-rose-200 opacity-0 group-focus-within/input:opacity-100 hover:bg-rose-500 hover:text-white transition-all disabled:opacity-0"
                     >
                         <Plus className="w-4 h-4" />
                     </button>
                 </form>
 
                 {/* List */}
-                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+                <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-rose-500/20 scrollbar-track-transparent">
                     <AnimatePresence initial={false} mode="popLayout">
                         {sortedItems.length === 0 ? (
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="text-center py-8 text-white/30 text-sm italic"
+                                className="text-center py-10 text-rose-100/20 text-[10px] uppercase font-bold tracking-[0.2em]"
                             >
-                                No dreams yet. Start dreaming big! ✨
+                                No dreams yet. <br /> Start dreaming big! ✨
                             </motion.div>
                         ) : (
                             sortedItems.map((item) => (
                                 <motion.div
                                     key={item.id}
                                     layout
-                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
+                                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
                                     className={cn(
-                                        "group flex items-center gap-3 p-3 rounded-xl border transition-all duration-300",
+                                        "group flex items-center gap-3 p-3.5 rounded-2xl border transition-all duration-300",
                                         item.is_completed
-                                            ? "bg-indigo-900/10 border-indigo-500/20 opacity-60"
-                                            : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10"
+                                            ? "bg-rose-500/5 border-rose-500/10 opacity-60"
+                                            : "glass-card border-white/5 hover:border-rose-500/20 shadow-sm"
                                     )}
                                 >
                                     <button
                                         onClick={() => handleToggle(item.id, item.is_completed)}
                                         className={cn(
-                                            "w-5 h-5 rounded-full border flex items-center justify-center transition-all duration-300 flex-shrink-0",
+                                            "w-6 h-6 rounded-full border flex items-center justify-center transition-all duration-300 flex-shrink-0",
                                             item.is_completed
-                                                ? "bg-indigo-500 border-indigo-500 text-white shadow-[0_0_10px_rgba(99,102,241,0.5)]"
-                                                : "border-white/30 text-transparent hover:border-indigo-400"
+                                                ? "bg-gradient-to-br from-rose-500 to-pink-600 border-rose-400 text-white shadow-[0_0_15px_rgba(244,63,94,0.4)]"
+                                                : "border-white/10 text-transparent hover:border-rose-400/50"
                                         )}
                                     >
-                                        <Check className="w-3 h-3" strokeWidth={3} />
+                                        <Check className="w-3.5 h-3.5" strokeWidth={3} />
                                     </button>
 
                                     <span className={cn(
-                                        "flex-1 text-sm transition-all duration-300",
+                                        "flex-1 text-sm font-medium transition-all duration-300",
                                         item.is_completed
-                                            ? "text-indigo-200/50 line-through decoration-indigo-500/30 decoration-2"
-                                            : "text-white/90"
+                                            ? "text-rose-100/40 line-through decoration-rose-500/40 decoration-2"
+                                            : "text-rose-50/90"
                                     )}>
                                         {item.title}
                                     </span>
 
                                     {item.is_completed && (
-                                        <Trophy className="w-4 h-4 text-yellow-500/50 animate-pulse" />
+                                        <Trophy className="w-4 h-4 text-amber-400/50 animate-pulse" />
                                     )}
 
                                     <button
                                         onClick={() => handleDelete(item.id)}
-                                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-950/30 transition-all"
+                                        className="opacity-0 group-hover:opacity-100 p-2 rounded-xl text-rose-100/10 hover:text-red-400 hover:bg-red-500/10 transition-all ml-1"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
