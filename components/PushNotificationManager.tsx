@@ -132,7 +132,7 @@ export default function PushNotificationManager() {
                         <div className="mt-5 flex gap-2">
                             <Button
                                 onClick={handleSubscribe}
-                                className="flex-1 btn-rosy h-10 text-[11px] font-black uppercase tracking-widest shadow-lg shadow-rose-500/20"
+                                className="flex-1 btn-rosy h-10 text-[11px] font-black uppercase tracking-widest"
                             >
                                 <ShieldCheck className="w-3.5 h-3.5 mr-2" />
                                 Enable Now
