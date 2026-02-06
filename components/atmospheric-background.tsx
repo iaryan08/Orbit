@@ -16,7 +16,7 @@ export function AtmosphericBackground() {
         checkTime()
         setMounted(true)
 
-        // Update every minute
+        // Update every minute, but don't re-trigger animation content too often to avoid jumps
         const interval = setInterval(checkTime, 60000)
         return () => clearInterval(interval)
     }, [])
@@ -27,29 +27,33 @@ export function AtmosphericBackground() {
         const isMobile = window.innerWidth < 768
 
         if (isDay) {
-            // Heart density logic (Day)
-            const heartCount = isMobile ? 35 : 50 // Increased density
+            // Heart density logic (Day) - Balanced for atmosphere
+            // Increased slightly: Mobile 20, Desktop 40
+            const heartCount = isMobile ? 20 : 40
             const shades = [
-                '#f9a8d4', '#f472b6', '#ec4899', '#db2777',
-                '#fda4af', '#fb7185', '#f43f5e'
+                '#f9a8d4', // Light pink
+                '#fbcfe8', // Very light pink
+                '#f472b6', // Pink
+                // Removed deep reds for a softer pastel look
             ]
 
             const newHearts = Array.from({ length: heartCount }).map((_, i) => ({
                 id: i,
                 left: `${Math.random() * 100}%`,
-                size: 8 + Math.random() * 18,
+                size: 10 + Math.random() * 20, // Slightly varying sizes
                 shade: shades[Math.floor(Math.random() * shades.length)],
                 delay: Math.random() * -30,
-                duration: 15 + Math.random() * 20,
-                opacity: isMobile ? 0.3 : 0.2
+                duration: 25 + Math.random() * 30, // Slowed down: 25-55s
+                opacity: isMobile ? 0.15 : 0.12 // Very subtle ghost opacity
             }))
             setConfig(newHearts)
         } else {
-            // Star density logic (Night)
+            // Star density logic (Night) - Balanced
             const layers = [
-                { count: isMobile ? 50 : 80, size: 1.2, opacity: 0.15, speed: 120 },
-                { count: isMobile ? 40 : 60, size: 1.8, opacity: 0.2, speed: 160 },
-                { count: isMobile ? 25 : 40, size: 2.2, opacity: 0.25, speed: 200 },
+                // Increased stars slightly for better night feel
+                { count: isMobile ? 35 : 60, size: 1.5, opacity: 0.15, speed: 180 },
+                { count: isMobile ? 25 : 45, size: 2.0, opacity: 0.2, speed: 240 },
+                { count: isMobile ? 15 : 25, size: 2.5, opacity: 0.25, speed: 300 },
             ]
 
             const newStars = layers.flatMap((layer, layerIndex) =>
@@ -59,8 +63,8 @@ export function AtmosphericBackground() {
                     size: layer.size,
                     opacity: layer.opacity,
                     speed: layer.speed,
-                    left: `${(i * 7.7 + layerIndex * 13.3) % 100}%`,
-                    top: `${(i * 11.1 + layerIndex * 19.9) % 100}%`,
+                    left: `${(i * 13 + layerIndex * 17) % 100}%`, // More spacing
+                    top: `${(i * 19 + layerIndex * 23) % 100}%`,
                 }))
             )
             setConfig(newStars)
@@ -72,7 +76,7 @@ export function AtmosphericBackground() {
     return (
         <div className="pointer-events-none fixed inset-0 z-[1] overflow-hidden">
             {isDay ? (
-                // Daytime: Floating Hearts
+                // Daytime: Floating Hearts (Subtle & Bubble-like)
                 <div className="absolute inset-0">
                     {config.map((heart) => (
                         <div
@@ -86,10 +90,10 @@ export function AtmosphericBackground() {
                                 opacity: heart.opacity,
                                 animationDelay: `${heart.delay}s`,
                                 animationDuration: `${heart.duration}s`,
-                                transform: `rotate(${Math.random() * 360}deg)`
+                                // Removed rotation for a calmer "rising bubble" effect
                             }}
                         >
-                            <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full drop-shadow-[0_0_10px_rgba(244,114,182,0.3)]">
+                            <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full drop-shadow-sm">
                                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                             </svg>
                         </div>
@@ -100,7 +104,7 @@ export function AtmosphericBackground() {
                 <div className="absolute inset-0">
                     {[0, 1, 2].map((layerIdx) => {
                         const layerStars = config.filter(s => s.layerIndex === layerIdx);
-                        const speed = layerStars[0]?.speed || 120;
+                        const speed = layerStars[0]?.speed || 180;
                         return (
                             <div
                                 key={layerIdx}

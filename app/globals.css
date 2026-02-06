@@ -3,59 +3,66 @@
 
 @layer base {
   :root {
-    /* Ambient Romantic Mode (Sweet & Sexy) - Deep & Intimate */
-    --background: 355 25% 10%;
-    /* Deep Burgundy/Cocoa Base */
-    --foreground: 340 50% 90%;
-    /* Soft Clear Rose */
+    /* Ambient Romantic Mode (Refined & Expansive) */
 
-    --card: 355 25% 12%;
-    --card-foreground: 340 30% 98%;
+    /* Base: Deeper, Cooler Cocoa/Burgundy for less eye strain */
+    --background: 355 20% 9%;
 
-    --popover: 355 25% 10%;
-    --popover-foreground: 340 30% 98%;
+    /* Foreground: Soft Mist (not harsh white) */
+    --foreground: 340 20% 95%;
 
-    --primary: 340 70% 85%;
-    /* Vibrant Soft Rose */
-    --primary-foreground: 355 30% 15%;
+    /* Card: Slightly lighter than bg for subtle depth */
+    --card: 355 20% 11%;
+    --card-foreground: 340 20% 95%;
 
-    --secondary: 35 60% 75%;
-    /* Rich Champagne Gold */
-    --secondary-foreground: 355 30% 15%;
+    --popover: 355 20% 10%;
+    --popover-foreground: 340 20% 95%;
 
-    --muted: 355 20% 20%;
-    --muted-foreground: 340 30% 75%;
-    /* Rose-tinted muted text */
+    /* Primary: Elegant Dusty Rose (Less Neon) */
+    /* Was 340 70% 85% -> Now 340 40% 80% */
+    --primary: 340 40% 80%;
+    --primary-foreground: 355 20% 15%;
 
-    --accent: 340 40% 60%;
-    /* Warm Rose Berry */
-    --accent-foreground: 340 30% 98%;
+    /* Secondary: Muted Champagne (Less Yellow) */
+    /* Was 35 60% 75% -> Now 35 30% 75% */
+    --secondary: 35 30% 75%;
+    --secondary-foreground: 355 20% 15%;
 
-    --destructive: 0 70% 40%;
+    --muted: 355 10% 20%;
+    --muted-foreground: 340 10% 70%;
+
+    /* Accent: Sophisticated Berry */
+    /* Was 340 40% 60% -> Now 340 25% 60% */
+    --accent: 340 25% 60%;
+    --accent-foreground: 340 20% 95%;
+
+    --destructive: 0 50% 40%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 355 20% 25%;
-    --input: 355 20% 25%;
-    --ring: 340 70% 85%;
-    --primary-rgb: 244, 189, 210;
+    --border: 355 15% 20%;
+    --input: 355 15% 20%;
+    --ring: 340 40% 80%;
 
-    --chart-1: 340 70% 85%;
-    --chart-2: 35 60% 75%;
-    --chart-3: 10 70% 70%;
-    --chart-4: 30 50% 50%;
-    --chart-5: 20 40% 40%;
+    /* Helper RBG for glass effects if needed */
+    --primary-rgb: 226, 190, 206;
 
-    --radius: 2rem;
-    /* Softer, fuller curves */
+    --chart-1: 340 40% 80%;
+    --chart-2: 35 30% 75%;
+    --chart-3: 10 40% 70%;
+    --chart-4: 30 30% 50%;
+    --chart-5: 20 20% 40%;
 
-    --sidebar: 355 25% 10%;
-    --sidebar-foreground: 20 20% 98%;
-    --sidebar-primary: 340 70% 85%;
-    --sidebar-primary-foreground: 355 30% 15%;
-    --sidebar-accent: 355 20% 20%;
-    --sidebar-accent-foreground: 20 20% 98%;
-    --sidebar-border: 355 20% 25%;
-    --sidebar-ring: 340 70% 85%;
+    --radius: 1.5rem;
+    /* Slightly tighter curves for cleaner UI */
+
+    --sidebar: 355 20% 9%;
+    --sidebar-foreground: 340 20% 95%;
+    --sidebar-primary: 340 40% 80%;
+    --sidebar-primary-foreground: 355 20% 15%;
+    --sidebar-accent: 355 15% 20%;
+    --sidebar-accent-foreground: 340 20% 95%;
+    --sidebar-border: 355 15% 20%;
+    --sidebar-ring: 340 40% 80%;
   }
 }
 
@@ -316,17 +323,17 @@
     transform: translateY(-5px) translateZ(0);
   }
 
-  /* Text Glow Effects - Enhanced Visibility */
+  /* Text Glow Effects - Refined & Subtle */
   .text-glow-gold {
-    text-shadow: 0 0 20px rgba(212, 195, 163, 0.6), 0 0 10px rgba(212, 195, 163, 0.3);
+    text-shadow: 0 0 15px rgba(212, 195, 163, 0.4), 0 0 5px rgba(212, 195, 163, 0.2);
   }
 
   .text-glow-rose {
-    text-shadow: 0 0 25px rgba(244, 114, 182, 0.5), 0 0 12px rgba(244, 114, 182, 0.3);
+    text-shadow: 0 0 20px rgba(226, 190, 206, 0.4), 0 0 8px rgba(226, 190, 206, 0.2);
   }
 
   .text-glow-white {
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
   }
 
   .text-glow-green {
@@ -334,7 +341,8 @@
   }
 
   .text-vibrant-animate {
-    background: linear-gradient(to right, #f9a8d4, #f472b6, #fbbf24, #fcd34d, #f9a8d4);
+    /* Softer gradient: Dusty Rose -> Pale Gold -> Dusty Rose */
+    background: linear-gradient(to right, #e2becce6, #f472b6, #eec170, #e2becce6);
     background-size: 200% auto;
     -webkit-background-clip: text;
     background-clip: text;
@@ -372,10 +380,10 @@
   }
 
   .btn-premium:hover {
-    background: linear-gradient(to right, #be185d, #b45309);
-    /* Rose to Gold/Amber */
-    border-color: rgba(255, 255, 255, 0.4);
-    box-shadow: 0 0 30px rgba(190, 24, 93, 0.4);
+    background: linear-gradient(to right, #9d174d, #92400e);
+    /* Deeper Rose to Bronze (Less bright orange) */
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 25px rgba(157, 23, 77, 0.3);
     transform: translateY(-2px) scale(1.02);
     color: white !important;
   }

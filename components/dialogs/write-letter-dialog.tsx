@@ -149,28 +149,31 @@ export function WriteLetterDialog({ open, onOpenChange, editingLetter, onSuccess
                     </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-6 mt-6">
-                    {/* Mode Toggle */}
-                    {!editingLetter && (
-                        <div className="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
-                            <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-full ${isOneTime ? 'bg-rose-500/20 text-rose-400' : 'bg-white/5 text-white/40'}`}>
-                                    {isOneTime ? <EyeOff className="w-4 h-4" /> : <Calendar className="w-4 h-4" />}
-                                </div>
-                                <div className="text-sm">
-                                    {isOneTime ? (
-                                        <>
-                                            <p className="font-medium text-white/90">Whisper Mode</p>
-                                            <p className="text-xs text-white/50">Message vanishes after viewing</p>
-                                        </>
-                                    ) : null}
-                                </div>
-                            </div>
-                            <Switch checked={isOneTime} onCheckedChange={setIsOneTime} />
-                        </div>
-                    )}
+
 
                     <div className="space-y-2">
-                        <Label htmlFor="letter-title" className="text-purple-200 font-medium tracking-wide uppercase text-xs">Title</Label>
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="letter-title" className="text-purple-200 font-medium tracking-wide uppercase text-xs">Title</Label>
+                            <Button
+                                variant="ghost"
+                                size="sm" // Small but clickable
+                                onClick={() => setIsOneTime(!isOneTime)}
+                                className={`h-6 px-2 text-xs gap-1.5 transition-colors ${isOneTime ? 'text-rose-400 hover:text-rose-300 hover:bg-rose-500/10' : 'text-white/40 hover:text-white/60 hover:bg-white/5'}`}
+                                title={isOneTime ? "Whisper Mode: Message vanishes after reading" : "Standard Mode: Saved forever"}
+                            >
+                                {isOneTime ? (
+                                    <>
+                                        <EyeOff className="w-3.5 h-3.5" />
+                                        <span>Whisper On</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Calendar className="w-3.5 h-3.5" />
+                                        <span>Standard</span>
+                                    </>
+                                )}
+                            </Button>
+                        </div>
                         <Input
                             id="letter-title"
                             placeholder={isOneTime ? "Top Secret..." : "My Dearest..."}

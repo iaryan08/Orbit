@@ -23,14 +23,14 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
         const isDay = isDaytime();
         const isMobile = window.innerWidth < 768;
 
-        // MINIMALISTIC: Reduced count significantly (15-25 elements only)
-        // One type at a time: Hearts for day, Stars for night.
-        const elementCount = isMobile ? 12 : 20;
+        // Balanced: Increased counts for atmosphere
+        // Mobile: 18 (was 8), Desktop: 35 (was 15)
+        const elementCount = isMobile ? 18 : 35;
 
         const newElements = Array.from({ length: elementCount }).map((_, i) => {
             const type = isDay ? "heart" : "star";
-            const size = type === "heart" ? Math.random() * 12 + 6 : Math.random() * 4 + 2;
-            const duration = Math.random() * 30 + 30; // Very slow movement
+            const size = type === "heart" ? Math.random() * 10 + 6 : Math.random() * 3 + 2;
+            const duration = Math.random() * 40 + 40; // Even slower (40-80s)
             const delay = Math.random() * -60;
 
             const starColors = ["#ffffff", "#fef3c7", "#f3a65aff"];
@@ -46,7 +46,7 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
                     height: `${size}px`,
                     animationDuration: `${duration}s`,
                     animationDelay: `${delay}s`,
-                    opacity: Math.random() * 0.15 + 0.05, // Very subtle (range 0.05 to 0.2)
+                    opacity: Math.random() * 0.10 + 0.05, // reduced max opacity (0.05-0.15)
                     color: type === "heart"
                         ? heartColors[Math.floor(Math.random() * heartColors.length)]
                         : starColors[Math.floor(Math.random() * starColors.length)]
@@ -70,7 +70,7 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
 
     return (
         <div className="fixed top-0 left-0 w-full h-[100lvh] z-0 overflow-hidden pointer-events-none bg-black">
-            {/* Background Image Layer */}
+            {/* Background Image Layer - Reduced Opacity for Readability */}
             <div className={`absolute inset-0 transition-opacity duration-1000 ${bgImage ? 'opacity-100' : 'opacity-0'}`}>
                 {bgImage && (
                     <>
@@ -80,7 +80,7 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
                                 alt="Background"
                                 fill
                                 priority
-                                className="object-cover opacity-60 contrast-[1.1] saturate-[0.9]"
+                                className="object-cover opacity-40 contrast-[1.05] saturate-[0.8]"
                                 quality={85}
                                 sizes="100vw"
                             />
@@ -91,7 +91,7 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
                                 alt="Background"
                                 fill
                                 priority
-                                className="object-cover opacity-60 contrast-[1.1] saturate-[0.9]"
+                                className="object-cover opacity-40 contrast-[1.05] saturate-[0.8]"
                                 quality={85}
                                 sizes="100vw"
                             />
@@ -109,11 +109,11 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
             {/* Atmospheric Depth Orbs */}
             <div
                 className="absolute top-[5%] left-[-5%] w-[70vh] h-[70vh] blur-[150px] rounded-full animate-pulse-slow mix-blend-overlay transition-colors duration-[3000ms]"
-                style={{ backgroundColor: theme.orb1 }}
+                style={{ backgroundColor: theme.orb1, opacity: 0.6 }}
             />
             <div
                 className="absolute bottom-[5%] right-[-5%] w-[70vh] h-[70vh] blur-[150px] rounded-full animate-pulse-slow delay-1500 mix-blend-overlay transition-colors duration-[3000ms]"
-                style={{ backgroundColor: theme.orb2 }}
+                style={{ backgroundColor: theme.orb2, opacity: 0.6 }}
             />
 
             {/* Minimalist Floating Elements (Hearts or Stars) */}
@@ -136,8 +136,8 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
                 </div>
             ))}
 
-            {/* Cinematic Grain */}
-            <div className="absolute inset-0 opacity-[0.15] pointer-events-none mix-blend-overlay z-[2]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
+            {/* Cinematic Grain - Dramatically Reduced */}
+            <div className="absolute inset-0 opacity-[0.07] pointer-events-none mix-blend-overlay z-[2]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
         </div>
     );
 }
