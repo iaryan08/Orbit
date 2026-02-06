@@ -18,12 +18,14 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
         setBgImage(`/images/${randomId}.jpg`);
 
         // Responsive element count: fewer on mobile for better performance
+        // Responsive element count: adjusted for more density
         const isMobile = window.innerWidth < 768;
-        const elementCount = isMobile ? 20 : 40;
+        const elementCount = isMobile ? 35 : 60;
 
         // Generate static hearts and stars
         const newElements = Array.from({ length: elementCount }).map((_, i) => {
-            const type = Math.random() > 0.85 ? "heart" : "star";
+            // Increased heart ratio (40% hearts, 60% stars)
+            const type = Math.random() > 0.6 ? "heart" : "star";
             const size = type === "heart" ? Math.random() * 14 + 8 : Math.random() * 12 + 4;
             const duration = Math.random() * 20 + 15;
             const delay = Math.random() * -20; // Use negative delay for immediate start

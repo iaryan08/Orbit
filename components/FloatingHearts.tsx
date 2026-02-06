@@ -30,14 +30,18 @@ export function FloatingHearts() {
             '#f43f5e', // rose-500
         ]
 
-        // Create 8 hearts with completely random starting values
-        const newHearts = Array.from({ length: 8 }).map((_, i) => ({
+        const isMobile = window.innerWidth < 768;
+        const heartCount = isMobile ? 25 : 20;
+
+        // Create hearts with completely random starting values
+        const newHearts = Array.from({ length: heartCount }).map((_, i) => ({
             id: i,
             left: `${Math.random() * 100}%`,
-            size: 8 + Math.random() * 12,
+            size: 10 + Math.random() * 15,
             shade: shades[Math.floor(Math.random() * shades.length)],
-            delay: Math.random() * 20,
-            duration: 18 + Math.random() * 10,
+            delay: Math.random() * -30, // Negative delay to start mid-animation
+            duration: 15 + Math.random() * 15,
+            opacity: isMobile ? 0.35 : 0.25
         }))
         setHeartConfig(newHearts)
     }, [])
@@ -55,9 +59,10 @@ export function FloatingHearts() {
                         width: `${heart.size}px`,
                         height: `${heart.size}px`,
                         color: heart.shade,
-                        opacity: 0.2,
+                        opacity: (heart as any).opacity || 0.2,
                         animationDelay: `${heart.delay}s`,
-                        animationDuration: `${heart.duration}s`
+                        animationDuration: `${heart.duration}s`,
+                        transform: `rotate(${Math.random() * 360}deg)`
                     }}
                 >
                     <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full drop-shadow-[0_0_10px_rgba(244,114,182,0.3)]">
