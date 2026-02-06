@@ -38,9 +38,10 @@ const DistanceTimeWidget = dynamic(() => import('@/components/distance-time-widg
 const PartnerStatus = dynamic(() => import('@/components/partner-status').then(mod => mod.PartnerStatus), { ssr: true })
 const PartnerAvatarHeartbeat = dynamic(() => import('@/components/partner-avatar-heartbeat').then(mod => mod.PartnerAvatarHeartbeat), { ssr: true })
 
-import { getLatestPolaroid, deletePolaroid } from '@/lib/actions/polaroids'
+import { getDashboardPolaroids, deletePolaroid } from '@/lib/actions/polaroids'
 import { getDoodle, saveDoodle } from '@/lib/actions/doodles'
 import { PolaroidCard } from '@/components/polaroid-card'
+import { StackedPolaroids } from '@/components/stacked-polaroids'
 import { SharedDoodle } from '@/components/shared-doodle'
 import { fetchDashboardData } from '@/lib/actions/consolidated'
 
@@ -51,8 +52,8 @@ export default async function DashboardPage() {
     const lunaraData = result.data
 
     // 2. Fetch Personal Atmospheric Elements
-    const [latestPolaroid, doodle] = await Promise.all([
-        getLatestPolaroid(),
+    const [{ userPolaroid, partnerPolaroid }, doodle] = await Promise.all([
+        getDashboardPolaroids(),
         getDoodle()
     ])
 
@@ -247,28 +248,15 @@ export default async function DashboardPage() {
                     {/* 3. ATMOSPHERE LAYER: Polaroid & Doodle (Fixed Gap) */}
                     <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-2">
                         <ScrollReveal className="lg:col-start-2" delay={0.1}>
-                            <div className={cn(
-                                "flex items-center justify-center p-2 h-full overflow-hidden transition-all duration-1000",
-                                !latestPolaroid ? "bg-white/5 rounded-3xl border border-white/10 backdrop-blur-sm" : "bg-transparent border-none shadow-none"
-                            )}>
-                                {latestPolaroid ? (
-                                    <PolaroidCard
-                                        imageUrl={latestPolaroid.image_url}
-                                        caption={latestPolaroid.caption}
-                                        createdAt={latestPolaroid.created_at}
-                                        onDelete={async () => {
-                                            'use server'
-                                            await deletePolaroid(latestPolaroid.id)
-                                        }}
-                                        isDeveloping={new Date().getTime() - new Date(latestPolaroid.created_at).getTime() < 30000}
-                                    />
-                                ) : (
-                                    <div className="text-center p-6 opacity-40">
-                                        <Camera className="w-10 h-10 mx-auto mb-2" />
-                                        <p className="text-[10px] font-bold uppercase tracking-widest text-white/60">No Polaroid</p>
-                                    </div>
-                                )}
-                            </div>
+                            <StackedPolaroids
+                                userPolaroid={userPolaroid}
+                                partnerPolaroid={partnerPolaroid}
+                                partnerName={partnerProfile?.display_name || 'Partner'}
+                                onDelete={async (id: string) => {
+                                    'use server'
+                                    await deletePolaroid(id)
+                                }}
+                            />
                         </ScrollReveal>
 
                         <ScrollReveal className="lg:col-span-1" delay={0.15}>
@@ -300,13 +288,13 @@ export default async function DashboardPage() {
                     </ScrollReveal>
 
                     {/* 5. HISTORY LAYER: Mood Check-in & On This Day (Always Visible) */}
-                    <ScrollReveal className="lg:col-span-2" delay={0.3}>
-                        <div className="glass-card p-2.5 h-full">
+                    <ScrollReveal className="lg:col-span-4" delay={0.3}>
+                        <div className="glass-card p-1.5">
                             <MoodCheckIn hasPartner={hasPartner} userMoods={userTodayMoods} />
                         </div>
                     </ScrollReveal>
 
-                    <ScrollReveal className="lg:col-span-2" delay={0.35}>
+                    <ScrollReveal className="lg:col-span-4" delay={0.35}>
                         <OnThisDay
                             memories={onThisDayMemories}
                             milestones={onThisDayMilestones}

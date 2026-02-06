@@ -147,25 +147,7 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
     const [direction, setDirection] = useState(0)
 
     // Handle empty items with specialized view
-    if (items.length === 0) {
-        return (
-            <Card className="glass-card overflow-hidden border-white/5 h-full group relative flex flex-col items-center justify-center p-8 text-center min-h-[300px]">
-                <div className="absolute top-4 left-5 flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-white/20" />
-                    <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em]">On This Day</p>
-                </div>
-                <div className="space-y-4">
-                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto border border-white/10 opacity-40">
-                        <Sparkles className="w-8 h-8 text-amber-200/50" />
-                    </div>
-                    <div>
-                        <h3 className="text-xl font-serif text-white/40">No memories today</h3>
-                        <p className="text-xs text-white/20 mt-1 italic">The best moments are yet to be written.</p>
-                    </div>
-                </div>
-            </Card>
-        )
-    }
+    if (items.length === 0) return null;
 
     const currentItem = items[currentIndex]
     // Get config for milestones, or default
@@ -250,6 +232,7 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
                                     src={currentItem.image_urls[0] || "/placeholder.svg"}
                                     alt={currentItem.title}
                                     fill
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                     className="object-cover"
                                     draggable={false}
                                 />

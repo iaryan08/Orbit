@@ -27,6 +27,52 @@ export async function getLatestPolaroid() {
     return polaroid;
 }
 
+export async function getDashboardPolaroids() {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { userPolaroid: null, partnerPolaroid: null };
+
+    const { data: profile } = await supabase
+        .from("profiles")
+        .select("couple_id")
+        .eq("id", user.id)
+        .single();
+
+    if (!profile?.couple_id) return { userPolaroid: null, partnerPolaroid: null };
+
+    const { data: couple } = await supabase
+        .from("couples")
+        .select("user1_id, user2_id")
+        .eq("id", profile.couple_id)
+        .single();
+
+    if (!couple) return { userPolaroid: null, partnerPolaroid: null };
+
+    const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id;
+
+    const [userRes, partnerRes] = await Promise.all([
+        supabase
+            .from("polaroids")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+        partnerId ? supabase
+            .from("polaroids")
+            .select("*")
+            .eq("user_id", partnerId)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle() : Promise.resolve({ data: null })
+    ]);
+
+    return {
+        userPolaroid: userRes.data,
+        partnerPolaroid: partnerRes.data
+    };
+}
+
 export async function deletePolaroid(id: string) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();

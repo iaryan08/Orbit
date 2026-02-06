@@ -24,25 +24,7 @@ export function DailyContent() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"quote" | "challenge" | "tip">("quote");
 
-  const fetchAIContent = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/daily-content", {
-        method: "POST",
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setContent(data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch AI content:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    // Get current time in IST (India Standard Time)
     const istDate = getISTDate();
     const currentHour = istDate.getHours();
     const currentMinute = istDate.getMinutes();
@@ -60,7 +42,6 @@ export function DailyContent() {
     const signal = controller.signal;
 
     const loadContent = (data: any) => {
-      // Check if data is valid and has required fields
       if (data && typeof data === 'object' && data.quote && data.challenge && data.tip) {
         setContent(data);
         return true;
@@ -72,7 +53,6 @@ export function DailyContent() {
       try {
         const parsed = JSON.parse(cached);
         if (!loadContent(parsed)) {
-          // If cache is invalid structure, force refresh
           localStorage.removeItem("dailyContent");
           fetchNew(signal);
         }

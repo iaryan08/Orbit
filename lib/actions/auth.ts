@@ -818,9 +818,29 @@ export async function updateLocation(data: { city?: string, timezone?: string, l
 
   if (!user) return { error: 'Not authenticated' }
 
+  let city = data.city
+
+  // If we have coordinates but no city, try to get it on the server to avoid CORS
+  if (!city && data.latitude && data.longitude) {
+    try {
+      const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${data.latitude}&lon=${data.longitude}&zoom=10`, {
+        headers: {
+          'User-Agent': 'MoonBetweenUs/1.0',
+          'Accept-Language': 'en'
+        }
+      })
+      if (geoRes.ok) {
+        const geoData = await geoRes.json()
+        city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.suburb
+      }
+    } catch (e) {
+      console.error('Server-side reverse geocoding error:', e)
+    }
+  }
+
   // Only update fields that are defined
   const updates: any = { updated_at: new Date().toISOString() }
-  if (data.city !== undefined) updates.city = data.city
+  if (city !== undefined) updates.city = city
   if (data.timezone !== undefined) updates.timezone = data.timezone
   if (data.latitude !== undefined) updates.latitude = data.latitude
   if (data.longitude !== undefined) updates.longitude = data.longitude
@@ -835,9 +855,7 @@ export async function updateLocation(data: { city?: string, timezone?: string, l
   // Tag validation
   revalidateTag(`dashboard-${user.id}`, 'default')
 
-  // Also invalidate partner if needed, though they might fetch strictly via their own call
-  // For distance widget, partner needs to see MY new location.
-  // We need to fetch my profile to get couple_id
+  // Also invalidate partner
   const { data: profile } = await supabase.from('profiles').select('couple_id').eq('id', user.id).single()
 
   if (profile?.couple_id) {

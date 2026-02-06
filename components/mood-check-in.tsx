@@ -94,44 +94,52 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
 
     return (
       <Card
-        className="bg-transparent border-none shadow-none cursor-pointer group"
+        className="bg-transparent border-none shadow-none cursor-pointer group h-full"
         onClick={() => { setIsExpanded(true); setSubmitted(false); }}
       >
-        <CardContent className="flex flex-col items-center justify-center py-3 md:py-10 text-center relative overflow-hidden">
+        <CardContent className="flex items-center justify-between p-3 relative overflow-hidden h-full min-h-[70px]">
           <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="text-6xl mb-4 animate-in zoom-in duration-500">
-            {moodEmoji}
-          </div>
-          <h3 className="font-semibold text-[10px] uppercase tracking-[0.3em] mb-1 text-white/40">You are feeling</h3>
-          <p className="text-xl font-medium text-white capitalize">{moodLabel}</p>
-          {noteToShow && (
-            <p className="text-xs text-white/50 italic mt-2 max-w-[200px] truncate px-4">
-              "{noteToShow}"
-            </p>
-          )}
-          {userMoods.length > 1 && (
-            <div className="space-y-2 pt-4 md:pt-6 border-t border-white/5 w-full mt-4">
-              <p className="text-[9px] uppercase tracking-widest font-bold text-white/20 mb-2">Previous moods today</p>
-              <div className="flex gap-2 pb-2 overflow-x-auto no-scrollbar justify-center">
-                {userMoods.slice(1, 5).map((m, i) => {
-                  const { emoji } = parseMood(m.mood)
-                  return (
-                    <div key={i} className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xl grayscale hover:grayscale-0 transition-all" title={m.note || m.mood} onClick={(e) => { e.stopPropagation(); }}>
-                      {emoji}
-                    </div>
-                  )
-                })}
+
+          <div className="flex items-center gap-5 flex-1 min-w-0">
+            <div className="relative shrink-0">
+              <div className="text-3xl animate-in zoom-in duration-500 relative z-10">
+                {moodEmoji}
+              </div>
+              <div className="absolute -top-1 -right-1">
+                <Heart className="w-3 h-3 text-rose-500/60 fill-rose-500/20" />
               </div>
             </div>
-          )}
 
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mt-6 text-[10px] uppercase tracking-widest text-white/30 hover:text-white"
-          >
-            Update Mood
-          </Button>
+            <div className="flex flex-col min-w-0">
+              <p className="text-sm font-bold text-white tracking-widest uppercase truncate leading-none mb-1.5 opacity-90 group-hover:text-rose-100 transition-colors">
+                {moodLabel}
+              </p>
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] leading-none shrink-0">Your Vibe</span>
+                {noteToShow && (
+                  <>
+                    <div className="w-1 h-1 rounded-full bg-white/10 shrink-0" />
+                    <p className="text-[10px] text-white/30 italic truncate">
+                      "{noteToShow}"
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col items-end gap-1.5 pl-4 ml-auto shrink-0">
+            <span className="text-[8px] font-black text-rose-300/40 uppercase tracking-widest">{hasSharedToday ? 'Shared' : 'Update'}</span>
+            {userMoods.length > 1 && (
+              <div className="flex gap-1 items-center">
+                {userMoods.slice(1, 4).map((m, i) => (
+                  <div key={i} className="text-[10px] opacity-20 hover:opacity-100 transition-all grayscale hover:grayscale-0">
+                    {parseMood(m.mood).emoji}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     )

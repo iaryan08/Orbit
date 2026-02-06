@@ -40,6 +40,7 @@ export function PolaroidCard({ imageUrl, caption, createdAt, onDelete, isDevelop
                         src={imageUrl}
                         alt="Polaroid Memory"
                         fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         className={`object-cover transition-all duration-[60000ms] ease-out
               ${developed ? 'filter-none grayscale-0 opacity-100' : 'blur-xl grayscale opacity-0'}
             `}

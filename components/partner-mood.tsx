@@ -56,68 +56,60 @@ export function PartnerMood({ partnerName, partnerAvatar, moods }: PartnerMoodPr
   const { emoji: moodEmoji, label: moodLabel } = parseMood(latestMood.mood)
 
   return (
-    <Card className="bg-transparent border-none shadow-none h-full relative" glassy={false}>
-      <CardHeader className="pb-2">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Avatar className="w-12 h-12 ring-2 ring-rose-200/10 shadow-glow-rose">
+    <Card className="bg-transparent border-none shadow-none h-full relative group" glassy={false}>
+      <CardContent className="flex items-center justify-between p-3 relative overflow-hidden h-full min-h-[70px]">
+        <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+          <div className="relative shrink-0">
+            <Avatar className="w-10 h-10 ring-1 ring-rose-200/10">
               <AvatarImage src={partnerAvatar || undefined} />
-              <AvatarFallback className="bg-rose-50/10 text-rose-200">
-                {partnerName?.charAt(0) || '?'}
+              <AvatarFallback className="bg-rose-50/10 text-rose-200 text-xs">
+                {partnerName?.charAt(0)}
               </AvatarFallback>
             </Avatar>
-            <div className="absolute -bottom-1 -right-1 bg-background/80 backdrop-blur-md rounded-full p-1 border border-white/10 text-xl shadow-lg">
+            <div className="absolute -bottom-1 -right-1 text-base bg-black/40 backdrop-blur-md rounded-full w-5 h-5 flex items-center justify-center border border-white/10">
               {moodEmoji}
             </div>
           </div>
-          <div className="flex-1">
-            <CardTitle className="text-base flex items-center gap-2 text-white/90 font-serif">
+
+          <div className="flex flex-col min-w-0">
+            <p className="text-sm font-bold text-white tracking-widest uppercase truncate leading-none mb-1.5 opacity-90 group-hover:text-rose-100 transition-colors">
               {partnerName}
-              <Heart className="w-3 h-3 text-rose-300/80 fill-current animate-pulse-slow" />
-            </CardTitle>
-            <CardDescription className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-white/40 font-bold">
-              Current Vibe
-            </CardDescription>
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] leading-none shrink-0">His Vibe</span>
+              {latestMood.note ? (
+                <>
+                  <div className="w-1 h-1 rounded-full bg-white/10 shrink-0" />
+                  <p className="text-[10px] text-white/30 italic truncate">
+                    "{latestMood.note}"
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="w-1 h-1 rounded-full bg-white/10 shrink-0" />
+                  <p className="text-[10px] text-white/30 italic truncate capitalize">
+                    {moodLabel}
+                  </p>
+                </>
+              )}
+            </div>
           </div>
         </div>
-      </CardHeader>
 
-      <CardContent className="pt-2 h-full">
-        <div className="space-y-4">
-          <div className={cn(
-            "border border-white/10 rounded-2xl p-4 relative overflow-hidden group transition-colors",
-            MOOD_COLORS[latestMood.mood]?.split(' ').find(c => c.startsWith('bg-'))?.replace('bg-', 'bg-').replace('-100', '-500/10') || "bg-white/5"
-          )}>
-            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Clock className="w-12 h-12 text-white" />
-            </div>
-            <p className={cn(
-              "text-sm leading-relaxed relative z-10 font-medium text-rose-50"
-            )}>
-              {latestMood.note ? `"${latestMood.note}"` : `Feeling ${moodLabel} right now`}
-            </p>
-            <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold text-white/30 mt-3 relative z-10">
-              <Clock className="w-3 h-3" />
-              {formatTime(latestMood.created_at)}
-            </div>
+        <div className="flex flex-col items-end gap-1.5 pl-4 ml-auto shrink-0">
+          <div className="flex items-center gap-1 text-[8px] font-black text-white/20 uppercase tracking-widest">
+            <Clock className="w-2.5 h-2.5" />
+            {formatTime(latestMood.created_at)}
           </div>
-
           {moods.length > 1 && (
-            <div className="space-y-2 pt-2 border-t border-white/5">
-              <p className="text-[9px] uppercase tracking-widest font-bold text-white/20 mb-2">Previous moods today</p>
-              <div className="flex gap-2 pb-2 overflow-x-auto no-scrollbar">
-                {moods.slice(1, 5).map((m, i) => {
-                  const { emoji: mEmoji, label: mLabel } = parseMood(m.mood)
-                  return (
-                    <div key={i} className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xl grayscale hover:grayscale-0 transition-all cursor-help relative group/mood" title={m.note || mLabel}>
-                      {mEmoji}
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md text-[8px] text-white px-2 py-1 rounded opacity-0 group-hover/mood:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                        {formatTime(m.created_at)}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
+            <div className="flex gap-1 items-center">
+              {moods.slice(1, 4).map((m, i) => (
+                <div key={i} className="text-[10px] opacity-20 hover:opacity-100 transition-all grayscale hover:grayscale-0">
+                  {parseMood(m.mood).emoji}
+                </div>
+              ))}
             </div>
           )}
         </div>
