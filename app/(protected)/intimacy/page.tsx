@@ -76,7 +76,8 @@ const questions = [
         id: "first_oral",
         label: "First Oral Sex",
         q: "What was the first time you performed or received oral sex?",
-        icon: <Activity className="w-6 h-6 text-purple-400" />
+        icon: <Activity className="w-6 h-6 text-purple-400" />,
+        image: "/images/intimacy/first_oral.png"
     },
     {
         id: "first_time_together",
@@ -89,13 +90,15 @@ const questions = [
         id: "first_surprise",
         label: "First Surprise",
         q: "What was the first intimate surprise you gave or received?",
-        icon: <Gift className="w-6 h-6 text-pink-400" />
+        icon: <Gift className="w-6 h-6 text-pink-400" />,
+        image: "/images/intimacy/first_surprise.png"
     },
     {
         id: "first_memory",
         label: "First Memory",
         q: "What is your favorite memory from early in your sexual relationship?",
-        icon: <Camera className="w-6 h-6 text-blue-400" />
+        icon: <Camera className="w-6 h-6 text-blue-400" />,
+        image: "/images/intimacy/first_memory.png"
     },
     {
         id: "first_confession",
@@ -108,13 +111,15 @@ const questions = [
         id: "first_promise",
         label: "First Promise",
         q: "What promise did you make about future intimacy?",
-        icon: <Anchor className="w-6 h-6 text-cyan-400" />
+        icon: <Anchor className="w-6 h-6 text-cyan-400" />,
+        image: "/images/intimacy/first_promise.png"
     },
     {
         id: "first_night_together",
         label: "First Night Together",
         q: "How did you feel during your first night apart?",
-        icon: <CloudMoon className="w-6 h-6 text-slate-400" />
+        icon: <CloudMoon className="w-6 h-6 text-slate-400" />,
+        image: "/images/intimacy/first_night_apart.png"
     },
     {
         id: "first_time_alone",

@@ -105,13 +105,11 @@ export function MilestoneCard({
                                         alt={label}
                                         className="w-full h-full object-contain mix-blend-lighten opacity-90 transition-all duration-700"
                                         style={{
-                                            filter: id === 'first_kiss'
-                                                ? 'invert(1) brightness(1.5) contrast(1.1) drop-shadow(0 0 10px rgba(251,113,133,0.4))'
-                                                : id === 'first_french_kiss'
-                                                    ? 'brightness(1.1) contrast(1.1) drop-shadow(0 0 10px rgba(251,113,133,0.4))'
-                                                    : image.includes('icon')
-                                                        ? 'invert(1) contrast(2) brightness(1.2)'
-                                                        : 'brightness(1.1) contrast(1.2)',
+                                            filter: (id === 'first_french_kiss' || id === 'first_talk' || id === 'first_time_together' || id === 'first_confession')
+                                                ? 'brightness(1.1) contrast(1.1) drop-shadow(0 0 12px rgba(251,113,133,0.4))'
+                                                : (image.includes('sketch') || !image.includes('icon'))
+                                                    ? 'invert(1) brightness(1.5) contrast(1.2) drop-shadow(0 0 10px rgba(251,113,133,0.4))'
+                                                    : 'invert(1) contrast(2) brightness(1.2)',
                                         }}
                                     />
                                 </div>
