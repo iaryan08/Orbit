@@ -619,6 +619,12 @@ export async function logPeriodEnd() {
 
   if (!user) return { error: 'Not authenticated' }
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('couple_id, display_name')
+    .eq('id', user.id)
+    .single()
+
   const today = getTodayIST()
 
   const { error } = await supabase
@@ -630,6 +636,34 @@ export async function logPeriodEnd() {
     .eq('user_id', user.id)
 
   if (error) return { error: error.message }
+
+  // Surgical Cache Invalidation
+  revalidateTag(`dashboard-${user.id}`, 'default')
+  if (profile?.couple_id) {
+    const { data: couple } = await supabase
+      .from('couples')
+      .select('user1_id, user2_id')
+      .eq('id', profile.couple_id)
+      .single()
+
+    if (couple) {
+      const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
+      if (partnerId) {
+        revalidateTag(`dashboard-${partnerId}`, 'default')
+
+        // Notify Partner
+        await sendNotification({
+          recipientId: partnerId,
+          actorId: user.id,
+          type: 'period_start', // Reusing type or could add period_end
+          title: 'Period Ended',
+          message: `${profile.display_name || 'Your partner'} logged that their period has ended.`,
+          actionUrl: '/dashboard',
+          metadata: { log_date: today }
+        })
+      }
+    }
+  }
 
   revalidatePath('/dashboard', 'layout')
   return { success: true }

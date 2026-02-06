@@ -62,7 +62,7 @@ export async function fetchDashboardData() {
                     partnerId ? supabase.from('profiles').select('id, display_name, avatar_url, gender').eq('id', partnerId).single() : Promise.resolve({ data: null }),
 
                     // 1. Cycles (User & Partner)
-                    supabase.from('cycle_profiles').select('user_id, last_period_start, avg_cycle_length, avg_period_length, sharing_enabled, onboarding_completed').in('user_id', [user.id, partnerId].filter(Boolean)),
+                    supabase.from('cycle_profiles').select('user_id, last_period_start, avg_cycle_length, avg_period_length, sharing_enabled, onboarding_completed, period_ended_at').in('user_id', [user.id, partnerId].filter(Boolean)),
 
                     // 2. Couple Data (Anniversaries)
                     coupleId ? supabase.from('couples').select('*').eq('id', coupleId).single() : Promise.resolve({ data: null }),
@@ -127,15 +127,17 @@ export async function fetchDashboardData() {
                 const onThisDayMilestones = (milestonesRes.data || []).reduce((acc: any[], m: any) => {
                     const dualDateCategories = ['first_kiss', 'first_surprise', 'first_memory']
                     const isDualDate = dualDateCategories.includes(m.category)
+                    const u1Id = coupleRes.data?.user1_id
+                    const u2Id = coupleRes.data?.user2_id
 
                     if (isDualDate) {
                         // Check user1's date
                         if (isToday(m.date_user1)) {
-                            acc.push({ ...m, milestone_date: m.date_user1, isOwnDate: m.user1_id === user.id, isPartnerDate: m.user1_id !== user.id })
+                            acc.push({ ...m, milestone_date: m.date_user1, isOwnDate: u1Id === user.id, isPartnerDate: u1Id !== user.id })
                         }
                         // Check user2's date
                         if (isToday(m.date_user2)) {
-                            acc.push({ ...m, milestone_date: m.date_user2, isOwnDate: m.user2_id === user.id, isPartnerDate: m.user2_id !== user.id })
+                            acc.push({ ...m, milestone_date: m.date_user2, isOwnDate: u2Id === user.id, isPartnerDate: u2Id !== user.id })
                         }
                     } else {
                         // Single date categories
