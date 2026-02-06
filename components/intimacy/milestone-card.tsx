@@ -128,7 +128,7 @@ export function MilestoneCard({
 
     return (
         <Card className={cn(
-            "border-rose-900/30 transition-all duration-300 overflow-hidden shadow-none group relative",
+            "border-rose-900/30 transition-all duration-150 overflow-hidden shadow-none group relative",
             isOpen ? "bg-rose-950/20 ring-1 ring-rose-500/50" : "bg-black/20 hover:bg-rose-900/10",
             isCompleted && !isOpen && "border-emerald-500/30 bg-emerald-500/5"
         )}>
@@ -138,7 +138,7 @@ export function MilestoneCard({
             )}
 
             <CardHeader
-                className="cursor-pointer flex flex-row items-center gap-4 p-4 md:p-6"
+                className="cursor-pointer flex flex-row items-center gap-4 py-3 px-4 md:py-4 md:px-6"
                 onClick={onToggle}
             >
                 <motion.div
@@ -158,18 +158,14 @@ export function MilestoneCard({
                         <CardTitle className="text-lg md:text-xl text-rose-100 font-serif leading-tight">
                             {label}
                         </CardTitle>
-                        {isCompleted && <span className="text-[8px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full uppercase tracking-tighter border border-emerald-500/30">LOCKED</span>}
                     </div>
-                    <p className="text-rose-200/40 text-sm md:text-base font-light max-w-sm italic">{question}</p>
+                    <p className="text-rose-200/40 text-sm md:text-base font-light max-w-sm italic">
+                        {question}
+                        {date && <span className="ml-2 not-italic text-rose-300/60 font-mono font-bold text-[10px] uppercase tracking-widest">— {format(date, "dd/MM/yyyy")}</span>}
+                    </p>
                 </div>
 
                 <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                    {date && (
-                        <div className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-full">
-                            <CalendarIcon className="w-3 h-3 text-rose-400" />
-                            <span className="text-[10px] text-rose-200/60 font-mono tracking-tighter">{format(date, "MMM yyyy")}</span>
-                        </div>
-                    )}
                     <div className={cn("w-1.5 h-1.5 rounded-full transition-all duration-1000",
                         isCompleted ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" :
                             myAnswer ? "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]" :
@@ -184,9 +180,9 @@ export function MilestoneCard({
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: "circOut" }}
+                        transition={{ duration: 0.15, ease: "circOut" }}
                     >
-                        <CardContent className="space-y-10 pt-4 px-8 pb-10">
+                        <CardContent className="space-y-6 pt-1 px-6 pb-8">
                             {/* Creative Dual-Date Comparison for Dual Date Cards */}
                             {showDualDates && (
                                 <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 space-y-6">
@@ -204,7 +200,7 @@ export function MilestoneCard({
                                                 <PopoverTrigger asChild>
                                                     <Button variant="ghost" className="w-full h-14 bg-black/20 text-rose-100 hover:bg-rose-950/40 rounded-2xl border-none">
                                                         <CalendarIcon className="mr-3 h-4 w-4 text-rose-400" />
-                                                        {date ? format(date, "MMMM do, yyyy") : "When was it for you?"}
+                                                        {date ? format(date, "dd/MM/yyyy") : "When was it for you?"}
                                                     </Button>
                                                 </PopoverTrigger>
                                                 <PopoverContent className="w-auto p-0 bg-rose-950 border-rose-800 rounded-3xl overflow-hidden shadow-2xl" align="start">
@@ -222,7 +218,7 @@ export function MilestoneCard({
                                             )}>
                                                 <CalendarIcon className={cn("h-4 w-4", partnerDate ? "text-rose-400" : "text-white/10")} />
                                                 <span className="text-sm">
-                                                    {partnerDate ? format(partnerDate, "MMMM do, yyyy") : "Awaiting partner's memory..."}
+                                                    {partnerDate ? format(partnerDate, "dd/MM/yyyy") : "Awaiting partner's memory..."}
                                                 </span>
                                             </div>
                                         </div>
@@ -258,7 +254,7 @@ export function MilestoneCard({
                                         <PopoverTrigger asChild>
                                             <Button variant="ghost" className="w-full h-16 bg-black/10 text-rose-100 hover:bg-rose-900/20 rounded-2xl text-lg font-serif border-none">
                                                 <CalendarIcon className="mr-4 h-5 w-5 text-rose-500" />
-                                                {date ? format(date, "PPPP") : "Pick the date"}
+                                                {date ? format(date, "dd/MM/yyyy") : "Pick the date"}
                                             </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0 bg-rose-950 border-rose-800 rounded-2xl shadow-2xl" align="center">
@@ -289,14 +285,14 @@ export function MilestoneCard({
                                         <div className="w-5 h-[1px] bg-rose-500/20" />
                                     </div>
                                     <div className={cn(
-                                        "p-6 rounded-2xl border min-h-[160px] relative overflow-hidden flex items-center transition-all duration-1000",
+                                        "p-4 rounded-2xl border min-h-[160px] relative overflow-hidden flex items-center transition-all duration-1000",
                                         partnerAnswer ? "bg-rose-900/5 border-rose-500/10 text-rose-100/80 italic leading-relaxed" : "bg-black/10 border-white/5 border-dashed justify-center"
                                     )}>
                                         {partnerAnswer ? (
                                             <>
-                                                <div className="absolute top-4 left-4 text-4xl text-rose-500/10 font-serif">"</div>
-                                                <p className="relative z-10 px-4">{partnerAnswer}</p>
-                                                <div className="absolute bottom-4 right-4 text-4xl text-rose-500/10 font-serif translate-y-2">"</div>
+                                                <div className="absolute top-2 left-3 text-5xl text-rose-500/40 font-serif select-none">"</div>
+                                                <p className="relative z-10 px-4 py-2">{partnerAnswer}</p>
+                                                <div className="absolute bottom-2 right-3 text-5xl text-rose-500/40 font-serif translate-y-2 select-none">"</div>
                                             </>
                                         ) : (
                                             <div className="text-center space-y-2">
