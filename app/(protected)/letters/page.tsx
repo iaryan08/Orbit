@@ -301,7 +301,7 @@ export default function LettersPage() {
                         >
                             <CardHeader className="pb-2">
                                 <div className="flex items-start justify-between">
-                                    <CardTitle className="text-base font-bold text-white tracking-tight line-clamp-1">
+                                    <CardTitle className="text-base font-bold text-white tracking-tight line-clamp-2 leading-snug">
                                         {letter.title || "Untitled Letter"}
                                     </CardTitle>
                                     <div className="flex items-center gap-2">
@@ -333,12 +333,12 @@ export default function LettersPage() {
                                 </div>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm text-white/70 line-clamp-3 mb-4 leading-relaxed italic">
+                                <p className="text-sm text-white/70 line-clamp-4 mb-6 leading-relaxed italic">
                                     {letter.content}
                                 </p>
-                                <div className="flex items-center justify-between text-[10px] uppercase tracking-widest font-bold text-white/40 pt-4 border-t border-white/5">
-                                    <div className="flex flex-col gap-1">
-                                        <span>From: <span className="text-white/60">{letter.sender_name}</span></span>
+                                <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.2em] font-bold text-white/30 pt-4 border-t border-white/5">
+                                    <div className="flex flex-col gap-1.5">
+                                        <span>From: <span className="text-white/50">{letter.sender_name}</span></span>
                                         {letter.read_at && letter.sender_id === (supabase as any).auth?.user?.id && (
                                             <span className="text-emerald-400/80 flex items-center gap-1 normal-case tracking-normal font-medium">
                                                 <MailOpen className="h-3 w-3" />
