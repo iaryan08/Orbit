@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 import { Loader2, Send, Heart, ChevronDown, ChevronUp, Plus, Minus } from 'lucide-react'
 
-const MOODS: MoodType[] = ['happy', 'loved', 'excited', 'calm', 'sad', 'anxious', 'tired', 'grateful', 'flirty', 'teasing', 'needy', 'touchy', 'cuddly', 'romantic', 'turned on', 'craving you', 'affectionate', 'playful naughty', 'feeling desired', 'miss you badly']
+const MOODS: MoodType[] = ['happy', 'loved', 'excited', 'calm', 'sad', 'anxious', 'tired', 'grateful', 'flirty', 'teasing', 'needy', 'touchy', 'cuddly', 'romantic', 'turned on', 'craving you', 'affectionate', 'playful naughty', 'feeling desired', 'miss you badly', 'sensual', 'passionate', 'longing', 'intimate', 'seductive', 'dreaming of you', 'wanting more', 'tempted', 'spicy', 'in the mood']
 
 interface MoodCheckInProps {
   hasPartner: boolean

@@ -1,4 +1,4 @@
-export type MoodType = 'happy' | 'loved' | 'excited' | 'calm' | 'sad' | 'anxious' | 'tired' | 'grateful' | 'flirty' | 'teasing' | 'needy' | 'touchy' | 'cuddly' | 'romantic' | 'turned on' | 'craving you' | 'affectionate' | 'playful naughty' | 'feeling desired' | 'miss you badly'
+export type MoodType = 'happy' | 'loved' | 'excited' | 'calm' | 'sad' | 'anxious' | 'tired' | 'grateful' | 'flirty' | 'needy' | 'cuddly' | 'romantic' | 'passionate' | 'craving you' | 'playful naughty' | 'miss you badly' | 'sensual' | 'intimate' | 'seductive' | 'spicy' | 'in the mood'
 
 export const MOOD_EMOJIS: Record<MoodType, string> = {
     happy: '😊',
@@ -10,19 +10,21 @@ export const MOOD_EMOJIS: Record<MoodType, string> = {
     tired: '😴',
     grateful: '🙏',
     flirty: '😏',
-    teasing: '😉',
     needy: '🥺',
-    touchy: '🤍',
     cuddly: '🫂',
     romantic: '🌹',
-    'turned on': '🔥',
+    passionate: '❤️‍🔥',
     'craving you': '💋',
-    affectionate: '💞',
     'playful naughty': '😈',
-    'feeling desired': '✨',
-    'miss you badly': '💭'
-
+    'miss you badly': '💭',
+    sensual: '🌙',
+    intimate: '🫶',
+    seductive: '🍷',
+    spicy: '🌶️',
+    'in the mood': '💜'
 }
+
+
 
 export const MOOD_COLORS: Record<MoodType, string> = {
     happy: 'bg-yellow-100 border-yellow-300 text-yellow-800',
@@ -45,4 +47,14 @@ export const MOOD_COLORS: Record<MoodType, string> = {
     'playful naughty': 'bg-purple-100 border-purple-300 text-purple-800',
     'feeling desired': 'bg-yellow-100 border-yellow-300 text-yellow-800',
     'miss you badly': 'bg-blue-100 border-blue-300 text-blue-800',
+    sensual: 'bg-rose-100 border-rose-300 text-rose-800',
+    passionate: 'bg-red-100 border-red-300 text-red-800',
+    longing: 'bg-indigo-100 border-indigo-300 text-indigo-800',
+    intimate: 'bg-rose-100 border-rose-300 text-rose-800',
+    seductive: 'bg-fuchsia-100 border-fuchsia-300 text-fuchsia-800',
+    'dreaming of you': 'bg-violet-100 border-violet-300 text-violet-800',
+    'wanting more': 'bg-red-100 border-red-300 text-red-800',
+    tempted: 'bg-amber-100 border-amber-300 text-amber-800',
+    spicy: 'bg-orange-100 border-orange-300 text-orange-800',
+    'in the mood': 'bg-purple-100 border-purple-300 text-purple-800',
 }
