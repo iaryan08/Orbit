@@ -245,7 +245,7 @@ export function AddMemoryDialog({ open, onOpenChange, editingMemory, onSuccess, 
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[500px] border border-white/10 bg-[#150818]/85 backdrop-blur-[8px] shadow-[0_0_50px_rgba(244,63,94,0.2)] text-white">
+            <DialogContent className="sm:max-w-[500px] border border-white/10 bg-[#0d0509] backdrop-blur-[4px] shadow-[0_0_50px_rgba(244,63,94,0.2)] text-white">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-3 font-serif text-2xl text-rose-200">
                         <Heart className="h-6 w-6 text-rose-500 fill-rose-500 animate-pulse" />
@@ -254,7 +254,7 @@ export function AddMemoryDialog({ open, onOpenChange, editingMemory, onSuccess, 
                 </DialogHeader>
                 <div className="space-y-4 mt-4">
                     <div>
-                        <Label htmlFor="memory-title" className="text-amber-100 font-medium tracking-wide uppercase text-xs">Title <span className="text-rose-400">*</span></Label>
+                        <Label htmlFor="memory-title" className="text-purple-200 font-medium tracking-wide uppercase text-xs">Title <span className="text-rose-400">*</span></Label>
                         <Input
                             id="memory-title"
                             placeholder="Our special day..."
@@ -265,7 +265,7 @@ export function AddMemoryDialog({ open, onOpenChange, editingMemory, onSuccess, 
                     </div>
 
                     <div>
-                        <Label className="text-amber-100 font-medium tracking-wide uppercase text-xs">Photos <span className="text-rose-400">*</span></Label>
+                        <Label className="text-purple-200 font-medium tracking-wide uppercase text-xs">Photos <span className="text-rose-400">*</span></Label>
                         <div className="mt-2 space-y-2">
                             <div className="grid grid-cols-3 gap-2">
                                 {/* Existing Images */}
@@ -327,7 +327,7 @@ export function AddMemoryDialog({ open, onOpenChange, editingMemory, onSuccess, 
                     </div>
 
                     <div>
-                        <Label htmlFor="memory-description" className="text-amber-100 font-medium tracking-wide uppercase text-xs">Description</Label>
+                        <Label htmlFor="memory-description" className="text-purple-200 font-medium tracking-wide uppercase text-xs">Description</Label>
                         <Textarea
                             id="memory-description"
                             placeholder="What made this moment special..."
@@ -340,7 +340,7 @@ export function AddMemoryDialog({ open, onOpenChange, editingMemory, onSuccess, 
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <Label htmlFor="memory-date" className="flex items-center gap-1 text-amber-100 font-medium tracking-wide uppercase text-xs">
+                            <Label htmlFor="memory-date" className="flex items-center gap-1 text-purple-200 font-medium tracking-wide uppercase text-xs">
                                 <Calendar className="h-3 w-3" />
                                 Date
                             </Label>
@@ -349,11 +349,12 @@ export function AddMemoryDialog({ open, onOpenChange, editingMemory, onSuccess, 
                                 type="date"
                                 value={newMemory.memory_date}
                                 onChange={(e) => setNewMemory((prev) => ({ ...prev, memory_date: e.target.value }))}
+                                max={getTodayIST()}
                                 className="text-white/80 mt-1.5"
                             />
                         </div>
                         <div>
-                            <Label htmlFor="memory-location" className="flex items-center gap-1 text-amber-100 font-medium tracking-wide uppercase text-xs">
+                            <Label htmlFor="memory-location" className="flex items-center gap-1 text-purple-200 font-medium tracking-wide uppercase text-xs">
                                 <MapPin className="h-3 w-3" />
                                 Location
                             </Label>

@@ -230,28 +230,7 @@ export default async function DashboardPage() {
                         </div>
                     </ScrollReveal>
 
-                    {/* Quick Info (Status Indicators) */}
-                    <ScrollReveal className="lg:col-span-1" delay={0.3}>
-                        <div className="glass-card p-6 flex flex-col justify-between h-full">
-                            <div className="flex items-center justify-between mb-8">
-                                <h3 className="text-white/50 uppercase tracking-[0.2em] text-[10px] font-bold">Quick Insights</h3>
-                                <Sparkles className="w-4 h-4 text-amber-400/30" />
-                            </div>
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5">
-                                    <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Memories</span>
-                                    <span className="text-sm font-bold text-amber-200">{memoriesCount}</span>
-                                </div>
-                                <div className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5">
-                                    <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Letters</span>
-                                    <span className="text-sm font-bold text-rose-300">{lettersCount}</span>
-                                </div>
-                                <Link href="/intimacy" className="block p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-center hover:bg-rose-500/20 transition-all">
-                                    <span className="text-[10px] font-bold text-rose-100 uppercase tracking-widest">Intimacy Mode</span>
-                                </Link>
-                            </div>
-                        </div>
-                    </ScrollReveal>
+
 
                     {/* Your Interaction Center */}
                     <ScrollReveal className={cn("lg:col-span-2", (onThisDayMemories.length > 0 || onThisDayMilestones.length > 0) ? "lg:col-span-1" : "lg:col-span-2")} delay={0.5}>

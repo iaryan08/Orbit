@@ -152,6 +152,7 @@ export function LunaraOnboarding({ onComplete }: { onComplete: (data: Onboarding
                                             mode="single"
                                             selected={data.lastPeriodStart}
                                             onSelect={(date) => setData({ ...data, lastPeriodStart: date })}
+                                            disabled={(date) => date > new Date()}
                                             initialFocus
                                         />
                                     </PopoverContent>

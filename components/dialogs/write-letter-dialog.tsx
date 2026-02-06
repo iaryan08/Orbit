@@ -131,7 +131,7 @@ export function WriteLetterDialog({ open, onOpenChange, editingLetter, onSuccess
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[500px] border border-white/10 bg-[#1a0b10]/70 backdrop-blur-[8px] shadow-[0_0_50px_rgba(244,63,94,0.15)] text-white">
+            <DialogContent className="sm:max-w-[500px] border border-white/10 bg-[#0d0509] backdrop-blur-[4px] shadow-[0_0_50px_rgba(244,63,94,0.2)] text-white">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-3 font-serif text-2xl text-rose-200">
                         <Heart className="h-6 w-6 text-rose-500 fill-rose-500 animate-pulse" />
@@ -140,7 +140,7 @@ export function WriteLetterDialog({ open, onOpenChange, editingLetter, onSuccess
                 </DialogHeader>
                 <div className="space-y-6 mt-6">
                     <div className="space-y-2">
-                        <Label htmlFor="letter-title" className="text-amber-100 font-medium tracking-wide uppercase text-xs">Title</Label>
+                        <Label htmlFor="letter-title" className="text-purple-200 font-medium tracking-wide uppercase text-xs">Title</Label>
                         <Input
                             id="letter-title"
                             placeholder="My Dearest..."
@@ -151,7 +151,7 @@ export function WriteLetterDialog({ open, onOpenChange, editingLetter, onSuccess
                     </div>
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                            <Label htmlFor="letter-content" className="text-amber-100 font-medium tracking-wide uppercase text-xs">Your Message <span className="text-rose-400">*</span></Label>
+                            <Label htmlFor="letter-content" className="text-purple-200 font-medium tracking-wide uppercase text-xs">Your Message <span className="text-rose-400">*</span></Label>
                             <Button
                                 variant="ghost"
                                 size="sm"
@@ -173,7 +173,7 @@ export function WriteLetterDialog({ open, onOpenChange, editingLetter, onSuccess
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="letter-scheduled" className="flex items-center gap-2 text-amber-100 font-medium tracking-wide uppercase text-xs">
+                        <Label htmlFor="letter-scheduled" className="flex items-center gap-2 text-purple-200 font-medium tracking-wide uppercase text-xs">
                             <Calendar className="h-3.5 w-3.5" />
                             Schedule Delivery
                         </Label>

@@ -31,7 +31,7 @@ interface Profile {
 
 interface Couple {
   id: string;
-  pair_code: string;
+  couple_code: string;
   anniversary_date: string | null;
   couple_name: string | null;
 }
@@ -214,8 +214,8 @@ export default function SettingsPage() {
   };
 
   const copyPairCode = async () => {
-    if (!couple?.pair_code) return;
-    await navigator.clipboard.writeText(couple.pair_code);
+    if (!couple?.couple_code) return;
+    await navigator.clipboard.writeText(couple.couple_code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -353,13 +353,14 @@ export default function SettingsPage() {
                 type="date"
                 value={anniversaryDate}
                 onChange={(e) => setAnniversaryDate(e.target.value)}
+                max={new Date().toISOString().split('T')[0]}
                 className="border border-white/10"
               />
             </div>
             <div>
               <Label>Pair Code</Label>
               <div className="flex gap-2">
-                <Input value={couple.pair_code} readOnly className="font-mono border border-white/10" />
+                <Input value={couple.couple_code} readOnly className="font-mono border border-white/10" />
                 <Button variant="outline" size="icon" onClick={copyPairCode}>
                   {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </Button>

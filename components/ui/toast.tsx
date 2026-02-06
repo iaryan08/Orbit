@@ -31,11 +31,11 @@ const toastVariants = cva(
       variant: {
         default: 'border-white/10 bg-[#1a1014]/95 text-white backdrop-blur-md',
         destructive:
-          'destructive group border-destructive bg-destructive text-destructive-foreground',
+          'border-red-500/30 bg-[#2a0a0a]/95 text-red-50 backdrop-blur-md shadow-[0_0_20px_rgba(239,68,68,0.15)]',
         success:
           'border-emerald-500/20 bg-[#064e3b]/80 text-emerald-50 shadow-none backdrop-blur-md',
         failed:
-          'border-rose-900/50 bg-[#1a0000]/95 text-white backdrop-blur-md',
+          'border-rose-500/30 bg-[#2a0a0a]/95 text-rose-50 backdrop-blur-md shadow-[0_0_20px_rgba(244,63,94,0.15)]',
       },
     },
     defaultVariants: {

@@ -115,7 +115,15 @@ export function LunaraSettings({ initialData, onBack, onSave }: LunaraSettingsPr
                 <Button
                     onClick={handleSave}
                     disabled={saving}
-                    className="bg-purple-600 hover:bg-purple-700 text-white rounded-full px-6 shadow-[0_0_15px_rgba(168,85,247,0.4)]"
+                    size="icon"
+                    className="md:hidden bg-purple-600 hover:bg-purple-700 text-white rounded-full w-10 h-10 shadow-[0_0_15px_rgba(168,85,247,0.4)]"
+                >
+                    {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                </Button>
+                <Button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="hidden md:flex bg-purple-600 hover:bg-purple-700 text-white rounded-full px-6 shadow-[0_0_15px_rgba(168,85,247,0.4)]"
                 >
                     {saving ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                     Save Changes
@@ -150,6 +158,7 @@ export function LunaraSettings({ initialData, onBack, onSave }: LunaraSettingsPr
                                         mode="single"
                                         selected={data.lastPeriodStart}
                                         onSelect={(date) => setData({ ...data, lastPeriodStart: date })}
+                                        disabled={(date) => date > new Date()}
                                         initialFocus
                                     />
                                 </PopoverContent>
@@ -382,6 +391,16 @@ export function LunaraSettings({ initialData, onBack, onSave }: LunaraSettingsPr
             <div className="text-center py-4 opacity-30">
                 <p className="text-[10px] italic tracking-[0.2em] uppercase">All health data is encrypted and private</p>
             </div>
+
+            {/* Bottom Save Button */}
+            <Button
+                onClick={handleSave}
+                disabled={saving}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-full py-6 shadow-[0_0_15px_rgba(168,85,247,0.4)] font-bold text-base"
+            >
+                {saving ? <RefreshCw className="w-5 h-5 mr-2 animate-spin" /> : <Save className="w-5 h-5 mr-2" />}
+                Save Settings
+            </Button>
         </div>
     )
 }

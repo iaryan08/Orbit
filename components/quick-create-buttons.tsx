@@ -24,7 +24,7 @@ export function QuickCreateButtons() {
                 </Button>
                 <Button
                     variant="outline"
-                    className="rounded-2xl px-6 h-11 gap-2 bg-white/5 border-white/10 hover:bg-amber-50/90 hover:border-amber-200/50 hover:text-amber-700 backdrop-blur-md text-rose-100 transition-all"
+                    className="rounded-2xl px-6 h-11 gap-2 bg-white/5 border-white/5 hover:bg-amber-50/90 hover:border-amber-200/50 hover:text-amber-700 backdrop-blur-md text-rose-100 transition-all"
                     onClick={() => setIsAddingMemory(true)}
                 >
                     <ImageIcon className="w-4 h-4" />

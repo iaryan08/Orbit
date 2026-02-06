@@ -153,6 +153,7 @@ export function MilestoneCard({
                                                     setDate(newDate);
                                                     setHasInteracted(true);
                                                 }}
+                                                disabled={(date) => date > new Date()}
                                                 initialFocus
                                                 className="text-white"
                                             />
