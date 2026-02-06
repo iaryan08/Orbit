@@ -42,84 +42,84 @@ const questions = [
         label: "First Talk",
         q: "What was the first time you discussed intimacy with your partner?",
         icon: <MessageCircle className="w-6 h-6 text-rose-400" />,
-        image: "/images/intimacy/first_talk.png"
+        image: "/images/intimacy/first_talk.webp"
     },
     {
         id: "first_hug",
         label: "First Hug",
         q: "When did you give your first meaningful hug?",
         icon: <UserPlus className="w-6 h-6 text-orange-400" />,
-        image: "/images/intimacy/first_hug_icon.png"
+        image: "/images/intimacy/first_hug_icon.webp"
     },
     {
         id: "first_kiss",
         label: "First Kiss",
         q: "How did your first kiss begin?",
         icon: <HeartIcon className="w-6 h-6 text-rose-500" />,
-        image: "/images/intimacy/first_kiss.png"
+        image: "/images/intimacy/first_kiss.webp"
     },
     {
         id: "first_french_kiss",
         label: "First French Kiss",
         q: "Describe the first deep kiss you shared.",
         icon: <Flame className="w-6 h-6 text-red-500" />,
-        image: "/images/intimacy/first_kiss_icon.png"
+        image: "/images/intimacy/first_kiss_icon.webp"
     },
     {
         id: "first_sex",
         label: "First Sex",
         q: "How did your first sexual encounter feel?",
         icon: <SparklesIcon className="w-6 h-6 text-yellow-400" />,
-        image: "/images/intimacy/first_sex_icon.png"
+        image: "/images/intimacy/first_sex_icon.webp"
     },
     {
         id: "first_oral",
         label: "First Oral Sex",
         q: "What was the first time you performed or received oral sex?",
         icon: <Activity className="w-6 h-6 text-purple-400" />,
-        image: "/images/intimacy/first_oral.png"
+        image: "/images/intimacy/first_oral.webp"
     },
     {
         id: "first_time_together",
         label: "First Time Together",
         q: "When did you first spend a night together?",
         icon: <MoonIcon className="w-6 h-6 text-indigo-400" />,
-        image: "/images/intimacy/together.png"
+        image: "/images/intimacy/together.webp"
     },
     {
         id: "first_surprise",
         label: "First Surprise",
         q: "What was the first intimate surprise you gave or received?",
         icon: <Gift className="w-6 h-6 text-pink-400" />,
-        image: "/images/intimacy/first_surprise.png"
+        image: "/images/intimacy/first_surprise.webp"
     },
     {
         id: "first_memory",
         label: "First Memory",
         q: "What is your favorite memory from early in your sexual relationship?",
         icon: <Camera className="w-6 h-6 text-blue-400" />,
-        image: "/images/intimacy/first_memory.png"
+        image: "/images/intimacy/first_memory.webp"
     },
     {
         id: "first_confession",
         label: "First Confession",
         q: "What did you confess to each other about your sexual desires?",
         icon: <Lock className="w-6 h-6 text-amber-500" />,
-        image: "/images/intimacy/confession.png"
+        image: "/images/intimacy/confession.webp"
     },
     {
         id: "first_promise",
         label: "First Promise",
         q: "What promise did you make about future intimacy?",
         icon: <Anchor className="w-6 h-6 text-cyan-400" />,
-        image: "/images/intimacy/first_promise.png"
+        image: "/images/intimacy/first_promise.webp"
     },
     {
         id: "first_night_together",
         label: "First Night Together",
         q: "How did you feel during your first night apart?",
         icon: <CloudMoon className="w-6 h-6 text-slate-400" />,
-        image: "/images/intimacy/first_night_apart.png"
+        image: "/images/intimacy/first_night_apart.webp"
     },
     {
         id: "first_time_alone",
