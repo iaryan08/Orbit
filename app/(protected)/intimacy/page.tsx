@@ -1,34 +1,26 @@
 "use client";
 
-
-
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import {
-    MessageCircle,
-    UserPlus,
+    MessageSquareHeart,
+    HandHeart,
     Heart as HeartIcon,
-    Sparkles as SparklesIcon,
     Flame,
     Moon as MoonIcon,
     Gift,
     Camera,
-    Lock,
-    Anchor,
+    Infinity as InfinityIcon,
     CloudMoon,
-    MapPin,
+    Home,
     Film,
-    Activity,
+    HeartPulse,
+    Waves,
     CalendarIcon,
     Unlock,
-    Sparkles
+    Sparkles,
+    BedDouble
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -40,15 +32,15 @@ const questions = [
     {
         id: "first_talk",
         label: "First Talk",
-        q: "What was the first time you discussed intimacy with your partner?",
-        icon: <MessageCircle className="w-6 h-6 text-rose-400" />,
+        q: "What was the first time you talked with your partner?",
+        icon: <MessageSquareHeart className="w-6 h-6 text-rose-400" />,
         image: "/images/intimacy/first_talk.webp"
     },
     {
         id: "first_hug",
         label: "First Hug",
         q: "When did you give your first meaningful hug?",
-        icon: <UserPlus className="w-6 h-6 text-orange-400" />,
+        icon: <HandHeart className="w-6 h-6 text-orange-400" />,
         image: "/images/intimacy/first_hug_icon.webp"
     },
     {
@@ -69,14 +61,14 @@ const questions = [
         id: "first_sex",
         label: "First Sex",
         q: "How did your first sexual encounter feel?",
-        icon: <SparklesIcon className="w-6 h-6 text-yellow-400" />,
+        icon: <BedDouble className="w-6 h-6 text-amber-500" />,
         image: "/images/intimacy/first_sex_icon.webp"
     },
     {
         id: "first_oral",
         label: "First Oral Sex",
         q: "What was the first time you performed or received oral sex?",
-        icon: <Activity className="w-6 h-6 text-purple-400" />,
+        icon: <Waves className="w-6 h-6 text-purple-400" />,
         image: "/images/intimacy/first_oral.webp"
     },
     {
@@ -104,19 +96,19 @@ const questions = [
         id: "first_confession",
         label: "First Confession",
         q: "What did you confess to each other about your sexual desires?",
-        icon: <Lock className="w-6 h-6 text-amber-500" />,
+        icon: <Unlock className="w-6 h-6 text-amber-500" />,
         image: "/images/intimacy/confession.webp"
     },
     {
         id: "first_promise",
         label: "First Promise",
         q: "What promise did you make about future intimacy?",
-        icon: <Anchor className="w-6 h-6 text-cyan-400" />,
+        icon: <InfinityIcon className="w-6 h-6 text-cyan-400" />,
         image: "/images/intimacy/first_promise.webp"
     },
     {
         id: "first_night_together",
-        label: "First Night Together",
+        label: "First Night Apart",
         q: "How did you feel during your first night apart?",
         icon: <CloudMoon className="w-6 h-6 text-slate-400" />,
         image: "/images/intimacy/first_night_apart.webp"
@@ -125,7 +117,7 @@ const questions = [
         id: "first_time_alone",
         label: "First Time Alone",
         q: "When did you first spend a private evening together?",
-        icon: <MapPin className="w-6 h-6 text-green-400" />
+        icon: <Home className="w-6 h-6 text-green-400" />
     },
     {
         id: "first_movie_date",
@@ -137,7 +129,7 @@ const questions = [
         id: "first_intimate_moment",
         label: "First Intimate Moment",
         q: "How did you first express your romantic feelings physically?",
-        icon: <HeartIcon className="w-6 h-6 text-rose-600 fill-rose-600/20" />
+        icon: <HeartPulse className="w-6 h-6 text-rose-600" />
     },
 ];
 
@@ -168,8 +160,6 @@ export default function IntimacyPage() {
             const { data: couple } = await supabase.from("couples").select("*").eq("id", profile.couple_id).single();
             if (couple) {
                 setUser1Id(couple.user1_id);
-                // Identify partner
-                // We need to know who is user1 and user2 to know which column to read/write
             }
             await fetchMilestones(profile.couple_id);
             subscribe(profile.couple_id);
@@ -195,7 +185,6 @@ export default function IntimacyPage() {
             .subscribe();
     };
 
-    // Determine if I am user1 or user2 based on ID comparison to couple.user1_id
     const isUser1 = user && user1Id && user.id === user1Id;
     const myContentField = isUser1 ? "content_user1" : "content_user2";
     const partnerContentField = isUser1 ? "content_user2" : "content_user1";
@@ -216,7 +205,7 @@ export default function IntimacyPage() {
         } else {
             toast({ title: "Saved", description: "Your memory has been recorded.", variant: "default" });
             setActiveQuestion(null);
-            if (coupleId) fetchMilestones(coupleId); // Refresh local state
+            if (coupleId) fetchMilestones(coupleId);
         }
     };
 
@@ -251,6 +240,8 @@ export default function IntimacyPage() {
                         partnerContentField={partnerContentField}
                         myDateField={myDateField}
                         partnerDateField={partnerDateField}
+                        isOpen={activeQuestion === q.id}
+                        onToggle={() => setActiveQuestion(activeQuestion === q.id ? null : q.id)}
                         onSave={handleSave}
                     />
                 ))}

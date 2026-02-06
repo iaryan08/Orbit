@@ -544,6 +544,7 @@ export async function logPeriodStart() {
     .from('cycle_profiles')
     .update({
       last_period_start: today,
+      period_ended_at: null,
       updated_at: new Date().toISOString()
     })
     .eq('user_id', user.id)
@@ -607,6 +608,28 @@ export async function logPeriodStart() {
       if (partnerId) revalidateTag(`dashboard-${partnerId}`, 'default')
     }
   }
+
+  revalidatePath('/dashboard', 'layout')
+  return { success: true }
+}
+
+export async function logPeriodEnd() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return { error: 'Not authenticated' }
+
+  const today = getTodayIST()
+
+  const { error } = await supabase
+    .from('cycle_profiles')
+    .update({
+      period_ended_at: today,
+      updated_at: new Date().toISOString()
+    })
+    .eq('user_id', user.id)
+
+  if (error) return { error: error.message }
 
   revalidatePath('/dashboard', 'layout')
   return { success: true }

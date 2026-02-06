@@ -44,14 +44,14 @@ const CATEGORY_CONFIG: Record<string, { label: string, emoji: string, color: str
     },
     first_kiss: {
         label: "First Kiss",
-        emoji: "💋",
+        emoji: "😘",
         color: "text-rose-400",
         gradient: "from-rose-900/40 to-black/60",
         text: "A spark that set souls on fire"
     },
     first_french_kiss: {
         label: "First French Kiss",
-        emoji: "🔥",
+        emoji: "💋",
         color: "text-red-400",
         gradient: "from-red-900/40 to-black/60",
         text: "Passion ignited, drifting away"
@@ -270,6 +270,20 @@ export function OnThisDay({ memories, milestones }: { memories: any[], milestone
                                         <p className="text-white/60 text-sm font-medium uppercase tracking-widest">
                                             {config?.text}
                                         </p>
+                                        {/* Personalized date context for dual-date milestones */}
+                                        {currentItem.isOwnDate !== undefined && (
+                                            <p className="text-xs text-amber-200/80 font-medium mt-2">
+                                                {currentItem.category === 'first_kiss' && (
+                                                    currentItem.isOwnDate ? "You kissed her" : "She kissed you"
+                                                )}
+                                                {currentItem.category === 'first_surprise' && (
+                                                    currentItem.isOwnDate ? "You received this surprise" : "You surprised her"
+                                                )}
+                                                {currentItem.category === 'first_memory' && (
+                                                    currentItem.isOwnDate ? "✨ Your special memory" : "✨ Her special memory"
+                                                )}
+                                            </p>
+                                        )}
                                     </div>
 
                                     <div className="pt-4 flex flex-col items-center gap-2">

@@ -122,7 +122,29 @@ export async function fetchDashboardData() {
                 }
 
                 const onThisDayMemories = (memoriesRes.data || []).filter((m: any) => isToday(m.memory_date))
-                const onThisDayMilestones = (milestonesRes.data || []).filter((m: any) => isToday(m.milestone_date))
+
+                // For milestones, check all date fields and track whose date it is
+                const onThisDayMilestones = (milestonesRes.data || []).reduce((acc: any[], m: any) => {
+                    const dualDateCategories = ['first_kiss', 'first_surprise', 'first_memory']
+                    const isDualDate = dualDateCategories.includes(m.category)
+
+                    if (isDualDate) {
+                        // Check user1's date
+                        if (isToday(m.date_user1)) {
+                            acc.push({ ...m, milestone_date: m.date_user1, isOwnDate: m.user1_id === user.id, isPartnerDate: m.user1_id !== user.id })
+                        }
+                        // Check user2's date
+                        if (isToday(m.date_user2)) {
+                            acc.push({ ...m, milestone_date: m.date_user2, isOwnDate: m.user2_id === user.id, isPartnerDate: m.user2_id !== user.id })
+                        }
+                    } else {
+                        // Single date categories
+                        if (isToday(m.milestone_date)) {
+                            acc.push({ ...m, isOwnDate: true, isPartnerDate: false })
+                        }
+                    }
+                    return acc
+                }, [])
 
                 const end = performance.now()
                 console.log(`[Dashboard] Fetched all data in ${(end - start).toFixed(2)}ms`)

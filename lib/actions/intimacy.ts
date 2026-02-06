@@ -32,6 +32,7 @@ export async function logIntimacyMilestone(payload: {
     if (!couple) return { error: "Couple error" }
 
     const isUser1 = couple.user1_id === user.id
+    const showDualDates = ['first_kiss', 'first_surprise', 'first_memory'].includes(payload.category)
     const contentField = isUser1 ? "content_user1" : "content_user2"
     const dateField = isUser1 ? "date_user1" : "date_user2"
 
@@ -43,9 +44,16 @@ export async function logIntimacyMilestone(payload: {
     }
 
     if (payload.date) {
-        updateData[dateField] = payload.date
-        // For backwards compatibility or shared categories, we can also update milestone_date
-        updateData.milestone_date = payload.date
+        if (showDualDates) {
+            updateData[dateField] = payload.date
+            // Also update the shared field as a fallback/summary
+            updateData.milestone_date = payload.date
+        } else {
+            // Strictly shared
+            updateData.milestone_date = payload.date
+            // We can also clear user-specific dates or keep them as backup, 
+            // but the component will prioritize milestone_date for these.
+        }
     }
 
     const { error } = await supabase

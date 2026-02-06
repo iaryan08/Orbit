@@ -8,7 +8,7 @@ import { cn, getTodayIST } from '@/lib/utils'
 import { ScrollReveal } from '@/components/scroll-reveal'
 import { Button } from '@/components/ui/button'
 import { LunaraSettings } from '../lunara-settings'
-import { logPeriodStart, logSymptoms } from '@/lib/actions/auth'
+import { logPeriodStart, logPeriodEnd, logSymptoms } from '@/lib/actions/auth'
 import { useToast } from '@/hooks/use-toast'
 import { useRouter } from 'next/navigation'
 import { CycleCalendar } from './cycle-calendar'
@@ -62,6 +62,8 @@ export function LunaraTabDashboard({ data }: { data: any }) {
         const cycleLength = cycleProfile.avg_cycle_length || 28
         return (diff % cycleLength) + 1
     }
+
+    const currentDay = getCycleDay()
 
     const getPhaseInfo = (day: number) => {
         const phases = [
@@ -129,6 +131,41 @@ export function LunaraTabDashboard({ data }: { data: any }) {
         return phases[3]
     }
 
+    const phase = currentDay ? getPhaseInfo(currentDay) : null
+
+    const getPregnancyChance = (day: number) => {
+        // Based on a standard 28-day cycle approximation
+        if (day === 14) return { level: "Very High", color: "text-rose-500" }
+        if (day >= 12 && day <= 15) return { level: "High", color: "text-rose-400" }
+        if (day >= 10 && day <= 17) return { level: "Medium", color: "text-amber-400" }
+        return { level: "Low", color: "text-emerald-400" }
+    }
+
+    const chance = currentDay ? getPregnancyChance(currentDay) : { level: "—", color: "text-white/20" }
+
+    const getInsightContent = () => {
+        if (!phase) return "Stay synced and supportive."
+
+        // Use current date to pick an index (0, 1, or 2)
+        const now = new Date()
+        const index = now.getDate() % 3
+
+        return profile.gender === 'female' ? phase.female[index] : phase.male[index]
+    }
+
+    const dailyInsight = getInsightContent()
+
+    const nextPeriodDate = cycleProfile?.last_period_start
+        ? addDays(new Date(cycleProfile.last_period_start),
+            (Math.floor(differenceInDays(new Date(), new Date(cycleProfile.last_period_start)) / (cycleProfile.avg_cycle_length || 28)) + 1) * (cycleProfile.avg_cycle_length || 28)
+        )
+        : null
+
+
+    // Check if currently in menstrual phase (period active)
+    const isPeriodActive = currentDay !== null &&
+        currentDay <= (cycleProfile?.avg_period_length || 5) &&
+        (!cycleProfile?.period_ended_at || new Date(cycleProfile.period_ended_at) < new Date(cycleProfile.last_period_start))
 
     const handleLogPeriod = async () => {
         setIsLogging(true)
@@ -137,10 +174,31 @@ export function LunaraTabDashboard({ data }: { data: any }) {
             if (result.success) {
                 const today = getTodayIST()
                 setCycleProfile((prev: any) => ({ ...prev, last_period_start: today }))
-                toast({ title: "Period Logged", variant: "success" })
+                toast({ title: "Period Started", description: "Your cycle has been updated", variant: "success" })
                 router.refresh()
             } else {
                 toast({ title: "Log Failed", variant: "destructive" })
+            }
+        } finally {
+            setIsLogging(false)
+        }
+    }
+
+    const handleLogPeriodEnd = async () => {
+        setIsLogging(true)
+        try {
+            const today = getTodayIST()
+            const result = await logPeriodEnd()
+            if (result.success) {
+                setCycleProfile((prev: any) => ({ ...prev, period_ended_at: today }))
+                toast({
+                    title: "Period Ended",
+                    description: `Your period for this cycle has been recorded as ended.`,
+                    variant: "success"
+                })
+                router.refresh()
+            } else {
+                toast({ title: "Update Failed", variant: "destructive" })
             }
         } finally {
             setIsLogging(false)
@@ -194,43 +252,16 @@ export function LunaraTabDashboard({ data }: { data: any }) {
         setShowCustomInput(false)
     }
 
-    const getPregnancyChance = (day: number) => {
-        // Based on a standard 28-day cycle approximation
-        if (day === 14) return { level: "Very High", color: "text-rose-500" }
-        if (day >= 12 && day <= 15) return { level: "High", color: "text-rose-400" }
-        if (day >= 10 && day <= 17) return { level: "Medium", color: "text-amber-400" }
-        return { level: "Low", color: "text-emerald-400" }
-    }
+
 
     const triggerHaptic = () => {
         if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
-            window.navigator.vibrate(10)
+            window.navigator.vibrate(25)
         }
     }
 
 
-    const currentDay = getCycleDay()
-    const phase = currentDay ? getPhaseInfo(currentDay) : null
-    const chance = currentDay ? getPregnancyChance(currentDay) : { level: "—", color: "text-white/20" }
-
     // Logic for frequently refreshing advice
-    const getInsightContent = () => {
-        if (!phase) return "Stay synced and supportive."
-
-        // Use current date to pick an index (0, 1, or 2)
-        const now = new Date()
-        const index = now.getDate() % 3
-
-        return profile.gender === 'female' ? phase.female[index] : phase.male[index]
-    }
-
-    const dailyInsight = getInsightContent()
-
-    const nextPeriodDate = cycleProfile?.last_period_start
-        ? addDays(new Date(cycleProfile.last_period_start),
-            (Math.floor(differenceInDays(new Date(), new Date(cycleProfile.last_period_start)) / (cycleProfile.avg_cycle_length || 28)) + 1) * (cycleProfile.avg_cycle_length || 28)
-        )
-        : null
 
     if (showSettings) {
         return (
@@ -316,14 +347,14 @@ export function LunaraTabDashboard({ data }: { data: any }) {
                     <div className="mt-6 sm:mt-8 flex gap-4">
                         {profile?.gender === 'female' && (
                             <motion.button
-                                onClick={handleLogPeriod}
+                                onClick={isPeriodActive ? handleLogPeriodEnd : handleLogPeriod}
                                 whileTap={{ scale: 0.92 }}
                                 onTapStart={triggerHaptic}
                                 disabled={isLogging}
                                 className="px-5 py-2 sm:px-6 sm:py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-200 text-[10px] sm:text-xs font-bold uppercase tracking-widest cursor-pointer hover:bg-purple-500/20 transition-all flex items-center gap-2 disabled:opacity-50 shadow-lg shadow-purple-500/5"
                             >
                                 {isLogging && <Loader2 className="w-3 h-3 animate-spin" />}
-                                Log Period
+                                {isPeriodActive ? 'Period Ended' : 'Log Period'}
                             </motion.button>
                         )}
                     </div>

@@ -14,6 +14,7 @@ import {
 // --- Types ---
 interface CycleProfile {
     last_period_start: string | null
+    period_ended_at?: string | null
     avg_cycle_length: number
     avg_period_length: number
 }
@@ -36,6 +37,16 @@ function getDayStatus(date: Date, profile: CycleProfile) {
     if (cycleDay <= 0) cycleDay += avgCycle
 
     if (cycleDay <= avgPeriod) {
+        // If period ended early for THIS cycle, return follicular for subsequent days
+        if (profile.period_ended_at && profile.last_period_start) {
+            const periodEnd = startOfDay(new Date(profile.period_ended_at))
+            const periodStart = startOfDay(new Date(profile.last_period_start))
+
+            // Only apply if the end date is for the current cycle
+            if (periodEnd >= periodStart && targetDate > periodEnd) {
+                return { phase: 'follicular', cycleDay }
+            }
+        }
         return { phase: 'menstrual', cycleDay, intensity: 'high' }
     }
 

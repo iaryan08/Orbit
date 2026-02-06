@@ -105,7 +105,7 @@ export function DashboardHeader({
 
   const triggerHaptic = () => {
     if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
-      window.navigator.vibrate(10) // Ultra-short pulse for tactile feel
+      window.navigator.vibrate(25) // Short pulse for tactile feel
     }
   }
 
