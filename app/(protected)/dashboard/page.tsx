@@ -9,6 +9,7 @@ import type { MoodType } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 import { DashboardShell } from '@/components/dashboard-shell'
 import { ScrollReveal } from '@/components/scroll-reveal'
+import { QuickCreateButtons } from '@/components/quick-create-buttons'
 
 // Dynamic Imports with Loading Skeletons
 const MoodCheckIn = dynamic<{ hasPartner: boolean; userMoods?: any[] }>(() => import('@/components/mood-check-in').then(mod => mod.MoodCheckIn), {
@@ -111,6 +112,8 @@ export default async function DashboardPage() {
                             Connected with <span className="text-rose-300 font-bold">{partnerProfile?.display_name || 'Partner'}</span>
                         </p>
                     </div>
+
+                    <QuickCreateButtons />
                 </ScrollReveal>
 
                 {/* Unified Bento Grid */}
@@ -227,29 +230,25 @@ export default async function DashboardPage() {
                         </div>
                     </ScrollReveal>
 
-                    {/* Quick Actions (Floating Pill Grid) */}
-                    <ScrollReveal className="lg:col-span-1 glass-card hidden" delay={0.3}>
-                        <div className=" p-6 flex flex-col justify-between h-full bg-black/20">
+                    {/* Quick Info (Status Indicators) */}
+                    <ScrollReveal className="lg:col-span-1" delay={0.3}>
+                        <div className="glass-card p-6 flex flex-col justify-between h-full">
                             <div className="flex items-center justify-between mb-8">
-                                <h3 className="text-white/50 uppercase tracking-[0.2em] text-[10px] font-bold">Quick Interaction</h3>
+                                <h3 className="text-white/50 uppercase tracking-[0.2em] text-[10px] font-bold">Quick Insights</h3>
                                 <Sparkles className="w-4 h-4 text-amber-400/30" />
                             </div>
-                            <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 glass-card">
-                                {quickActions.map((action, i) => (
-                                    <Link
-                                        key={action.href}
-                                        href={action.href}
-                                        className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all hover:translate-x-1 group"
-                                    >
-                                        <div className={cn(
-                                            "w-8 h-8 rounded-xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-110",
-                                            action.color.replace('text-', 'bg-').replace('500', '500/20')
-                                        )}>
-                                            <action.icon className={cn("w-4 h-4", action.color)} />
-                                        </div>
-                                        <span className="text-[10px] font-bold text-white/70 uppercase tracking-wider">{action.label.split(' ')[1] || action.label}</span>
-                                    </Link>
-                                ))}
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5">
+                                    <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Memories</span>
+                                    <span className="text-sm font-bold text-amber-200">{memoriesCount}</span>
+                                </div>
+                                <div className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5">
+                                    <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest">Letters</span>
+                                    <span className="text-sm font-bold text-rose-300">{lettersCount}</span>
+                                </div>
+                                <Link href="/intimacy" className="block p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-center hover:bg-rose-500/20 transition-all">
+                                    <span className="text-[10px] font-bold text-rose-100 uppercase tracking-widest">Intimacy Mode</span>
+                                </Link>
                             </div>
                         </div>
                     </ScrollReveal>

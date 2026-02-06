@@ -18,6 +18,8 @@ interface MilestoneCardProps {
     milestone: any;
     myContentField: string;
     partnerContentField: string;
+    myDateField: string;
+    partnerDateField: string;
     icon?: React.ReactNode;
     image?: string;
     onSave: (id: string, date: Date | undefined, content: string) => Promise<void>;
@@ -30,13 +32,16 @@ export function MilestoneCard({
     milestone,
     myContentField,
     partnerContentField,
+    myDateField,
+    partnerDateField,
     icon,
     image,
     onSave
 }: MilestoneCardProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [date, setDate] = useState<Date | undefined>(
-        milestone?.milestone_date ? new Date(milestone.milestone_date) : undefined
+        milestone?.[myDateField] ? new Date(milestone[myDateField]) :
+            milestone?.milestone_date ? new Date(milestone.milestone_date) : undefined
     );
     const [content, setContent] = useState(milestone?.[myContentField] || "");
     const [saving, setSaving] = useState(false);
@@ -44,18 +49,23 @@ export function MilestoneCard({
 
     useEffect(() => {
         if (milestone && !hasInteracted) {
-            if (milestone.milestone_date) {
-                setDate(new Date(milestone.milestone_date));
+            const initialDate = milestone[myDateField] || milestone.milestone_date;
+            if (initialDate) {
+                setDate(new Date(initialDate));
             }
             if (milestone[myContentField]) {
                 setContent(milestone[myContentField]);
             }
         }
-    }, [milestone, myContentField, hasInteracted]);
+    }, [milestone, myContentField, myDateField, hasInteracted]);
 
     const myAnswer = milestone?.[myContentField];
     const partnerAnswer = milestone?.[partnerContentField];
+    const myDate = milestone?.[myDateField] || milestone?.milestone_date;
+    const partnerDate = milestone?.[partnerDateField];
+
     const isCompleted = myAnswer && partnerAnswer;
+    const showDualDates = ['first_kiss', 'first_surprise', 'first_memory', 'first_french_kiss'].includes(id);
 
     const handleSaveClick = async () => {
         setSaving(true);
@@ -76,16 +86,16 @@ export function MilestoneCard({
                     <div className="space-y-1">
                         <CardTitle className="text-xl text-rose-100 font-serif flex items-center gap-2">
                             {label}
-                            {isCompleted && <Heart className="w-4 h-4 text-rose-50 fill-rose-500 animate-pulse" />}
                         </CardTitle>
                         <p className="text-rose-200/50 text-sm font-light">{question}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
                     {date && <span className="text-xs text-rose-200/40 font-mono">{format(date, "MMM yyyy")}</span>}
-                    <div className={cn("w-2 h-2 rounded-full transition-colors",
-                        isCompleted ? "bg-rose-500" :
-                            myAnswer ? "bg-amber-400" : "bg-rose-900"
+                    <div className={cn("w-2.5 h-2.5 rounded-full transition-all duration-500 shadow-sm",
+                        isCompleted ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" :
+                            myAnswer ? "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.3)]" :
+                                "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.3)]"
                     )} />
                 </div>
             </CardHeader>
@@ -117,34 +127,48 @@ export function MilestoneCard({
                         )}
                         <CardContent className="space-y-6 pt-0 px-6 pb-6">
                             {/* Date Input */}
-                            <div className="space-y-2">
-                                <label className="text-xs uppercase tracking-widest text-rose-200/40 font-bold">When did it happen?</label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant={"outline"}
-                                            className={cn(
-                                                "w-full justify-start text-left font-normal bg-black/40 border-rose-500/20 text-rose-100 hover:bg-rose-900/20",
-                                                !date && "text-muted-foreground"
-                                            )}
-                                        >
-                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {date ? format(date, "PPP") : <span>Pick a date</span>}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0 bg-rose-950 border-rose-800" align="start">
-                                        <Calendar
-                                            mode="single"
-                                            selected={date}
-                                            onSelect={(newDate) => {
-                                                setDate(newDate);
-                                                setHasInteracted(true);
-                                            }}
-                                            initialFocus
-                                            className="text-white"
-                                        />
-                                    </PopoverContent>
-                                </Popover>
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-xs uppercase tracking-widest text-rose-200/40 font-bold">
+                                        {showDualDates ? "Your Date" : "When did it happen?"}
+                                    </label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-full justify-start text-left font-normal bg-black/40 border-rose-500/20 text-rose-100 hover:bg-rose-900/20",
+                                                    !date && "text-muted-foreground"
+                                                )}
+                                            >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {date ? format(date, "PPP") : <span>Pick a date</span>}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0 bg-rose-950 border-rose-800" align="start">
+                                            <Calendar
+                                                mode="single"
+                                                selected={date}
+                                                onSelect={(newDate) => {
+                                                    setDate(newDate);
+                                                    setHasInteracted(true);
+                                                }}
+                                                initialFocus
+                                                className="text-white"
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+
+                                {showDualDates && partnerDate && (
+                                    <div className="space-y-2">
+                                        <label className="text-xs uppercase tracking-widest text-rose-200/40 font-bold">Partner's Date</label>
+                                        <div className="flex items-center gap-2 p-3 bg-rose-900/10 border border-rose-500/10 rounded-md text-rose-100">
+                                            <CalendarIcon className="h-4 w-4 text-rose-400" />
+                                            <span>{format(new Date(partnerDate), "PPP")}</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* My Answer */}

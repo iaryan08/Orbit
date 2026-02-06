@@ -15,9 +15,9 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog";
 import { Camera, Plus, Calendar, MapPin, Heart, Upload, X, ImageIcon, Trash2 } from "lucide-react";
+import { AddMemoryDialog } from "@/components/dialogs/add-memory-dialog";
 import { createClient } from "@/lib/supabase/client";
 import { markAsViewed, refreshDashboard, deleteMemory } from "@/lib/actions/auth";
 import { createMemory, updateMemory } from "@/lib/actions/memories";
@@ -290,174 +290,29 @@ export default function MemoriesPage() {
                 </div>
 
                 <motion.div style={{ opacity }}>
-                    <Dialog open={isAdding} onOpenChange={setIsAdding}>
-                        <Button className="w-10 h-10 p-0 rounded-full" variant="rosy" onClick={() => {
-                            setEditingMemory(null);
-                            setNewMemory({
-                                title: "",
-                                description: "",
-                                location: "",
-                                memory_date: getTodayIST(),
-                            });
-                            setPreviewUrls([]);
-                            setSelectedFiles([]);
-                            setExistingImages([]);
-                            setIsAdding(true);
-                        }}>
-                            <Plus className="h-4 w-4" />
-                        </Button>
-                        <DialogContent className="sm:max-w-[500px] border border-white/10 bg-[#1a0b10]/70 backdrop-blur-[8px] shadow-[0_0_50px_rgba(244,63,94,0.15)] text-white">
-                            <DialogHeader>
-                                <DialogTitle className="flex items-center gap-3 font-serif text-2xl text-rose-200">
-                                    <Heart className="h-6 w-6 text-rose-500 fill-rose-500 animate-pulse" />
-                                    {editingMemory ? "Edit Memory" : "Capture a Memory"}
-                                </DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4 mt-4">
-                                <div>
-                                    <Label htmlFor="title" className="text-amber-100 font-medium tracking-wide uppercase text-xs">Title (Required)</Label>
-                                    <Input
-                                        id="title"
-                                        placeholder="Our special day..."
-                                        value={newMemory.title}
-                                        onChange={(e) => setNewMemory((prev) => ({ ...prev, title: e.target.value }))}
-                                        className="text-white placeholder:text-white/30 mt-1.5"
-                                    />
-                                </div>
-
-                                <div>
-                                    <Label className="text-amber-100 font-medium tracking-wide uppercase text-xs">Photos (Required)</Label>
-                                    <div className="mt-2 space-y-2">
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {/* Existing Images */}
-                                            {existingImages.map((url, index) => (
-                                                <div key={`existing-${index}`} className="relative aspect-square">
-                                                    <Image
-                                                        src={url || "/placeholder.svg"}
-                                                        alt={`Existing ${index + 1}`}
-                                                        fill
-                                                        className="object-cover rounded-lg"
-                                                    />
-                                                    <button
-                                                        onClick={() => removeExistingImage(index)}
-                                                        className="absolute -top-2 -right-2 bg-white/20 text-white rounded-full p-2 shadow-md hover:bg-white/40 transition-all cursor-pointer"
-                                                    >
-                                                        <X className="h-5 w-5" />
-                                                    </button>
-                                                </div>
-                                            ))}
-
-                                            {/* New Previews */}
-                                            {previewUrls.map((url, index) => (
-                                                <div key={`new-${index}`} className="relative aspect-square">
-                                                    <Image
-                                                        src={url || "/placeholder.svg"}
-                                                        alt={`Preview ${index + 1}`}
-                                                        fill
-                                                        className="object-cover rounded-lg"
-                                                    />
-                                                    <button
-                                                        onClick={() => removeFile(index)}
-                                                        className="absolute -top-2 -right-2 bg-white/20 text-white rounded-full p-2 hover:bg-white/40 transition-all cursor-pointer"
-                                                    >
-                                                        <X className="h-5 w-5" />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        {(existingImages.length + previewUrls.length) < 10 && (
-                                            <Button
-                                                variant="outline"
-                                                className="w-full h-20 border-dashed bg-white/5 border-white/20 hover:bg-white/10 hover:border-white/40 transition-all text-white/70 hover:text-white"
-                                                onClick={() => fileInputRef.current?.click()}
-                                            >
-                                                <Upload className="h-5 w-5 mr-2" />
-                                                Upload Photos ({existingImages.length + previewUrls.length}/10)
-                                            </Button>
-                                        )}
-                                        <input
-                                            ref={fileInputRef}
-                                            type="file"
-                                            accept="image/*"
-                                            multiple
-                                            onChange={handleFileSelect}
-                                            className="hidden"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <Label htmlFor="description" className="text-amber-100 font-medium tracking-wide uppercase text-xs">Description (Optional)</Label>
-                                    <Textarea
-                                        id="description"
-                                        placeholder="What made this moment special..."
-                                        value={newMemory.description}
-                                        onChange={(e) => setNewMemory((prev) => ({ ...prev, description: e.target.value }))}
-                                        rows={3}
-                                        className="text-white placeholder:text-white/30 mt-1.5"
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <Label htmlFor="date" className="flex items-center gap-1 text-amber-100 font-medium tracking-wide uppercase text-xs">
-                                            <Calendar className="h-3 w-3" />
-                                            Date
-                                        </Label>
-                                        <Input
-                                            id="date"
-                                            type="date"
-                                            value={newMemory.memory_date}
-                                            onChange={(e) => setNewMemory((prev) => ({ ...prev, memory_date: e.target.value }))}
-                                            className="text-white/80 mt-1.5"
-                                        />
-                                    </div>
-                                    <div>
-                                        <Label htmlFor="location" className="flex items-center gap-1 text-amber-100 font-medium tracking-wide uppercase text-xs">
-                                            <MapPin className="h-3 w-3" />
-                                            Location (Optional)
-                                        </Label>
-                                        <Input
-                                            id="location"
-                                            placeholder="Where..."
-                                            value={newMemory.location}
-                                            onChange={(e) => setNewMemory((prev) => ({ ...prev, location: e.target.value }))}
-                                            className="text-white placeholder:text-white/30 mt-1.5"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-3">
-                                    {editingMemory && (
-                                        <Button
-                                            variant="destructive"
-                                            className="flex-1"
-                                            onClick={async () => {
-                                                if (!confirm("Are you sure you want to delete this memory?")) return;
-                                                setUploading(true);
-                                                await deleteMemory(editingMemory.id);
-                                                setUploading(false);
-                                                setIsAdding(false);
-                                                setEditingMemory(null);
-                                                fetchMemories();
-                                                router.refresh();
-                                                await refreshDashboard();
-                                                toast({ title: "Memory deleted" });
-                                            }}
-                                            disabled={uploading}
-                                        >
-                                            {uploading ? "Deleting..." : "Delete"}
-                                        </Button>
-                                    )}
-                                    <Button onClick={saveMemory} className="flex-1 gap-2 h-12 text-lg font-bold" variant="rosy" disabled={uploading}>
-                                        {uploading ? "Saving..." : (editingMemory ? "Save Changes" : "Save Memory")}
-                                    </Button>
-                                </div>
-                            </div>
-                        </DialogContent>
-                    </Dialog>
+                    <Button className="w-10 h-10 p-0 rounded-full" variant="rosy" onClick={() => {
+                        setEditingMemory(null);
+                        setIsAdding(true);
+                    }}>
+                        <Plus className="h-4 w-4" />
+                    </Button>
                 </motion.div>
+
+                <AddMemoryDialog
+                    open={isAdding}
+                    onOpenChange={setIsAdding}
+                    editingMemory={editingMemory}
+                    onSuccess={() => {
+                        fetchMemories();
+                        setEditingMemory(null);
+                    }}
+                    onDelete={async (id) => {
+                        await deleteMemory(id);
+                        fetchMemories();
+                        setEditingMemory(null);
+                        toast({ title: "Memory deleted" });
+                    }}
+                />
             </div>
 
             {loading ? (

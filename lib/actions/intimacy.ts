@@ -33,6 +33,7 @@ export async function logIntimacyMilestone(payload: {
 
     const isUser1 = couple.user1_id === user.id
     const contentField = isUser1 ? "content_user1" : "content_user2"
+    const dateField = isUser1 ? "date_user1" : "date_user2"
 
     const updateData: any = {
         couple_id: profile.couple_id,
@@ -42,6 +43,8 @@ export async function logIntimacyMilestone(payload: {
     }
 
     if (payload.date) {
+        updateData[dateField] = payload.date
+        // For backwards compatibility or shared categories, we can also update milestone_date
         updateData.milestone_date = payload.date
     }
 

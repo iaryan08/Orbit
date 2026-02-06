@@ -9,7 +9,7 @@ export function AmbientTopLoader() {
 
     // Use theme colors for the progress bar
     const color = mode === 'moon'
-        ? '#22d3ee' // Cyan-400 for Moon
+        ? '#fb7185' // Rose-400 for Moon
         : '#a855f7' // Purple-500 for Lunara
 
     return (

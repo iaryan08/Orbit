@@ -199,6 +199,8 @@ export default function IntimacyPage() {
     const isUser1 = user && user1Id && user.id === user1Id;
     const myContentField = isUser1 ? "content_user1" : "content_user2";
     const partnerContentField = isUser1 ? "content_user2" : "content_user1";
+    const myDateField = isUser1 ? "date_user1" : "date_user2";
+    const partnerDateField = isUser1 ? "date_user2" : "date_user1";
 
     const handleSave = async (category: string, date: Date | undefined, myContent: string) => {
         const payload = {
@@ -247,6 +249,8 @@ export default function IntimacyPage() {
                         milestone={milestones[q.id]}
                         myContentField={myContentField}
                         partnerContentField={partnerContentField}
+                        myDateField={myDateField}
+                        partnerDateField={partnerDateField}
                         onSave={handleSave}
                     />
                 ))}
