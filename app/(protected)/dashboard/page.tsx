@@ -30,6 +30,7 @@ const SharedBucketList = dynamic(() => import('@/components/shared-bucket-list')
     ssr: true,
     loading: () => <div className="h-64 rounded-3xl bg-white/5 animate-pulse" />
 })
+const WeatherBadge = dynamic(() => import('@/components/weather-badge').then(mod => mod.WeatherBadge), { ssr: true })
 const DistanceTimeWidget = dynamic(() => import('@/components/distance-time-widget').then(mod => mod.DistanceTimeWidget), {
     ssr: true,
     loading: () => <div className="h-32 rounded-3xl bg-white/5 animate-pulse" />
@@ -120,6 +121,16 @@ export default async function DashboardPage() {
                         <p className="text-rose-100/70 uppercase text-xs tracking-[0.2em]">
                             Connected with <span className="text-rose-300 font-bold">{partnerProfile?.display_name || 'Partner'}</span>
                         </p>
+
+                        <div className="flex items-center justify-center lg:justify-start gap-3 mt-1.5 ml-1">
+                            {partnerProfile && (
+                                <WeatherBadge
+                                    lat={partnerProfile.latitude}
+                                    lon={partnerProfile.longitude}
+                                    city={partnerProfile.city || partnerProfile.display_name}
+                                />
+                            )}
+                        </div>
                     </div>
 
                     <QuickCreateButtons />

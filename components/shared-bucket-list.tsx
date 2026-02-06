@@ -47,6 +47,8 @@ export function SharedBucketList({ initialItems = [] }: { initialItems: any[] })
     }
 
     const handleToggle = async (id: string, currentStatus: boolean) => {
+        if (id.startsWith('optimistic-')) return
+
         const newStatus = !currentStatus
 
         // Optimistic Update
@@ -65,6 +67,8 @@ export function SharedBucketList({ initialItems = [] }: { initialItems: any[] })
     }
 
     const handleDelete = async (id: string) => {
+        if (id.startsWith('optimistic-')) return
+
         // Optimistic Delete
         const oldItems = [...items]
         setItems(items.filter(i => i.id !== id))

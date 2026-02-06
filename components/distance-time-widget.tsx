@@ -58,14 +58,22 @@ export function DistanceTimeWidget({ userProfile, partnerProfile }: DistanceWidg
                 const { latitude, longitude } = position.coords
                 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
-                // Optional: Attempt to guess city via simple reverse mapping or just store coords
-                // Since we don't have a configured API key, we will store coords + timezone.
-                // User can potentially edit city name in a full settings page later.
+                let city = undefined
+                try {
+                    const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`, {
+                        headers: { 'User-Agent': 'MoonBetweenUs/1.0' }
+                    })
+                    const geoData = await geoRes.json()
+                    city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.suburb
+                } catch (e) {
+                    console.error('Reverse geocoding error:', e)
+                }
 
                 await updateLocation({
                     latitude,
                     longitude,
-                    timezone
+                    timezone,
+                    city
                 })
 
                 setUpdating(false)
