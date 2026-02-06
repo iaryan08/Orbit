@@ -12,11 +12,7 @@ import { logPeriodStart, logPeriodEnd, logSymptoms } from '@/lib/actions/auth'
 import { useToast } from '@/hooks/use-toast'
 import { useRouter } from 'next/navigation'
 import { CycleCalendar } from './cycle-calendar'
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from '@/components/ui/tooltip'
+
 
 export function LunaraTabDashboard({ data }: { data: any }) {
     const { profile, userCycle, partnerCycle, cycleLogs, currentDateIST } = data

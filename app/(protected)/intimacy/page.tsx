@@ -32,103 +32,103 @@ const questions = [
     {
         id: "first_talk",
         label: "First Talk",
-        q: "What was the first time you talked with your partner?",
+        q: "What was the first time you talked with {{partner}}?",
         icon: <MessageSquareHeart className="w-6 h-6 text-rose-400" />,
         image: "/images/intimacy/first_talk.webp"
     },
     {
         id: "first_hug",
         label: "First Hug",
-        q: "When did you give your first meaningful hug?",
+        q: "When did you give {{partner}} your first meaningful hug?",
         icon: <HandHeart className="w-6 h-6 text-orange-400" />,
         image: "/images/intimacy/first_hug_icon.webp"
     },
     {
         id: "first_kiss",
         label: "First Kiss",
-        q: "How did your first kiss begin?",
+        q: "How did your first kiss with {{partner}} begin?",
         icon: <HeartIcon className="w-6 h-6 text-rose-500" />,
         image: "/images/intimacy/first_kiss.webp"
     },
     {
         id: "first_french_kiss",
         label: "First French Kiss",
-        q: "Describe the first deep kiss you shared.",
+        q: "Describe the first deep kiss you shared with {{partner}}.",
         icon: <Flame className="w-6 h-6 text-red-500" />,
         image: "/images/intimacy/first_kiss_icon.webp"
     },
     {
         id: "first_sex",
         label: "First Sex",
-        q: "How did your first sexual encounter feel?",
+        q: "How did your first sexual encounter with {{partner}} feel?",
         icon: <BedDouble className="w-6 h-6 text-amber-500" />,
         image: "/images/intimacy/first_sex_icon.webp"
     },
     {
         id: "first_oral",
         label: "First Oral Sex",
-        q: "What was the first time you performed or received oral sex?",
+        q: "What was the first time you performed or received oral sex with {{partner}}?",
         icon: <Waves className="w-6 h-6 text-purple-400" />,
         image: "/images/intimacy/first_oral.webp"
     },
     {
         id: "first_time_together",
         label: "First Time Together",
-        q: "When did you first spend a night together?",
+        q: "When did you first spend a night with {{partner}}?",
         icon: <MoonIcon className="w-6 h-6 text-indigo-400" />,
         image: "/images/intimacy/together.webp"
     },
     {
         id: "first_surprise",
         label: "First Surprise",
-        q: "What was the first intimate surprise you gave or received?",
+        q: "What was the first intimate surprise you shared with {{partner}}?",
         icon: <Gift className="w-6 h-6 text-pink-400" />,
         image: "/images/intimacy/first_surprise.webp"
     },
     {
         id: "first_memory",
         label: "First Memory",
-        q: "What is your favorite memory from early in your sexual relationship?",
+        q: "What is your favorite memory from early in your sexual relationship with {{partner}}?",
         icon: <Camera className="w-6 h-6 text-blue-400" />,
         image: "/images/intimacy/first_memory.webp"
     },
     {
         id: "first_confession",
         label: "First Confession",
-        q: "What did you confess to each other about your sexual desires?",
+        q: "What did you confess to {{partner}} about your sexual desires?",
         icon: <Unlock className="w-6 h-6 text-amber-500" />,
         image: "/images/intimacy/confession.webp"
     },
     {
         id: "first_promise",
         label: "First Promise",
-        q: "What promise did you make about future intimacy?",
+        q: "What promise did you make to {{partner}} about future intimacy?",
         icon: <InfinityIcon className="w-6 h-6 text-cyan-400" />,
         image: "/images/intimacy/first_promise.webp"
     },
     {
         id: "first_night_together",
         label: "First Night Apart",
-        q: "How did you feel during your first night apart?",
+        q: "How did you feel during your first night apart from {{partner}}?",
         icon: <CloudMoon className="w-6 h-6 text-slate-400" />,
         image: "/images/intimacy/first_night_apart.webp"
     },
     {
         id: "first_time_alone",
         label: "First Time Alone",
-        q: "When did you first spend a private evening together?",
+        q: "When did you first spend a private evening with {{partner}}?",
         icon: <Home className="w-6 h-6 text-green-400" />
     },
     {
         id: "first_movie_date",
         label: "First Movie Date",
-        q: "How did your first movie date go?",
+        q: "How did your first movie date with {{partner}} go?",
         icon: <Film className="w-6 h-6 text-red-400" />
     },
     {
         id: "first_intimate_moment",
         label: "First Intimate Moment",
-        q: "How did you first express your romantic feelings physically?",
+        q: "How did you first express your romantic feelings physically to {{partner}}?",
         icon: <HeartPulse className="w-6 h-6 text-rose-600" />
     },
 ];
@@ -160,6 +160,14 @@ export default function IntimacyPage() {
             const { data: couple } = await supabase.from("couples").select("*").eq("id", profile.couple_id).single();
             if (couple) {
                 setUser1Id(couple.user1_id);
+                // Fetch partner profile
+                const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id;
+                if (partnerId) {
+                    const { data: partnerProfile } = await supabase.from("profiles").select("display_name").eq("id", partnerId).single();
+                    if (partnerProfile) {
+                        setPartner(partnerProfile);
+                    }
+                }
             }
             await fetchMilestones(profile.couple_id);
             subscribe(profile.couple_id);
@@ -232,7 +240,8 @@ export default function IntimacyPage() {
                         key={q.id}
                         id={q.id}
                         label={q.label}
-                        question={q.q}
+                        question={q.q.replace("{{partner}}", partner?.display_name || "your partner")}
+                        partnerName={partner?.display_name || "Partner"}
                         icon={q.icon}
                         image={q.image}
                         milestone={milestones[q.id]}

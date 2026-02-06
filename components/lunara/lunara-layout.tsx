@@ -7,12 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { fetchDashboardData } from '@/lib/actions/consolidated'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip"
+
 import { LunaraTabDashboard } from './lunara-tab-dashboard'
 import { LunaraTabPartner } from './lunara-tab-partner'
 import { LunaraTabInsights } from './lunara-tab-insights'

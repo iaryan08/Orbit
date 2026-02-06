@@ -135,7 +135,7 @@ const CATEGORY_CONFIG: Record<string, { label: string, emoji: string, color: str
     }
 }
 
-export function OnThisDay({ memories, milestones }: { memories: any[], milestones: any[] }) {
+export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { memories: any[], milestones: any[], partnerName?: string }) {
     // Combine and normalize items
     const normalizedMemories = memories.map(m => ({ ...m, type: 'memory' as const }))
     const normalizedMilestones = milestones.map(m => ({ ...m, type: 'milestone' as const }))
@@ -238,7 +238,7 @@ export function OnThisDay({ memories, milestones }: { memories: any[], milestone
                                 <div className="absolute bottom-4 left-4 right-4 pointer-events-none">
                                     <h3 className="text-lg font-bold text-white leading-tight drop-shadow-md">{currentItem.title}</h3>
                                     <div className="flex items-center gap-3 mt-1 text-[10px] uppercase tracking-[0.2em] font-bold text-white/60">
-                                        <span>{format(new Date(currentItem.memory_date + "T12:00:00"), "yyyy")}</span>
+                                        <span>{currentItem.memory_date ? format(new Date(currentItem.memory_date + "T12:00:00"), "yyyy") : ""}</span>
                                         {currentItem.location && (
                                             <span className="flex items-center gap-1">
                                                 <MapPin className="h-3 w-3" />
@@ -274,13 +274,13 @@ export function OnThisDay({ memories, milestones }: { memories: any[], milestone
                                         {currentItem.isOwnDate !== undefined && (
                                             <p className="text-xs text-amber-200/80 font-medium mt-2">
                                                 {currentItem.category === 'first_kiss' && (
-                                                    currentItem.isOwnDate ? "You kissed her" : "She kissed you"
+                                                    currentItem.isOwnDate ? `You kissed ${partnerName}` : `${partnerName} kissed you`
                                                 )}
                                                 {currentItem.category === 'first_surprise' && (
-                                                    currentItem.isOwnDate ? "You received this surprise" : "You surprised her"
+                                                    currentItem.isOwnDate ? "You received this surprise" : `You surprised ${partnerName}`
                                                 )}
                                                 {currentItem.category === 'first_memory' && (
-                                                    currentItem.isOwnDate ? "✨ Your special memory" : "✨ Her special memory"
+                                                    currentItem.isOwnDate ? "✨ Your special memory" : `✨ ${partnerName}'s special memory`
                                                 )}
                                             </p>
                                         )}

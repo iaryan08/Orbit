@@ -239,10 +239,13 @@ export default async function DashboardPage() {
                         </div>
                     </ScrollReveal>
 
-                    {/* On This Day (Conditional) */}
                     {(onThisDayMemories.length > 0 || onThisDayMilestones.length > 0) && (
                         <ScrollReveal className="lg:col-span-1" delay={0.55}>
-                            <OnThisDay memories={onThisDayMemories} milestones={onThisDayMilestones} />
+                            <OnThisDay
+                                memories={onThisDayMemories}
+                                milestones={onThisDayMilestones}
+                                partnerName={partnerProfile?.display_name || 'Partner'}
+                            />
                         </ScrollReveal>
                     )}
                 </div>

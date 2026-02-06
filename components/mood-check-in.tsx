@@ -24,6 +24,9 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
+  const [isCustomMode, setIsCustomMode] = useState(false)
+  const [customLabel, setCustomLabel] = useState('')
+  const [customEmoji, setCustomEmoji] = useState('')
   const { toast } = useToast()
 
   // If there's a mood today and we haven't just submitted, 
@@ -31,10 +34,15 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
   const hasSharedToday = userMoods.length > 0
 
   async function handleSubmit() {
-    if (!selectedMood) return
+    if (!selectedMood && !isCustomMode) return
+    if (isCustomMode && (!customLabel || !customEmoji)) {
+      toast({ title: 'Missing info', description: 'Please provide both an emoji and a label.', variant: 'failed' })
+      return
+    }
 
     setIsSubmitting(true)
-    const result = await submitMood(selectedMood, note)
+    const moodToSubmit = isCustomMode ? `CUSTOM:${customEmoji}:${customLabel}` : selectedMood!
+    const result = await submitMood(moodToSubmit, note)
     setIsSubmitting(false)
 
     if (result.error) {
@@ -50,7 +58,19 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
         description: 'Your partner will see how you are feeling.',
         variant: 'success',
       })
+      // Reset custom form
+      setCustomLabel('')
+      setCustomEmoji('')
+      setIsCustomMode(false)
     }
+  }
+
+  const parseMood = (moodStr: string) => {
+    if (moodStr?.startsWith('CUSTOM:')) {
+      const [, emoji, label] = moodStr.split(':')
+      return { emoji, label }
+    }
+    return { emoji: MOOD_EMOJIS[moodStr as MoodType] || '✨', label: moodStr }
   }
 
   if (!hasPartner) {
@@ -69,7 +89,7 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
 
   // Show shared state if submitted OR if we have shared today and not currently expanded/updating
   if (submitted || (hasSharedToday && !isExpanded)) {
-    const moodToShow = submitted ? selectedMood : latestMood.mood
+    const { emoji: moodEmoji, label: moodLabel } = parseMood(submitted ? (isCustomMode ? `CUSTOM:${customEmoji}:${customLabel}` : selectedMood!) : latestMood.mood)
     const noteToShow = submitted ? note : latestMood.note
 
     return (
@@ -80,10 +100,10 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
         <CardContent className="flex flex-col items-center justify-center py-3 md:py-10 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="text-6xl mb-4 animate-in zoom-in duration-500">
-            {moodToShow && MOOD_EMOJIS[moodToShow as MoodType]}
+            {moodEmoji}
           </div>
           <h3 className="font-semibold text-[10px] uppercase tracking-[0.3em] mb-1 text-white/40">You are feeling</h3>
-          <p className="text-xl font-medium text-white capitalize">{moodToShow}</p>
+          <p className="text-xl font-medium text-white capitalize">{moodLabel}</p>
           {noteToShow && (
             <p className="text-xs text-white/50 italic mt-2 max-w-[200px] truncate px-4">
               "{noteToShow}"
@@ -93,11 +113,14 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
             <div className="space-y-2 pt-4 md:pt-6 border-t border-white/5 w-full mt-4">
               <p className="text-[9px] uppercase tracking-widest font-bold text-white/20 mb-2">Previous moods today</p>
               <div className="flex gap-2 pb-2 overflow-x-auto no-scrollbar justify-center">
-                {userMoods.slice(1, 5).map((m, i) => (
-                  <div key={i} className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xl grayscale hover:grayscale-0 transition-all" title={m.note || m.mood} onClick={(e) => { e.stopPropagation(); }}>
-                    {MOOD_EMOJIS[m.mood as MoodType]}
-                  </div>
-                ))}
+                {userMoods.slice(1, 5).map((m, i) => {
+                  const { emoji } = parseMood(m.mood)
+                  return (
+                    <div key={i} className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xl grayscale hover:grayscale-0 transition-all" title={m.note || m.mood} onClick={(e) => { e.stopPropagation(); }}>
+                      {emoji}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}
@@ -146,10 +169,10 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
           {MOODS.map((mood) => (
             <button
               key={mood}
-              onClick={() => setSelectedMood(mood)}
+              onClick={() => { setSelectedMood(mood); setIsCustomMode(false); }}
               className={cn(
                 'flex flex-col items-center gap-1 p-2 rounded-xl border border-white/10 transition-all',
-                selectedMood === mood
+                selectedMood === mood && !isCustomMode
                   ? 'bg-primary/20 border-primary'
                   : 'bg-white/5 hover:bg-white/10'
               )}
@@ -158,9 +181,46 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
               <span className="text-xs capitalize text-white w-full truncate text-center font-medium opacity-90">{mood}</span>
             </button>
           ))}
+          <button
+            onClick={() => { setIsCustomMode(true); setSelectedMood(null); }}
+            className={cn(
+              'flex flex-col items-center gap-1 p-2 rounded-xl border border-white/10 transition-all',
+              isCustomMode
+                ? 'bg-primary/20 border-primary'
+                : 'bg-white/5 hover:bg-white/10'
+            )}
+          >
+            <span className="text-3xl"><Plus className="w-8 h-8 text-white/40" /></span>
+            <span className="text-xs capitalize text-white w-full truncate text-center font-medium opacity-90">Custom</span>
+          </button>
         </div>
 
-        {selectedMood && (
+        {isCustomMode && (
+          <div className="grid grid-cols-4 gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="col-span-1">
+              <input
+                type="text"
+                placeholder="😊"
+                value={customEmoji}
+                onChange={(e) => setCustomEmoji(e.target.value.split(/(\s+)/)[0])} // Just first emoji
+                className="w-full h-10 bg-white/5 border border-white/10 rounded-xl text-center text-xl text-white outline-none focus:border-primary/40"
+                maxLength={2}
+              />
+            </div>
+            <div className="col-span-3">
+              <input
+                type="text"
+                placeholder="Mood ..."
+                value={customLabel}
+                onChange={(e) => setCustomLabel(e.target.value)}
+                className="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm text-white outline-none focus:border-primary/40"
+                maxLength={20}
+              />
+            </div>
+          </div>
+        )}
+
+        {(selectedMood || isCustomMode) && (
           <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
             <Textarea
               placeholder="Add a note (optional)..."

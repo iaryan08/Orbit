@@ -20,6 +20,7 @@ interface MilestoneCardProps {
     partnerContentField: string;
     myDateField: string;
     partnerDateField: string;
+    partnerName: string;
     icon?: React.ReactNode | string;
     image?: string;
     isOpen: boolean;
@@ -40,7 +41,8 @@ export function MilestoneCard({
     image,
     isOpen,
     onToggle,
-    onSave
+    onSave,
+    partnerName
 }: MilestoneCardProps) {
     const showDualDates = ['first_kiss', 'first_surprise', 'first_memory'].includes(id);
 
@@ -80,12 +82,13 @@ export function MilestoneCard({
 
     // Personalized date labels
     const getMyDateLabel = () => {
+        const possessivePartner = partnerName.endsWith('s') ? `${partnerName}'` : `${partnerName}'s`;
         switch (id) {
-            case 'first_kiss': return 'You kissed her 😘';
+            case 'first_kiss': return `You kissed ${partnerName} 😘`;
             case 'first_surprise': return 'You received a surprise 🎁';
             case 'first_memory': return 'Your memory date 📸';
             case 'first_french_kiss': return 'When deeper sparks flew 💋';
-            case 'first_hug': return 'When you held her close 🤗';
+            case 'first_hug': return `When you held ${partnerName} close 🤗`;
             case 'first_sex': return 'The night of passion 🔥';
             case 'first_oral': return 'That intimate moment 👅';
             case 'first_time_together': return 'When you stayed over 🌙';
@@ -94,11 +97,12 @@ export function MilestoneCard({
     };
 
     const getPartnerDateLabel = () => {
+        const possessivePartner = partnerName.endsWith('s') ? `${partnerName}'` : `${partnerName}'s`;
         switch (id) {
-            case 'first_kiss': return 'She kissed you 😘';
-            case 'first_surprise': return 'You surprised her 🎁';
-            case 'first_memory': return 'Her memory date 📸';
-            default: return "Partner's Date";
+            case 'first_kiss': return `${partnerName} kissed you 😘`;
+            case 'first_surprise': return `You surprised ${partnerName} 🎁`;
+            case 'first_memory': return `${possessivePartner} memory date 📸`;
+            default: return `${possessivePartner} Date`;
         }
     };
 
@@ -281,7 +285,9 @@ export function MilestoneCard({
 
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
-                                        <label className="text-[10px] uppercase tracking-widest text-rose-200/40 font-bold">Partner's Story</label>
+                                        <label className="text-[10px] uppercase tracking-widest text-rose-200/40 font-bold">
+                                            {partnerName.endsWith('s') ? `${partnerName}'` : `${partnerName}'s`} Story
+                                        </label>
                                         <div className="w-5 h-[1px] bg-rose-500/20" />
                                     </div>
                                     <div className={cn(

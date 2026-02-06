@@ -6,10 +6,10 @@ import { format, addDays, subDays, isSameDay, startOfDay, differenceInDays, isSa
 import { cn } from '@/lib/utils'
 import { Droplets, Sparkles, Baby, Info, Target, CalendarDays } from 'lucide-react'
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from '@/components/ui/tooltip'
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover'
 
 // --- Types ---
 interface CycleProfile {
@@ -103,13 +103,13 @@ export function CycleCalendar({ cycleProfile }: CalendarProps) {
                     <h3 className="text-xs font-bold text-white/40 uppercase tracking-[0.2em] whitespace-nowrap">Cycle Calendar</h3>
                 </div>
 
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <button className="p-2 rounded-full bg-white/5 border border-white/10 text-white/40 hover:bg-white/10 hover:text-white/60 transition-all">
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <button className="p-2 rounded-full bg-white/5 border border-white/10 text-white/40 hover:bg-white/10 hover:text-white/60 transition-all outline-none">
                             <Info className="w-4 h-4" />
                         </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" align="end" className="bg-black/95 border border-white/10 p-4 shadow-2xl backdrop-blur-xl z-[100] min-w-[200px]">
+                    </PopoverTrigger>
+                    <PopoverContent side="bottom" align="end" className="bg-black/95 border border-white/10 p-4 shadow-2xl backdrop-blur-xl z-[100] min-w-[200px] rounded-2xl">
                         <div className="space-y-3">
                             <div className="flex items-center gap-3">
                                 <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]" />
@@ -128,8 +128,8 @@ export function CycleCalendar({ cycleProfile }: CalendarProps) {
                                 <span className="text-[10px] font-black uppercase tracking-widest text-purple-400">Predicted Period</span>
                             </div>
                         </div>
-                    </TooltipContent>
-                </Tooltip>
+                    </PopoverContent>
+                </Popover>
             </div>
 
             {/* Horizontal Scroll Area */}

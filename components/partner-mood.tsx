@@ -27,6 +27,14 @@ export function PartnerMood({ partnerName, partnerAvatar, moods }: PartnerMoodPr
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
 
+  const parseMood = (moodStr: string) => {
+    if (moodStr?.startsWith('CUSTOM:')) {
+      const [, emoji, label] = moodStr.split(':')
+      return { emoji, label }
+    }
+    return { emoji: MOOD_EMOJIS[moodStr as MoodType] || '✨', label: moodStr }
+  }
+
   if (moods.length === 0) {
     return (
       <Card className="border-dashed border-2 border-white/5 bg-transparent h-full" glassy={false}>
@@ -45,6 +53,7 @@ export function PartnerMood({ partnerName, partnerAvatar, moods }: PartnerMoodPr
   }
 
   const latestMood = moods[0]
+  const { emoji: moodEmoji, label: moodLabel } = parseMood(latestMood.mood)
 
   return (
     <Card className="bg-transparent border-none shadow-none h-full relative" glassy={false}>
@@ -58,7 +67,7 @@ export function PartnerMood({ partnerName, partnerAvatar, moods }: PartnerMoodPr
               </AvatarFallback>
             </Avatar>
             <div className="absolute -bottom-1 -right-1 bg-background/80 backdrop-blur-md rounded-full p-1 border border-white/10 text-xl shadow-lg">
-              {MOOD_EMOJIS[latestMood.mood]}
+              {moodEmoji}
             </div>
           </div>
           <div className="flex-1">
@@ -85,7 +94,7 @@ export function PartnerMood({ partnerName, partnerAvatar, moods }: PartnerMoodPr
             <p className={cn(
               "text-sm leading-relaxed relative z-10 font-medium text-rose-50"
             )}>
-              {latestMood.note ? `"${latestMood.note}"` : `Feeling ${latestMood.mood} right now`}
+              {latestMood.note ? `"${latestMood.note}"` : `Feeling ${moodLabel} right now`}
             </p>
             <div className="flex items-center gap-1 text-[10px] uppercase tracking-widest font-bold text-white/30 mt-3 relative z-10">
               <Clock className="w-3 h-3" />
@@ -97,14 +106,17 @@ export function PartnerMood({ partnerName, partnerAvatar, moods }: PartnerMoodPr
             <div className="space-y-2 pt-2 border-t border-white/5">
               <p className="text-[9px] uppercase tracking-widest font-bold text-white/20 mb-2">Previous moods today</p>
               <div className="flex gap-2 pb-2 overflow-x-auto no-scrollbar">
-                {moods.slice(1, 5).map((m, i) => (
-                  <div key={i} className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xl grayscale hover:grayscale-0 transition-all cursor-help relative group/mood" title={m.note || m.mood}>
-                    {MOOD_EMOJIS[m.mood]}
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md text-[8px] text-white px-2 py-1 rounded opacity-0 group-hover/mood:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                      {formatTime(m.created_at)}
+                {moods.slice(1, 5).map((m, i) => {
+                  const { emoji: mEmoji, label: mLabel } = parseMood(m.mood)
+                  return (
+                    <div key={i} className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xl grayscale hover:grayscale-0 transition-all cursor-help relative group/mood" title={m.note || mLabel}>
+                      {mEmoji}
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md text-[8px] text-white px-2 py-1 rounded opacity-0 group-hover/mood:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                        {formatTime(m.created_at)}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )}
