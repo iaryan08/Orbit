@@ -36,6 +36,7 @@ const DistanceTimeWidget = dynamic(() => import('@/components/distance-time-widg
     loading: () => <div className="h-32 rounded-3xl bg-white/5 animate-pulse" />
 })
 const PartnerStatus = dynamic(() => import('@/components/partner-status').then(mod => mod.PartnerStatus), { ssr: true })
+const PartnerAvatarHeartbeat = dynamic(() => import('@/components/partner-avatar-heartbeat').then(mod => mod.PartnerAvatarHeartbeat), { ssr: true })
 
 import { fetchDashboardData } from '@/lib/actions/consolidated'
 
@@ -108,14 +109,8 @@ export default async function DashboardPage() {
                                     </div>
                                 )}
                             </div>
-                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-background bg-secondary/20 flex items-center justify-center ring-2 ring-white/10 overflow-hidden shadow-xl">
-                                {partnerProfile?.avatar_url ? (
-                                    <img src={partnerProfile.avatar_url} className="w-full h-full object-cover" alt="Partner" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-cyan-500/20 text-cyan-200 font-bold text-xs">
-                                        {partnerProfile?.display_name?.charAt(0) || "P"}
-                                    </div>
-                                )}
+                            <div className="relative z-10">
+                                <PartnerAvatarHeartbeat partnerProfile={partnerProfile} coupleId={couple?.id} />
                             </div>
 
                         </div>

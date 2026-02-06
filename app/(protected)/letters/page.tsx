@@ -29,6 +29,8 @@ import { Edit2 } from "lucide-react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useAppMode } from "@/components/app-mode-context";
 
+import { WhisperCard } from "@/components/whisper-card";
+
 interface LoveLetter {
     id: string;
     title: string;
@@ -36,6 +38,7 @@ interface LoveLetter {
     sender_id: string;
     receiver_id: string;
     unlock_date: string | null;
+    unlock_type?: string;
     is_read: boolean;
     read_at?: string; // Added field
     created_at: string;
@@ -291,71 +294,81 @@ export default function LettersPage() {
                 </Card>
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {letters.map((letter) => (
-                        <Card
-                            key={letter.id}
-                            className={`cursor-pointer transition-all hover:translate-y-[-4px] card-border-premium group min-h-[240px] flex flex-col justify-between !py-8 !px-6 ${!letter.is_read ? "ring-2 ring-rose-500/30 bg-rose-500/5 shadow-[0_0_20px_rgba(244,63,94,0.1)]" : "bg-black/20"}`}
-                            onClick={() => {
-                                setSelectedLetter(letter);
-                                if (!letter.is_read) markAsRead(letter.id);
-                            }}
-                        >
-                            <CardHeader className="pb-2">
-                                <div className="flex items-start justify-between">
-                                    <CardTitle className="text-lg font-serif font-bold text-white tracking-tight leading-tight">
-                                        {(letter.title || "Untitled Letter").split('(')[0].trim()}
-                                    </CardTitle>
-                                    <div className="flex items-center gap-2">
-                                        {letter.sender_id === (supabase as any).auth?.user?.id && (
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8 text-white/20 hover:text-rose-300 hover:bg-rose-500/10 rounded-full"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setEditingLetter(letter);
-                                                    setNewLetter({
-                                                        title: letter.title,
-                                                        content: letter.content,
-                                                        unlock_date: letter.unlock_date ? letter.unlock_date.split('T')[0] : "",
-                                                    });
-                                                    setIsWriting(true);
-                                                }}
-                                            >
-                                                <Edit2 className="h-3 w-3" />
-                                            </Button>
-                                        )}
-                                        {!letter.is_read ? (
-                                            <Mail className="h-5 w-5 text-emerald-400 shrink-0 filter drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]" />
-                                        ) : (
-                                            <MailOpen className="h-4 w-4 text-white/40 shrink-0" />
-                                        )}
-                                    </div>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm text-white/80 line-clamp-5 mb-6 leading-relaxed italic font-serif">
-                                    {letter.content}
-                                </p>
-                                <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.2em] font-bold text-white/30 pt-4 border-t border-white/5">
-                                    <div className="flex flex-col gap-1.5">
-                                        <span>From: <span className="text-white/50">{letter.sender_name}</span></span>
-                                        {letter.read_at && letter.sender_id === (supabase as any).auth?.user?.id && (
-                                            <span className="text-emerald-400/80 flex items-center gap-1 normal-case tracking-normal font-medium">
-                                                <MailOpen className="h-3 w-3" />
-                                                Read {format(new Date(letter.read_at), "MMM d, h:mm a")}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <span>{format(new Date(letter.created_at), "MMM d, yyyy")}</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            )
-            }
+                    {letters.map((letter) => {
+                        if (letter.unlock_type === 'one_time' && !letter.is_read) {
+                            return (
+                                <WhisperCard
+                                    key={letter.id}
+                                    letter={letter}
+                                    onOpen={(id) => markAsRead(id)}
+                                />
+                            )
+                        }
 
+                        return (
+                            <Card
+                                key={letter.id}
+                                className={`cursor-pointer transition-all hover:translate-y-[-4px] card-border-premium group min-h-[240px] flex flex-col justify-between !py-8 !px-6 ${!letter.is_read ? "ring-2 ring-rose-500/30 bg-rose-500/5 shadow-[0_0_20px_rgba(244,63,94,0.1)]" : "bg-black/20"}`}
+                                onClick={() => {
+                                    setSelectedLetter(letter);
+                                    if (!letter.is_read) markAsRead(letter.id);
+                                }}
+                            >
+                                <CardHeader className="pb-2">
+                                    <div className="flex items-start justify-between">
+                                        <CardTitle className="text-lg font-serif font-bold text-white tracking-tight leading-tight">
+                                            {(letter.title || "Untitled Letter").split('(')[0].trim()}
+                                        </CardTitle>
+                                        <div className="flex items-center gap-2">
+                                            {letter.sender_id === (supabase as any).auth?.user?.id && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 text-white/20 hover:text-rose-300 hover:bg-rose-500/10 rounded-full"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setEditingLetter(letter);
+                                                        setNewLetter({
+                                                            title: letter.title,
+                                                            content: letter.content,
+                                                            unlock_date: letter.unlock_date ? letter.unlock_date.split('T')[0] : "",
+                                                        });
+                                                        setIsWriting(true);
+                                                    }}
+                                                >
+                                                    <Edit2 className="h-3 w-3" />
+                                                </Button>
+                                            )}
+                                            {!letter.is_read ? (
+                                                <Mail className="h-5 w-5 text-emerald-400 shrink-0 filter drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]" />
+                                            ) : (
+                                                <MailOpen className="h-4 w-4 text-white/40 shrink-0" />
+                                            )}
+                                        </div>
+                                    </div>
+                                </CardHeader>
+                                <CardContent>
+                                    <p className="text-sm text-white/80 line-clamp-5 mb-6 leading-relaxed italic font-serif">
+                                        {letter.content}
+                                    </p>
+                                    <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.2em] font-bold text-white/30 pt-4 border-t border-white/5">
+                                        <div className="flex flex-col gap-1.5">
+                                            <span>From: <span className="text-white/50">{letter.sender_name}</span></span>
+                                            {letter.read_at && letter.sender_id === (supabase as any).auth?.user?.id && (
+                                                <span className="text-emerald-400/80 flex items-center gap-1 normal-case tracking-normal font-medium">
+                                                    <MailOpen className="h-3 w-3" />
+                                                    Read {format(new Date(letter.read_at), "MMM d, h:mm a")}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <span>{format(new Date(letter.created_at), "MMM d, yyyy")}</span>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )
+                    })}
+                </div>
+            )}
             {/* Letter Detail Modal */}
             <Dialog open={!!selectedLetter} onOpenChange={() => setSelectedLetter(null)}>
                 <DialogContent className="sm:max-w-[600px] glass-dialog-vibrant border-none p-0 flex flex-col max-h-[85vh]">
@@ -417,6 +430,7 @@ export default function LettersPage() {
                     )}
                 </DialogContent>
             </Dialog>
-        </div >
+        </div>
     );
 }
+

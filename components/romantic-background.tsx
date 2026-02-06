@@ -2,37 +2,35 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { getAtmosphereTheme, isDaytime } from "@/lib/utils";
 
 interface RomanticBackgroundProps {
     initialImage?: string;
 }
 
 export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticBackgroundProps) {
-    // Generate random positions for stars and hearts
     const [elements, setElements] = useState<{ id: number; type: "star" | "heart"; style: React.CSSProperties }[]>([]);
     const [bgImage, setBgImage] = useState<string | null>(null);
+    const [theme, setTheme] = useState(getAtmosphereTheme());
 
     useEffect(() => {
         // Randomly select background image 1-4 on mount
         const randomId = Math.floor(Math.random() * 4) + 1;
         setBgImage(`/images/${randomId}.jpg`);
 
-        // Responsive element count: fewer on mobile for better performance
-        // Responsive element count: adjusted for more density
+        const isDay = isDaytime();
         const isMobile = window.innerWidth < 768;
-        const elementCount = isMobile ? 35 : 60;
+        const elementCount = isMobile ? 50 : 80;
 
-        // Generate static hearts and stars
+        // Generate static hearts and stars based on daytime
         const newElements = Array.from({ length: elementCount }).map((_, i) => {
-            // Increased heart ratio (40% hearts, 60% stars)
-            const type = Math.random() > 0.6 ? "heart" : "star";
-            const size = type === "heart" ? Math.random() * 14 + 8 : Math.random() * 12 + 4;
-            const duration = Math.random() * 20 + 15;
-            const delay = Math.random() * -20; // Use negative delay for immediate start
+            const type = isDay ? (Math.random() > 0.1 ? "heart" : "star") : "star";
+            const size = type === "heart" ? Math.random() * 14 + 8 : Math.random() * 8 + 2;
+            const duration = Math.random() * 20 + 20;
+            const delay = Math.random() * -30;
 
-            // Subtle color palette
-            const starColors = ["#fef3c7", "#fff9db", "#ffffff", "#f3a65aff"]; // Amber, white, soft rose
-            const heartColors = ["#fda4af", "#fecdd3", "#fff1f2", "#de1867ff", "#cf638eff"]; // Rose-300, 200, 50
+            const starColors = ["#fef3c7", "#fff9db", "#ffffff", "#f3a65aff"];
+            const heartColors = ["#fda4af", "#fecdd3", "#fff1f2", "#de1867ff", "#cf638eff"];
 
             return {
                 id: i,
@@ -44,7 +42,7 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
                     height: `${size}px`,
                     animationDuration: `${duration}s`,
                     animationDelay: `${delay}s`,
-                    opacity: Math.random() * 0.4 + 0.2, // 0.2 to 0.6
+                    opacity: Math.random() * (isDay ? 0.35 : 0.25) + 0.15,
                     color: type === "heart"
                         ? heartColors[Math.floor(Math.random() * heartColors.length)]
                         : starColors[Math.floor(Math.random() * starColors.length)]
@@ -52,6 +50,12 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
             };
         });
         setElements(newElements);
+        setTheme(getAtmosphereTheme());
+    }, []);
+
+    useEffect(() => {
+        const interval = setInterval(() => setTheme(getAtmosphereTheme()), 60000);
+        return () => clearInterval(interval);
     }, []);
 
     return (
@@ -60,7 +64,6 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
             <div className={`absolute inset-0 transition-opacity duration-1000 ${bgImage ? 'opacity-100' : 'opacity-0'}`}>
                 {bgImage && (
                     <>
-                        {/* Desktop variant */}
                         <div className="hidden md:block absolute inset-0">
                             <Image
                                 src={bgImage}
@@ -72,7 +75,6 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
                                 sizes="(min-width: 768px) 100vw, 0px"
                             />
                         </div>
-                        {/* Mobile variant */}
                         <div className="md:hidden absolute inset-0">
                             <Image
                                 src={bgImage.replace('.jpg', '-m.jpg')}
@@ -88,17 +90,23 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
                 )}
             </div>
 
-            {/* Dark overlay for readability and merging visual layers */}
+            {/* Daytime/Nighttime Overlay Gradient */}
             <div
-                className="absolute inset-0"
-                style={{ background: 'linear-gradient(135deg, rgba(20, 16, 15, 0.2) 0%, rgba(45, 25, 42, 0.5) 100%)' }}
+                className="absolute inset-0 transition-all duration-[3000ms] ease-in-out"
+                style={{ background: theme.overlay }}
             />
 
-            {/* Floating orbs for atmosphere */}
-            <div className="absolute top-[-10%] left-[-10%] w-[50vh] h-[50vh] bg-primary/30 blur-[100px] rounded-full animate-pulse-slow mix-blend-overlay" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[50vh] h-[50vh] bg-accent/30 blur-[100px] rounded-full animate-pulse-slow delay-1000 mix-blend-overlay" />
+            {/* Dynamic Atmospheric Orbs */}
+            <div
+                className="absolute top-[-10%] left-[-10%] w-[60vh] h-[60vh] blur-[120px] rounded-full animate-pulse-slow mix-blend-overlay transition-colors duration-[3000ms] ease-in-out"
+                style={{ backgroundColor: theme.orb1 }}
+            />
+            <div
+                className="absolute bottom-[-10%] right-[-10%] w-[60vh] h-[60vh] blur-[120px] rounded-full animate-pulse-slow delay-1000 mix-blend-overlay transition-colors duration-[3000ms] ease-in-out"
+                style={{ backgroundColor: theme.orb2 }}
+            />
 
-            {/* Animated Elements */}
+            {/* Floating Hearts/Stars */}
             {elements.map((el) => (
                 <div
                     key={el.id}
@@ -120,7 +128,6 @@ export function RomanticBackground({ initialImage = "/images/1.jpg" }: RomanticB
                 </div>
             ))}
 
-            {/* Grain texture for premium feel - CSS only Noise */}
             <div className="absolute inset-0 opacity-[0.25] pointer-events-none mix-blend-overlay z-[2] brightness-150 contrast-150" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
         </div>
     );

@@ -1,9 +1,21 @@
-'use client'
+import { useEffect, useState } from "react";
+import { isDaytime } from "@/lib/utils";
 
 export function MoonBackdrop() {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const isDay = isDaytime();
+
+    // Safety check for Vercel Hydration: Don't render until client is ready
+    if (!mounted || isDay) return null;
+
     return (
         <svg
-            className="fixed inset-0 z-[1] w-full h-full opacity-[0.05] pointer-events-none"
+            className="fixed inset-0 z-[1] w-full h-full opacity-[0.05] pointer-events-none transition-opacity duration-[3000ms]"
             viewBox="0 0 1000 1000"
             preserveAspectRatio="xMidYMid slice"
         >

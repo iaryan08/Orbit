@@ -102,7 +102,7 @@ export default function PushNotificationManager() {
                     initial={{ y: 100, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 100, opacity: 0 }}
-                    className="fixed bottom-24 left-6 right-6 md:left-auto md:right-10 md:w-96 z-[60]"
+                    className="fixed top-24 left-6 right-6 md:top-auto md:bottom-10 md:left-auto md:right-10 md:w-96 z-[60]"
                 >
                     <div className="glass-card-vibrant p-5 border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden group">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-purple-600" />

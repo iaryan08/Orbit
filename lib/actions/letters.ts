@@ -27,6 +27,13 @@ export async function openLetter(letterId: string) {
         if (error) throw error
         if (!letter) return { error: "Letter not found" }
 
+        if (letter.unlock_type === 'one_time') {
+            await supabase
+                .from('love_letters')
+                .delete()
+                .eq('id', letterId)
+        }
+
         // 2. Notify Sender
         // Fetch sender name? We have sender_id. Notification system handles recipient.
 
@@ -35,13 +42,15 @@ export async function openLetter(letterId: string) {
             actorId: user.id,
             type: 'letter',
             title: 'Letter Opened',
-            message: 'Your partner just opened your love letter.',
+            message: letter.unlock_type === 'one_time'
+                ? 'Your secret whisper was viewed and has vanished.'
+                : 'Your partner just opened your love letter.',
             actionUrl: '/letters',
             metadata: { letter_id: letterId }
         })
 
         revalidatePath('/letters')
-        return { success: true, read_at: now }
+        return { success: true, read_at: now, isOneTime: letter.unlock_type === 'one_time' }
     } catch (e: any) {
         console.error("Error opening letter:", e)
         return { error: e.message || "Failed to open letter" }
@@ -52,6 +61,7 @@ export async function sendLetter(payload: {
     title: string;
     content: string;
     unlock_date: string | null;
+    isOneTime?: boolean;
 }) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -80,6 +90,10 @@ export async function sendLetter(payload: {
 
     if (!partnerId) return { error: "Partner not found" }
 
+    let unlockType = 'immediate';
+    if (payload.isOneTime) unlockType = 'one_time';
+    else if (payload.unlock_date) unlockType = 'custom';
+
     // Insert Letter
     const { data: letter, error } = await supabase
         .from('love_letters')
@@ -90,7 +104,7 @@ export async function sendLetter(payload: {
             title: payload.title,
             content: payload.content,
             unlock_date: payload.unlock_date || null,
-            unlock_type: payload.unlock_date ? 'custom' : 'immediate'
+            unlock_type: unlockType
         })
         .select()
         .single()

@@ -12,6 +12,7 @@ export type NotificationType =
     | 'ovulation'
     | 'intimacy'
     | 'on_this_day'
+    | 'spark'
 
 interface CreateNotificationParams {
     recipientId: string
@@ -181,4 +182,53 @@ export async function deleteAllNotifications() {
 
     revalidatePath('/dashboard')
     return { success: true }
+}
+
+/**
+ * Sends a 'Spark' (thinking of you) notification to the partner.
+ */
+export async function sendSpark() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return { success: false, error: 'Unauthorized' }
+
+    // 1. Get partner ID
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('couple_id, display_name')
+        .eq('id', user.id)
+        .single()
+
+    if (!profile?.couple_id) return { success: false, error: 'No couple connected' }
+
+    const { data: couple } = await supabase
+        .from('couples')
+        .select('*')
+        .eq('id', profile.couple_id)
+        .single()
+
+    if (!couple) return { success: false, error: 'Couple not found' }
+
+    const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
+    if (!partnerId) return { success: false, error: 'Partner not found' }
+
+    // 2. Send the notification
+    const sparkMessages = [
+        "is thinking of you... ✨",
+        "just sent you a spark! 💖",
+        "is missing you right now. 🌙",
+        "wants to let you know you're on their mind. 💫",
+        "is sending you some love! 🔥"
+    ]
+    const randomMessage = sparkMessages[Math.floor(Math.random() * sparkMessages.length)]
+
+    return await sendNotification({
+        recipientId: partnerId,
+        actorId: user.id,
+        type: 'spark',
+        title: 'Spark Received! ✨',
+        message: `${profile.display_name || 'Your partner'} ${randomMessage}`,
+        actionUrl: '/dashboard'
+    })
 }

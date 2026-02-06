@@ -16,3 +16,37 @@ export function getISTDate() {
   const now = new Date()
   return new Date(now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }))
 }
+
+export function isDaytime() {
+  const now = getISTDate()
+  const hours = now.getHours()
+  const minutes = now.getMinutes()
+  const totalMinutes = hours * 60 + minutes
+
+  const start = 5 * 60; // 5:00 AM
+  const end = 18 * 60 + 30; // 6:30 PM
+
+  return totalMinutes >= start && totalMinutes < end
+}
+
+export function getAtmosphereTheme() {
+  const isDay = isDaytime()
+
+  if (isDay) {
+    return {
+      overlay: 'linear-gradient(135deg, rgba(255, 182, 193, 0.15) 0%, rgba(20, 16, 15, 0.4) 100%)', // Soft Rose Day
+      accent: 'rose-400',
+      orb1: 'rgba(251, 113, 133, 0.15)', // Rose
+      orb2: 'rgba(251, 191, 36, 0.1)',   // Amber
+      mode: 'day' as const
+    }
+  }
+
+  return {
+    overlay: 'linear-gradient(135deg, rgba(20, 16, 15, 0.3) 0%, rgba(45, 25, 42, 0.6) 100%)', // Deep Night
+    accent: 'indigo-400',
+    orb1: 'rgba(129, 140, 248, 0.1)',  // Indigo
+    orb2: 'rgba(168, 85, 247, 0.1)',   // Purple
+    mode: 'night' as const
+  }
+}

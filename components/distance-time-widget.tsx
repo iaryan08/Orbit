@@ -91,7 +91,7 @@ export function DistanceTimeWidget({ userProfile, partnerProfile }: DistanceWidg
                 }
                 console.error(error)
             },
-            { enableHighAccuracy: true, timeout: 5000 }
+            { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
         )
     }
 
