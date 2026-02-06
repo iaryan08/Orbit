@@ -40,9 +40,14 @@ export function DistanceTimeWidget({ userProfile, partnerProfile }: DistanceWidg
     const [updating, setUpdating] = useState(false)
     const { toast } = useToast()
     const [currentTime, setCurrentTime] = useState(new Date())
+    const [isBlocked, setIsBlocked] = useState(false)
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 60000)
+
+        // Auto-fetch location on mount
+        handleUpdateLocation()
+
         return () => clearInterval(timer)
     }, [])
 
@@ -55,6 +60,7 @@ export function DistanceTimeWidget({ userProfile, partnerProfile }: DistanceWidg
         setUpdating(true)
         navigator.geolocation.getCurrentPosition(
             async (position) => {
+                setIsBlocked(false)
                 const { latitude, longitude } = position.coords
                 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
@@ -77,13 +83,15 @@ export function DistanceTimeWidget({ userProfile, partnerProfile }: DistanceWidg
                 })
 
                 setUpdating(false)
-                toast({ title: "Updated", description: "Your location has been updated.", variant: "success" })
             },
             (error) => {
                 setUpdating(false)
+                if (error.code === error.PERMISSION_DENIED) {
+                    setIsBlocked(true)
+                }
                 console.error(error)
-                toast({ title: "Error", description: "Could not retrieve location.", variant: "destructive" })
-            }
+            },
+            { enableHighAccuracy: true, timeout: 5000 }
         )
     }
 
@@ -120,22 +128,16 @@ export function DistanceTimeWidget({ userProfile, partnerProfile }: DistanceWidg
 
             <div className="relative z-10 flex flex-col gap-4">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-white/80 font-serif font-medium flex items-center gap-2">
-                        <Navigation className="w-4 h-4 text-indigo-300" />
+                    <h3 className="text-white/80 font-serif font-medium flex items-center gap-2 text-sm italic opacity-60">
+                        <Navigation className="w-3.5 h-3.5 text-rose-300" />
                         Connection
                     </h3>
-                    <button
-                        onClick={handleUpdateLocation}
-                        disabled={updating}
-                        className={cn(
-                            "text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded-full border transition-all",
-                            updating
-                                ? "bg-indigo-500/20 text-indigo-200 border-indigo-500/20"
-                                : "bg-white/5 text-white/40 border-white/5 hover:bg-white/10 hover:text-white/80"
-                        )}
-                    >
-                        {updating ? 'Locating...' : 'Update Loc'}
-                    </button>
+                    {updating && (
+                        <div className="flex items-center gap-2">
+                            <div className="w-1 h-1 rounded-full bg-rose-400 animate-pulse" />
+                            <span className="text-[10px] text-rose-300/40 font-bold uppercase tracking-widest">Syncing</span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex items-center justify-between gap-4">
@@ -149,25 +151,23 @@ export function DistanceTimeWidget({ userProfile, partnerProfile }: DistanceWidg
                         </div>
                     </div>
 
-                    {/* Prominent Prompt if Location is missing */}
-                    {!hasUserLoc && (
+                    {/* Modern Overlay for missing/blocked location */}
+                    {(!hasUserLoc || isBlocked) && (
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
+                            initial={{ opacity: 0, scale: 0.98 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="absolute inset-0 z-20 bg-indigo-950/40 backdrop-blur-md flex flex-col items-center justify-center p-4 rounded-[inherit] border border-indigo-500/30 shadow-[0_0_30px_rgba(79,70,229,0.2)]"
+                            className="absolute inset-0 z-30 bg-rose-950/20 backdrop-blur-xl flex flex-col items-center justify-center p-6 rounded-[inherit] border border-rose-500/10"
                         >
-                            <div className="p-2 rounded-full bg-indigo-500/10 mb-2">
-                                <MapPin className="w-5 h-5 text-indigo-400 animate-bounce" />
-                            </div>
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-200 mb-3 text-center">
-                                Location Not Set
+                            <MapPin className="w-6 h-6 text-rose-400/50 mb-3 animate-pulse" />
+                            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-rose-100/40 mb-4 text-center">
+                                {isBlocked ? "GPS Permission Required" : "Location Sync Needed"}
                             </p>
                             <button
                                 onClick={handleUpdateLocation}
                                 disabled={updating}
-                                className="px-6 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(99,102,241,0.4)]"
+                                className="px-8 py-2.5 bg-rose-500/20 hover:bg-rose-500/40 text-rose-100 border border-rose-500/30 rounded-full text-[10px] font-black uppercase tracking-widest transition-all"
                             >
-                                {updating ? 'Locating...' : 'Enable Connectivity'}
+                                {updating ? 'Syncing...' : (isBlocked ? 'Fix Permission' : 'Enable Always')}
                             </button>
                         </motion.div>
                     )}
