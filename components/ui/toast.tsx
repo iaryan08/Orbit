@@ -36,6 +36,8 @@ const toastVariants = cva(
           'border-emerald-500/20 bg-[#064e3b]/80 text-emerald-50 shadow-none backdrop-blur-md',
         failed:
           'border-rose-500/30 bg-[#2a0a0a]/95 text-rose-50 backdrop-blur-md shadow-[0_0_20px_rgba(244,63,94,0.15)]',
+        purple:
+          'border-purple-500/20 bg-[#1e072a]/80 text-purple-50 shadow-none backdrop-blur-md',
       },
     },
     defaultVariants: {

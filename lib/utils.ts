@@ -50,3 +50,10 @@ export function getAtmosphereTheme() {
     mode: 'night' as const
   }
 }
+export function getLunarPhase() {
+  const now = getISTDate()
+  const lp = 2551443;
+  const newMoon = new Date('1970-01-07T20:35:00Z').getTime() / 1000;
+  const phase = ((now.getTime() / 1000) - newMoon) % lp;
+  return phase / lp; // Returns 0.0 to 1.0
+}

@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import dynamic from 'next/dynamic'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Heart, PenLine, ImageIcon, Gamepad2, Calendar, Sparkles, Flame, MapPin } from 'lucide-react'
+import { Heart, PenLine, ImageIcon, Gamepad2, Calendar, Sparkles, Flame, MapPin, Camera } from 'lucide-react'
 import Link from 'next/link'
 import type { MoodType } from '@/lib/constants'
 import { cn } from '@/lib/utils'
@@ -38,6 +38,10 @@ const DistanceTimeWidget = dynamic(() => import('@/components/distance-time-widg
 const PartnerStatus = dynamic(() => import('@/components/partner-status').then(mod => mod.PartnerStatus), { ssr: true })
 const PartnerAvatarHeartbeat = dynamic(() => import('@/components/partner-avatar-heartbeat').then(mod => mod.PartnerAvatarHeartbeat), { ssr: true })
 
+import { getLatestPolaroid, deletePolaroid } from '@/lib/actions/polaroids'
+import { getDoodle, saveDoodle } from '@/lib/actions/doodles'
+import { PolaroidCard } from '@/components/polaroid-card'
+import { SharedDoodle } from '@/components/shared-doodle'
 import { fetchDashboardData } from '@/lib/actions/consolidated'
 
 export default async function DashboardPage() {
@@ -45,6 +49,13 @@ export default async function DashboardPage() {
     const result = await fetchDashboardData()
     if (!result.success || !result.data) return null
     const lunaraData = result.data
+
+    // 2. Fetch Personal Atmospheric Elements
+    const [latestPolaroid, doodle] = await Promise.all([
+        getLatestPolaroid(),
+        getDoodle()
+    ])
+
     const {
         profile,
         partnerProfile,
@@ -143,33 +154,85 @@ export default async function DashboardPage() {
                     <QuickCreateButtons />
                 </ScrollReveal>
 
-                {/* Unified Bento Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-8 md:mt-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8 md:mt-12">
 
-                    {/* Heat Alert (Conditional) */}
+                    {/* 1. PRIMARY STATS: Together Counter (Priority #1) */}
                     {(() => {
-                        const today = result.data.currentDateIST // Use server-provided date
+                        const startDate = couple?.anniversary_date || couple?.paired_at;
+                        const daysTogether = startDate
+                            ? Math.floor((new Date().getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))
+                            : 0;
+
+                        return (
+                            <ScrollReveal className="lg:col-span-4" delay={0}>
+                                <div className="glass-card p-4 md:p-6 flex flex-row items-center justify-between gap-4 md:gap-8 relative overflow-hidden group min-h-[100px]">
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-500/30 via-amber-500/30 to-rose-500/30 opacity-50" />
+
+                                    {/* Days Together */}
+                                    <div className="flex items-center gap-3 md:gap-5 flex-1">
+                                        <div className="relative shrink-0">
+                                            <Heart className="w-10 h-10 md:w-12 md:h-12 text-rose-500/80" fill="currentColor" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-3xl md:text-5xl font-bold text-rose-50 tracking-tighter leading-none">
+                                                    {daysTogether}
+                                                </span>
+                                                <span className="text-xs md:text-sm text-rose-100/50 font-serif italic">Days</span>
+                                            </div>
+                                            <p className="text-[8px] md:text-[10px] uppercase text-white/30 tracking-widest font-bold">Since Start</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="h-10 w-px bg-white/10 shrink-0" />
+
+                                    {/* Letters & Memories Stacked (One below other) */}
+                                    <div className="flex flex-col gap-4 flex-1 justify-center items-start pl-4 md:pl-8">
+                                        <div className="flex items-center gap-3">
+                                            <PenLine className="w-4 h-4 text-rose-300/50" />
+                                            <div className="flex flex-col">
+                                                <div className="flex items-baseline gap-1">
+                                                    <span className="text-xl md:text-2xl font-bold text-white/90 leading-none">{lettersCount}</span>
+                                                    <span className={cn(
+                                                        "text-[9px] uppercase text-white/20 tracking-widest font-bold",
+                                                        daysTogether > 999 && "hidden md:inline"
+                                                    )}>Letters</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <ImageIcon className="w-4 h-4 text-amber-300/50" />
+                                            <div className="flex flex-col">
+                                                <div className="flex items-baseline gap-1">
+                                                    <span className="text-xl md:text-2xl font-bold text-white/90 leading-none">{memoriesCount}</span>
+                                                    <span className={cn(
+                                                        "text-[9px] uppercase text-white/20 tracking-widest font-bold",
+                                                        daysTogether > 999 && "hidden md:inline"
+                                                    )}>Memories</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </ScrollReveal>
+                        );
+                    })()}
+
+                    {/* 2. DYNAMIC LAYER: Heat Alert */}
+                    {(() => {
+                        const today = result.data.currentDateIST
                         const pId = partnerProfile?.id
                         const pLog = result.data.cycleLogs?.find((l: any) => l.user_id === pId && l.log_date === today)
                         if (pLog?.sex_drive === 'very_high') {
                             return (
-                                <ScrollReveal className="lg:col-span-4" delay={0}>
-                                    <div className="glass-card p-6 bg-gradient-to-r from-orange-600/30 to-red-600/30 border-orange-500/50 flex items-center justify-between relative overflow-hidden group shadow-[0_0_30px_rgba(234,88,12,0.2)]">
+                                <ScrollReveal className="lg:col-span-4" delay={0.05}>
+                                    <div className="glass-card p-4 bg-gradient-to-r from-orange-600/30 to-red-600/30 border-orange-500/50 flex items-center justify-between relative overflow-hidden group">
                                         <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-red-600/10 animate-pulse" />
-
-                                        {/* Fire particles effect overlay (simulated with dots) */}
-                                        <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay" />
-
-                                        <div className="flex items-center gap-5 relative z-10 w-full justify-center text-center md:text-left md:justify-start">
-                                            <div className="relative">
-                                                <div className="absolute inset-0 bg-orange-500/40 blur-xl rounded-full animate-pulse" />
-                                                <div className="p-3 rounded-full bg-orange-500/20 border border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.6)] relative z-10">
-                                                    <Flame className="w-8 h-8 text-orange-500 drop-shadow-[0_0_10px_rgba(255,165,0,0.8)] animate-pulse" fill="currentColor" />
-                                                </div>
-                                            </div>
+                                        <div className="flex items-center gap-5 relative z-10 w-full md:justify-start">
+                                            <Flame className="w-6 h-6 text-orange-500 animate-pulse" fill="currentColor" />
                                             <div>
-                                                <h3 className="text-xl font-bold text-white leading-tight drop-shadow-md">Intense Passion Alert</h3>
-                                                <p className="text-sm text-orange-100/90 font-medium">
+                                                <h3 className="text-base font-bold text-white leading-tight">Intense Passion Alert</h3>
+                                                <p className="text-xs text-orange-100/90 font-medium">
                                                     {partnerProfile?.display_name || 'Partner'} is feeling a burning desire for you right now.
                                                 </p>
                                             </div>
@@ -181,74 +244,47 @@ export default async function DashboardPage() {
                         return null
                     })()}
 
-                    {/* Big Widget: Together Counter (Reference Weather Style) */}
-                    <ScrollReveal className="lg:col-span-2" delay={0.1}>
-                        <div className="glass-card p-6 md:p-10 flex flex-col md:flex-row gap-6 md:gap-10 items-center justify-center h-full relative overflow-hidden group">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 to-cyan-500 opacity-50" />
-                            <div className="flex items-center gap-4 md:gap-6">
-                                <div className="relative">
-                                    <div className="absolute inset-0 bg-rose-500/10 rounded-full" />
-                                    <Heart className="w-16 h-16 md:w-24 md:h-24 text-rose-300/80 relative z-10" fill="currentColor" />
-                                </div>
-                                <div className="flex flex-col">
-                                    <div className="flex items-end gap-1">
-                                        <span className="text-6xl md:text-8xl font-bold leading-none text-rose-50 tracking-tighter">
-                                            {(() => {
-                                                const startDate = couple?.anniversary_date || couple?.paired_at;
-                                                if (!startDate) return 0;
-                                                return Math.floor(
-                                                    (new Date().getTime() - new Date(startDate).getTime()) /
-                                                    (1000 * 60 * 60 * 24)
-                                                );
-                                            })()}
-                                        </span>
-                                        <span className="text-xl md:text-2xl text-rose-100/50 pb-1 md:pb-2 font-serif italic">Days</span>
+                    {/* 3. ATMOSPHERE LAYER: Polaroid & Doodle (Fixed Gap) */}
+                    <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-2">
+                        <ScrollReveal className="lg:col-start-2" delay={0.1}>
+                            <div className={cn(
+                                "flex items-center justify-center p-2 h-full overflow-hidden transition-all duration-1000",
+                                !latestPolaroid ? "bg-white/5 rounded-3xl border border-white/10 backdrop-blur-sm" : "bg-transparent border-none shadow-none"
+                            )}>
+                                {latestPolaroid ? (
+                                    <PolaroidCard
+                                        imageUrl={latestPolaroid.image_url}
+                                        caption={latestPolaroid.caption}
+                                        createdAt={latestPolaroid.created_at}
+                                        onDelete={async () => {
+                                            'use server'
+                                            await deletePolaroid(latestPolaroid.id)
+                                        }}
+                                        isDeveloping={new Date().getTime() - new Date(latestPolaroid.created_at).getTime() < 30000}
+                                    />
+                                ) : (
+                                    <div className="text-center p-6 opacity-40">
+                                        <Camera className="w-10 h-10 mx-auto mb-2" />
+                                        <p className="text-[10px] font-bold uppercase tracking-widest text-white/60">No Polaroid</p>
                                     </div>
-                                    <p className="text-white/60 flex items-center gap-2 uppercase tracking-[0.3em] text-[10px] font-bold pt-2">
-                                        <Calendar className="w-3 h-3 text-amber-400/60" />
-                                        Since {(() => {
-                                            const startDate = couple?.anniversary_date || couple?.paired_at;
-                                            return startDate ? new Date(startDate).toLocaleDateString() : 'Today';
-                                        })()}
-                                    </p>
-                                </div>
+                                )}
                             </div>
-                            <div className="h-20 w-px bg-white/10 hidden md:block" />
-                            <div className="flex flex-col gap-6">
-                                <div className="flex items-center gap-4 group/item">
-                                    <div className="w-10 h-10 rounded-2xl bg-rose-500/5 flex items-center justify-center group-hover/item:bg-rose-500/10 transition-colors">
-                                        <PenLine className="w-5 h-5 text-rose-300/70" />
-                                    </div>
-                                    <div>
-                                        <p className="text-2xl font-bold leading-none text-white/90">{lettersCount}</p>
-                                        <p className="text-[10px] uppercase text-white/30 tracking-widest font-bold mt-1">Letters</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-4 group/item">
-                                    <div className="w-10 h-10 rounded-2xl bg-amber-500/5 flex items-center justify-center group-hover/item:bg-amber-500/10 transition-colors">
-                                        <ImageIcon className="w-5 h-5 text-amber-300/70" />
-                                    </div>
-                                    <div>
-                                        <p className="text-2xl font-bold leading-none text-white/90">{memoriesCount}</p>
-                                        <p className="text-[10px] uppercase text-white/30 tracking-widest font-bold mt-1">Memories</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </ScrollReveal>
+                        </ScrollReveal>
 
-                    {/* Daily Inspiration / Challenge */}
-                    <ScrollReveal className="lg:col-span-2" delay={0.1}>
-                        <div className="glass-card p-8 flex flex-col justify-between relative overflow-hidden group h-full">
-                            <div className="absolute -top-24 -right-24 w-64 h-64 bg-amber-500/5 rounded-full" />
-                            <DailyContent />
-                        </div>
-                    </ScrollReveal>
+                        <ScrollReveal className="lg:col-span-1" delay={0.15}>
+                            <SharedDoodle
+                                savedPath={doodle?.path_data}
+                                onSave={async (path) => {
+                                    'use server'
+                                    await saveDoodle(path)
+                                }}
+                            />
+                        </ScrollReveal>
+                    </div>
 
-                    {/* Current Mood (Partner) */}
+                    {/* 4. CONTENT LAYER: Daily Inspiration & Partner Mood */}
                     <ScrollReveal className="lg:col-span-1" delay={0.2}>
-                        <div className="glass-card p-2 relative group overflow-hidden h-full">
-                            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-purple-500/5 rounded-full" />
+                        <div className="glass-card p-1.5 relative group overflow-hidden h-full max-h-[160px]">
                             <PartnerMood
                                 partnerName={partnerProfile?.display_name || 'Partner'}
                                 partnerAvatar={partnerProfile?.avatar_url}
@@ -257,32 +293,34 @@ export default async function DashboardPage() {
                         </div>
                     </ScrollReveal>
 
+                    <ScrollReveal className="lg:col-span-3" delay={0.25}>
+                        <div className="glass-card p-4 md:p-5 flex flex-col justify-between relative overflow-hidden group h-full">
+                            <DailyContent />
+                        </div>
+                    </ScrollReveal>
 
-
-                    {/* Your Interaction Center */}
-                    <ScrollReveal className={cn("lg:col-span-2", (onThisDayMemories.length > 0 || onThisDayMilestones.length > 0) ? "lg:col-span-1" : "lg:col-span-2")} delay={0.5}>
-                        <div className="glass-card p-2 h-full">
+                    {/* 5. HISTORY LAYER: Mood Check-in & On This Day (Always Visible) */}
+                    <ScrollReveal className="lg:col-span-2" delay={0.3}>
+                        <div className="glass-card p-2.5 h-full">
                             <MoodCheckIn hasPartner={hasPartner} userMoods={userTodayMoods} />
                         </div>
                     </ScrollReveal>
 
-                    {(onThisDayMemories.length > 0 || onThisDayMilestones.length > 0) && (
-                        <ScrollReveal className="lg:col-span-1" delay={0.55}>
-                            <OnThisDay
-                                memories={onThisDayMemories}
-                                milestones={onThisDayMilestones}
-                                partnerName={partnerProfile?.display_name || 'Partner'}
-                            />
-                        </ScrollReveal>
-                    )}
+                    <ScrollReveal className="lg:col-span-2" delay={0.35}>
+                        <OnThisDay
+                            memories={onThisDayMemories}
+                            milestones={onThisDayMilestones}
+                            partnerName={partnerProfile?.display_name || 'Partner'}
+                        />
+                    </ScrollReveal>
 
-                    {/* Distance & Time Widget */}
-                    <ScrollReveal className="lg:col-span-2" delay={0.58}>
+                    {/* 6. LOCATION LAYER: Distance & Time Widget (Normalized) */}
+                    <ScrollReveal className="lg:col-span-4" delay={0.4}>
                         <DistanceTimeWidget userProfile={profile} partnerProfile={partnerProfile} />
                     </ScrollReveal>
 
-                    {/* Shared Bucket List */}
-                    <ScrollReveal className="lg:col-span-2" delay={0.6}>
+                    {/* 7. FUTURE LAYER: Shared Bucket List (Normalized) */}
+                    <ScrollReveal className="lg:col-span-4" delay={0.45}>
                         <SharedBucketList initialItems={bucketList} />
                     </ScrollReveal>
                 </div>

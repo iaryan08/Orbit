@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { getAtmosphereTheme, isDaytime } from "@/lib/utils";
+import { getAtmosphereTheme, isDaytime, getLunarPhase } from "@/lib/utils";
 
 interface RomanticBackgroundProps {
     initialImage?: string;
@@ -14,20 +14,21 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
     const [theme, setTheme] = useState(getAtmosphereTheme());
     const [mounted, setMounted] = useState(false);
     const [isDay, setIsDay] = useState(false); // Local state for immediate access
+    const [moonRotation, setMoonRotation] = useState(0);
 
     useEffect(() => {
         setMounted(true);
+        setMoonRotation(getLunarPhase() * 360);
         // Randomly select background image 1-4 on mount
         const randomId = Math.floor(Math.random() * 4) + 1;
         setBgImage(`/images/${randomId}.jpg`);
+    }, []);
+
+    useEffect(() => {
+        if (!mounted) return;
 
         const currentIsDay = isDaytime();
-        setIsDay(currentIsDay);
-
         const isMobile = window.innerWidth < 768;
-
-        // Balanced: Increased counts for atmosphere
-        // Mobile: 18 (was 8), Desktop: 35 (was 15)
         const elementCount = isMobile ? 18 : 35;
 
         const newElements = Array.from({ length: elementCount }).map((_, i) => {
@@ -66,18 +67,20 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
         });
         setElements(newElements);
         setTheme(getAtmosphereTheme());
-    }, []);
+        setIsDay(currentIsDay);
+    }, [mounted, isDay]);
 
     // Periodic theme sync (every minute)
     useEffect(() => {
         const interval = setInterval(() => {
-            const newTheme = getAtmosphereTheme();
             const newIsDay = isDaytime();
-            setTheme(newTheme);
-            setIsDay(newIsDay);
+            if (newIsDay !== isDay) {
+                setIsDay(newIsDay);
+                setTheme(getAtmosphereTheme());
+            }
         }, 60000);
         return () => clearInterval(interval);
-    }, []);
+    }, [isDay]);
 
     if (!mounted) return null;
 
@@ -132,6 +135,7 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
                         d="M600 200a180 180 0 1 0 0 360a140 180 0 1 1 0-360z"
                         fill="white"
                         opacity="0.15"
+                        style={{ transform: `rotate(${moonRotation}deg)`, transformOrigin: '600px 380px' }}
                     />
 
                     {/* Constellation lines */}
@@ -185,7 +189,13 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
                             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                         </svg>
                     ) : (
-                        <div className="w-full h-full bg-white rounded-full blur-[0.8px]" style={{ opacity: 0.8 }} />
+                        <div
+                            className={`w-full h-full rounded-full ${(el as any).isSharp ? 'blur-[0.2px]' : 'blur-[2px]'}`}
+                            style={{
+                                backgroundColor: el.style.color,
+                                opacity: (el as any).isSharp ? 0.9 : 0.6
+                            }}
+                        />
                     )}
                 </div>
             ))}

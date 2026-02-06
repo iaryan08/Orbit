@@ -2,15 +2,17 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { PenLine, ImagePlus, FileLock2, Sparkles } from "lucide-react";
+import { PenLine, ImagePlus, FileLock2, Sparkles, Camera } from "lucide-react";
 import { WriteLetterDialog } from "@/components/dialogs/write-letter-dialog";
 import { AddMemoryDialog } from "@/components/dialogs/add-memory-dialog";
+import { UploadPolaroidDialog } from "@/components/dialogs/upload-polaroid-dialog";
 import { sendSpark } from "@/lib/actions/notifications";
 import { useToast } from "@/hooks/use-toast";
 
 export function QuickCreateButtons() {
     const [isWritingLetter, setIsWritingLetter] = useState(false);
     const [isAddingMemory, setIsAddingMemory] = useState(false);
+    const [isSnappingPolaroid, setIsSnappingPolaroid] = useState(false);
     const [isSendingSpark, setIsSendingSpark] = useState(false);
     const { toast } = useToast();
 
@@ -21,7 +23,7 @@ export function QuickCreateButtons() {
             toast({
                 title: "Spark Sent! ✨",
                 description: "Your partner knows you're thinking of them.",
-                className: "bg-purple-50 text-purple-900 border border-purple-200 p-4 rounded-lg shadow-inner bg-opacity-90 border-none text-white font-bold"
+                variant: "purple"
             });
         } else {
             toast({
@@ -57,6 +59,15 @@ export function QuickCreateButtons() {
 
                 <Button
                     variant="ghost"
+                    className="relative rounded-[20px] md:rounded-2xl w-12 h-12 md:w-auto md:h-11 p-0 md:px-5 gap-2 bg-amber-500/10 hover:bg-amber-500/20 border border-white/10 backdrop-blur-xl shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 group"
+                    onClick={() => setIsSnappingPolaroid(true)}
+                >
+                    <Camera className="w-5 h-5 md:w-4 md:h-4 text-amber-100 drop-shadow-sm" strokeWidth={2} />
+                    <span className="hidden md:inline font-bold text-amber-50 text-sm tracking-tight">Snap Polaroid</span>
+                </Button>
+
+                <Button
+                    variant="ghost"
                     className="relative rounded-[20px] md:rounded-2xl w-12 h-12 md:w-auto md:h-11 p-0 md:px-5 gap-2 bg-purple-500/10 hover:bg-purple-500/20 border border-white/10 backdrop-blur-xl shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 group"
                     onClick={handleSendSpark}
                     disabled={isSendingSpark}
@@ -75,6 +86,7 @@ export function QuickCreateButtons() {
                 defaultWhisper={true}
             />
             <AddMemoryDialog open={isAddingMemory} onOpenChange={setIsAddingMemory} />
+            <UploadPolaroidDialog open={isSnappingPolaroid} onOpenChange={setIsSnappingPolaroid} />
         </>
     );
 }
