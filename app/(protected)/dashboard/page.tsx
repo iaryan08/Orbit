@@ -26,6 +26,14 @@ const DailyContent = dynamic(() => import('@/components/daily-content').then(mod
     loading: () => <div className="h-64 rounded-3xl bg-white/5 animate-pulse" />
 })
 const OnThisDay = dynamic(() => import('@/components/on-this-day').then(mod => mod.OnThisDay), { ssr: true })
+const SharedBucketList = dynamic(() => import('@/components/shared-bucket-list').then(mod => mod.SharedBucketList), {
+    ssr: true,
+    loading: () => <div className="h-64 rounded-3xl bg-white/5 animate-pulse" />
+})
+const DistanceTimeWidget = dynamic(() => import('@/components/distance-time-widget').then(mod => mod.DistanceTimeWidget), {
+    ssr: true,
+    loading: () => <div className="h-32 rounded-3xl bg-white/5 animate-pulse" />
+})
 
 import { fetchDashboardData } from '@/lib/actions/consolidated'
 
@@ -43,7 +51,8 @@ export default async function DashboardPage() {
         memoriesCount,
         lettersCount,
         onThisDayMemories,
-        onThisDayMilestones
+        onThisDayMilestones,
+        bucketList
     } = result.data
 
     const hasPartner = !!couple
@@ -248,6 +257,16 @@ export default async function DashboardPage() {
                             />
                         </ScrollReveal>
                     )}
+
+                    {/* Distance & Time Widget */}
+                    <ScrollReveal className="lg:col-span-2" delay={0.58}>
+                        <DistanceTimeWidget userProfile={profile} partnerProfile={partnerProfile} />
+                    </ScrollReveal>
+
+                    {/* Shared Bucket List */}
+                    <ScrollReveal className="lg:col-span-2" delay={0.6}>
+                        <SharedBucketList initialItems={bucketList} />
+                    </ScrollReveal>
                 </div>
             </div>
         </DashboardShell>

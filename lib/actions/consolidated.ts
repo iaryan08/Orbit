@@ -19,7 +19,7 @@ export async function fetchDashboardData() {
                 // We need this to determine WHO to fetch data for
                 const { data: profile } = await supabase
                     .from('profiles')
-                    .select('id, partner_id, couple_id, gender, display_name, avatar_url')
+                    .select('id, partner_id, couple_id, gender, display_name, avatar_url, city, timezone, latitude, longitude')
                     .eq('id', user.id)
                     .single()
 
@@ -59,7 +59,7 @@ export async function fetchDashboardData() {
 
                 const promises = [
                     // 0. Partner Profile
-                    partnerId ? supabase.from('profiles').select('id, display_name, avatar_url, gender').eq('id', partnerId).single() : Promise.resolve({ data: null }),
+                    partnerId ? supabase.from('profiles').select('id, display_name, avatar_url, gender, city, timezone, latitude, longitude').eq('id', partnerId).single() : Promise.resolve({ data: null }),
 
                     // 1. Cycles (User & Partner)
                     supabase.from('cycle_profiles').select('user_id, last_period_start, avg_cycle_length, avg_period_length, sharing_enabled, onboarding_completed, period_ended_at').in('user_id', [user.id, partnerId].filter(Boolean)),
@@ -88,6 +88,8 @@ export async function fetchDashboardData() {
                     // 8. On This Day Content (Calendar Based)
                     coupleId ? supabase.from('memories').select('*').eq('couple_id', coupleId) : Promise.resolve({ data: [] }),
                     coupleId ? supabase.from('milestones').select('*').eq('couple_id', coupleId) : Promise.resolve({ data: [] }),
+                    // 9. Bucket List
+                    coupleId ? supabase.from('bucket_list').select('*').eq('couple_id', coupleId).order('created_at', { ascending: false }) : Promise.resolve({ data: [] }),
                 ]
 
                 const [
@@ -101,7 +103,8 @@ export async function fetchDashboardData() {
                     supportLogsRes,
                     cycleLogsRes,
                     memoriesRes,
-                    milestonesRes
+                    milestonesRes,
+                    bucketListRes
                 ] = await Promise.all(promises) as any[]
 
                 // Organize Cycle Data
@@ -174,6 +177,7 @@ export async function fetchDashboardData() {
                         // Daily Content
                         onThisDayMemories,
                         onThisDayMilestones,
+                        bucketList: bucketListRes.data || [],
 
                         // Meta
                         currentDateIST: getTodayIST()

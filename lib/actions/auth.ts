@@ -811,3 +811,43 @@ export async function logSexDrive(level: string) {
   revalidatePath('/dashboard')
   return { success: true }
 }
+
+export async function updateLocation(data: { city?: string, timezone?: string, latitude?: number, longitude?: number }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return { error: 'Not authenticated' }
+
+  // Only update fields that are defined
+  const updates: any = { updated_at: new Date().toISOString() }
+  if (data.city !== undefined) updates.city = data.city
+  if (data.timezone !== undefined) updates.timezone = data.timezone
+  if (data.latitude !== undefined) updates.latitude = data.latitude
+  if (data.longitude !== undefined) updates.longitude = data.longitude
+
+  const { error } = await supabase
+    .from('profiles')
+    .update(updates)
+    .eq('id', user.id)
+
+  if (error) return { error: error.message }
+
+  // Tag validation
+  revalidateTag(`dashboard-${user.id}`, 'default')
+
+  // Also invalidate partner if needed, though they might fetch strictly via their own call
+  // For distance widget, partner needs to see MY new location.
+  // We need to fetch my profile to get couple_id
+  const { data: profile } = await supabase.from('profiles').select('couple_id').eq('id', user.id).single()
+
+  if (profile?.couple_id) {
+    const { data: couple } = await supabase.from('couples').select('user1_id, user2_id').eq('id', profile.couple_id).single()
+    if (couple) {
+      const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
+      if (partnerId) revalidateTag(`dashboard-${partnerId}`, 'default')
+    }
+  }
+
+  revalidatePath('/dashboard')
+  return { success: true }
+}
