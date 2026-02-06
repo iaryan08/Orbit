@@ -61,7 +61,7 @@ export default function RootLayout({
   const initialImage = `/images/${randomId}.jpg`;
 
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" data-scroll-behavior="smooth">
       <body suppressHydrationWarning className={`${_outfit.variable} ${_cormorant.variable} ${_pinyon.variable} font-sans antialiased min-h-screen relative overflow-x-hidden`}>
         <ScrollManager />
         <Stars />
