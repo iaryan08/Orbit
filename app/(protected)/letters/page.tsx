@@ -13,6 +13,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from "@/components/ui/dialog";
 import { Heart, Plus, Calendar, Lock, Sparkles, Send, Mail, MailOpen } from "lucide-react";
 import { WriteLetterDialog } from "@/components/dialogs/write-letter-dialog";
@@ -293,7 +294,7 @@ export default function LettersPage() {
                     {letters.map((letter) => (
                         <Card
                             key={letter.id}
-                            className={`cursor-pointer transition-all hover:translate-y-[-4px] card-border-premium group ${!letter.is_read ? "ring-2 ring-primary/40 bg-primary/10" : ""}`}
+                            className={`cursor-pointer transition-all hover:translate-y-[-4px] card-border-premium group min-h-[240px] flex flex-col justify-between !py-8 !px-6 ${!letter.is_read ? "ring-2 ring-rose-500/30 bg-rose-500/5 shadow-[0_0_20px_rgba(244,63,94,0.1)]" : "bg-black/20"}`}
                             onClick={() => {
                                 setSelectedLetter(letter);
                                 if (!letter.is_read) markAsRead(letter.id);
@@ -301,8 +302,8 @@ export default function LettersPage() {
                         >
                             <CardHeader className="pb-2">
                                 <div className="flex items-start justify-between">
-                                    <CardTitle className="text-base font-bold text-white tracking-tight line-clamp-2 leading-snug">
-                                        {letter.title || "Untitled Letter"}
+                                    <CardTitle className="text-lg font-serif font-bold text-white tracking-tight leading-tight">
+                                        {(letter.title || "Untitled Letter").split('(')[0].trim()}
                                     </CardTitle>
                                     <div className="flex items-center gap-2">
                                         {letter.sender_id === (supabase as any).auth?.user?.id && (
@@ -325,7 +326,7 @@ export default function LettersPage() {
                                             </Button>
                                         )}
                                         {!letter.is_read ? (
-                                            <Mail className="h-4 w-4 text-emerald-400 shrink-0 filter drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]" />
+                                            <Mail className="h-5 w-5 text-emerald-400 shrink-0 filter drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]" />
                                         ) : (
                                             <MailOpen className="h-4 w-4 text-white/40 shrink-0" />
                                         )}
@@ -333,7 +334,7 @@ export default function LettersPage() {
                                 </div>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-sm text-white/70 line-clamp-4 mb-6 leading-relaxed italic">
+                                <p className="text-sm text-white/80 line-clamp-5 mb-6 leading-relaxed italic font-serif">
                                     {letter.content}
                                 </p>
                                 <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.2em] font-bold text-white/30 pt-4 border-t border-white/5">
@@ -360,16 +361,19 @@ export default function LettersPage() {
                 <DialogContent className="sm:max-w-[600px] glass-dialog-vibrant border-none p-0 flex flex-col max-h-[85vh]">
                     {selectedLetter && (
                         <>
-                            <DialogHeader className="p-6 pb-0">
-                                <DialogTitle className="flex items-center gap-3 font-serif text-2xl text-rose-400">
-                                    <Heart className="h-6 w-6 text-rose-500 fill-rose-500" />
-                                    {selectedLetter?.title || "Love Letter"}
+                            <DialogHeader className="p-8 pb-0 pr-14">
+                                <DialogTitle className="flex items-start gap-3 font-serif text-2xl text-rose-400 leading-normal pr-4">
+                                    <Heart className="h-6 w-6 text-rose-500 fill-rose-500 mt-1 shrink-0" />
+                                    {(selectedLetter?.title || "Love Letter").split('(')[0].trim()}
                                 </DialogTitle>
                                 <div className="flex items-center gap-2 mt-2">
                                     <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">From: <span className="text-rose-200/60">{selectedLetter?.sender_name}</span></span>
                                     <span className="text-white/20">•</span>
                                     <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">{selectedLetter?.created_at ? format(new Date(selectedLetter.created_at), "MMMM d, yyyy") : ""}</span>
                                 </div>
+                                <DialogDescription className="sr-only">
+                                    View your private love letter
+                                </DialogDescription>
                             </DialogHeader>
 
                             <ScrollArea className="flex-1 p-6 overflow-y-auto">

@@ -15,6 +15,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from "@/components/ui/dialog";
 import { Camera, Plus, Calendar, MapPin, Heart, Upload, X, ImageIcon, Trash2 } from "lucide-react";
 import { AddMemoryDialog } from "@/components/dialogs/add-memory-dialog";
@@ -490,6 +491,9 @@ export default function MemoriesPage() {
                                         </div>
                                     )}
                                 </DialogTitle>
+                                <DialogDescription className="sr-only">
+                                    View your captured memory in detail.
+                                </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4">
                                 {selectedMemory?.image_urls && selectedMemory.image_urls.length > 0 && (
@@ -589,6 +593,6 @@ export default function MemoriesPage() {
                     )}
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     );
 }

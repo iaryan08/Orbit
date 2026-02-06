@@ -10,6 +10,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from "@/components/ui/dialog";
 import { Heart, Calendar, Sparkles, Send } from "lucide-react";
 import { sendLetter as sendLetterAction, updateLetter } from "@/lib/actions/letters";
@@ -137,6 +138,9 @@ export function WriteLetterDialog({ open, onOpenChange, editingLetter, onSuccess
                         <Heart className="h-6 w-6 text-rose-500 fill-rose-500 animate-pulse" />
                         {editingLetter ? "Edit Love Letter" : "Write a Love Letter"}
                     </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        Write a heartfelt message to your partner.
+                    </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-6 mt-6">
                     <div className="space-y-2">
