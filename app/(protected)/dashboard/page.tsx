@@ -282,14 +282,8 @@ export default async function DashboardPage() {
                         </ScrollReveal>
 
                         <ScrollReveal className="lg:col-span-1 h-full" delay={0.2}>
-                            <div className="h-full min-h-[400px]">
-                                <SharedDoodle
-                                    savedPath={doodle?.path_data}
-                                    onSave={async (path) => {
-                                        'use server'
-                                        await saveDoodle(path)
-                                    }}
-                                />
+                            <div className="h-full">
+                                <DistanceTimeWidget userProfile={profile} partnerProfile={partnerProfile} />
                             </div>
                         </ScrollReveal>
                     </div>
@@ -306,7 +300,15 @@ export default async function DashboardPage() {
                     </ScrollReveal>
 
                     <ScrollReveal className="lg:col-span-2 h-full" delay={0.35}>
-                        <DistanceTimeWidget userProfile={profile} partnerProfile={partnerProfile} />
+                        <div className="h-full min-h-[400px]">
+                            <SharedDoodle
+                                savedPath={doodle?.path_data}
+                                onSave={async (path) => {
+                                    'use server'
+                                    await saveDoodle(path)
+                                }}
+                            />
+                        </div>
                     </ScrollReveal>
 
                     {/* MEMORY & FUTURE LAYER: On This Day & Bucket List */}
