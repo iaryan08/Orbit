@@ -28,7 +28,7 @@ export function UploadPolaroidDialog({ open, onOpenChange }: UploadPolaroidDialo
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const [mode, setMode] = useState<'upload' | 'camera'>('upload');
     const [isCameraActive, setIsCameraActive] = useState(false);
-    const [cameraFacing, setCameraFacing] = useState<'environment' | 'user'>('environment');
+    const [cameraFacing, setCameraFacing] = useState<'environment' | 'user'>('user');
     const [cameraError, setCameraError] = useState<string | null>(null);
     const { toast } = useToast();
     const router = useRouter();
