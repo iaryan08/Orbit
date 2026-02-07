@@ -247,10 +247,10 @@ export default async function DashboardPage() {
                         return null
                     })()}
 
-                    {/* 3. ATMOSPHERE LAYER: Polaroid & Doodle (Fixed Gap) */}
+                    {/* 3. ATMOSPHERE LAYER: Partner Mood, Your Mood, Polaroid & Doodle */}
                     {/* 3. ATMOSPHERE LAYER: Partner Mood, Your Mood, Polaroid & Doodle */}
                     <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-2">
-                        {/* 1. Partner Mood - FIRST */}
+                        {/* 1. Partner Mood - FIRST (Order 0) */}
                         <ScrollReveal className="lg:col-span-1" delay={0.1}>
                             <div className="glass-card p-1.5 h-full">
                                 <PartnerMood
@@ -261,14 +261,14 @@ export default async function DashboardPage() {
                             </div>
                         </ScrollReveal>
 
-                        {/* 2. Your Mood - SECOND */}
+                        {/* 2. Your Mood - SECOND (Order 0) */}
                         <ScrollReveal className="lg:col-span-1" delay={0.15}>
                             <div className="glass-card p-1.5 h-full">
                                 <MoodCheckIn hasPartner={hasPartner} userMoods={userTodayMoods} />
                             </div>
                         </ScrollReveal>
 
-                        {/* Polaroid - Center Column */}
+                        {/* Polaroid - Center Column (Order 0) */}
                         <ScrollReveal className="lg:col-span-1" delay={0.15}>
                             <StackedPolaroids
                                 userPolaroid={userPolaroid}
@@ -281,54 +281,52 @@ export default async function DashboardPage() {
                             />
                         </ScrollReveal>
 
-                        <ScrollReveal className="lg:col-span-1 h-full" delay={0.2}>
+                        {/* Doodle - Mobile: Pos 4 (Flow). Desktop: Pos 6 (Row 2 end) -> lg:order-6 */}
+                        <ScrollReveal className="lg:col-span-2 lg:order-6 h-full" delay={0.2}>
+                            <div className="h-full min-h-[400px]">
+                                <SharedDoodle
+                                    savedPath={doodle?.path_data}
+                                    onSave={async (path) => {
+                                        'use server'
+                                        await saveDoodle(path)
+                                    }}
+                                />
+                            </div>
+                        </ScrollReveal>
+
+                        {/* Daily Inspiration - Mobile: Pos 5. Desktop: Pos 5. lg:order-5 */}
+                        <ScrollReveal className="lg:col-span-2 lg:order-5" delay={0.3}>
+                            <div className="glass-card p-4 md:p-5 flex flex-col justify-between relative overflow-hidden group h-full">
+                                <DailyContent />
+                            </div>
+                        </ScrollReveal>
+
+                        {/* Distance - Mobile: Pos 6. Desktop: Pos 4 (Row 1 end) -> lg:order-4 */}
+                        <ScrollReveal className="lg:col-span-1 h-full lg:order-4" delay={0.35}>
                             <div className="h-full">
                                 <DistanceTimeWidget userProfile={profile} partnerProfile={partnerProfile} />
                             </div>
                         </ScrollReveal>
-                    </div>
 
+                        {/* MEMORY & FUTURE LAYER: On This Day & Bucket List */}
+                        {hasOnThisDay && (
+                            <ScrollReveal className="lg:col-span-2 h-full lg:order-7" delay={0.4}>
+                                <div className="h-full min-h-[400px]">
+                                    <OnThisDay
+                                        memories={onThisDayMemories}
+                                        milestones={onThisDayMilestones}
+                                        partnerName={partnerProfile?.display_name || 'Partner'}
+                                    />
+                                </div>
+                            </ScrollReveal>
+                        )}
 
-
-
-
-                    {/* 4. CONTENT LAYER: Daily Inspiration & Distance Widget */}
-                    <ScrollReveal className="lg:col-span-2" delay={0.3}>
-                        <div className="glass-card p-4 md:p-5 flex flex-col justify-between relative overflow-hidden group h-full">
-                            <DailyContent />
-                        </div>
-                    </ScrollReveal>
-
-                    <ScrollReveal className="lg:col-span-2 h-full" delay={0.35}>
-                        <div className="h-full min-h-[400px]">
-                            <SharedDoodle
-                                savedPath={doodle?.path_data}
-                                onSave={async (path) => {
-                                    'use server'
-                                    await saveDoodle(path)
-                                }}
-                            />
-                        </div>
-                    </ScrollReveal>
-
-                    {/* MEMORY & FUTURE LAYER: On This Day & Bucket List */}
-                    {hasOnThisDay && (
-                        <ScrollReveal className="lg:col-span-2 h-full" delay={0.4}>
+                        <ScrollReveal className={cn("h-full lg:order-8", hasOnThisDay ? "lg:col-span-2" : "lg:col-span-4")} delay={0.45}>
                             <div className="h-full min-h-[400px]">
-                                <OnThisDay
-                                    memories={onThisDayMemories}
-                                    milestones={onThisDayMilestones}
-                                    partnerName={partnerProfile?.display_name || 'Partner'}
-                                />
+                                <SharedBucketList initialItems={bucketList} />
                             </div>
                         </ScrollReveal>
-                    )}
-
-                    <ScrollReveal className={cn("h-full", hasOnThisDay ? "lg:col-span-2" : "lg:col-span-4")} delay={0.45}>
-                        <div className="h-full min-h-[400px]">
-                            <SharedBucketList initialItems={bucketList} />
-                        </div>
-                    </ScrollReveal>
+                    </div>
                 </div>
             </div>
         </DashboardShell>
