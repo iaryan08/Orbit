@@ -13,6 +13,7 @@ export type NotificationType =
     | 'intimacy'
     | 'on_this_day'
     | 'spark'
+    | 'heartbeat'
 
 interface CreateNotificationParams {
     recipientId: string
@@ -58,7 +59,7 @@ export async function sendNotification({
 
         // Attempt to send push notification
         try {
-            await sendPushNotification(recipientId, title, message, actionUrl || '/')
+            await sendPushNotification(recipientId, title, message, actionUrl || '/', metadata)
         } catch (pushError) {
             console.error('Failed to send push notification:', pushError)
             // Don't fail the main action, just log it
@@ -230,5 +231,45 @@ export async function sendSpark() {
         title: 'Spark Received! ✨',
         message: `${profile.display_name || 'Your partner'} ${randomMessage}`,
         actionUrl: '/dashboard'
+    })
+}
+
+/**
+ * Sends a 'Heartbeat' notification (with specific vibration) to the partner.
+ */
+export async function sendHeartbeat() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return { success: false, error: 'Unauthorized' }
+
+    // 1. Get partner ID
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('couple_id, display_name')
+        .eq('id', user.id)
+        .single()
+
+    if (!profile?.couple_id) return { success: false, error: 'No couple connected' }
+
+    const { data: couple } = await supabase
+        .from('couples')
+        .select('*')
+        .eq('id', profile.couple_id)
+        .single()
+
+    if (!couple) return { success: false, error: 'Couple not found' }
+
+    const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
+    if (!partnerId) return { success: false, error: 'Partner not found' }
+
+    return await sendNotification({
+        recipientId: partnerId,
+        actorId: user.id,
+        type: 'heartbeat',
+        title: 'Heartbeat Detected 💓',
+        message: `${profile.display_name || 'Your partner'} just sent you their heartbeat.`,
+        actionUrl: '/dashboard',
+        metadata: { type: 'heartbeat' }
     })
 }

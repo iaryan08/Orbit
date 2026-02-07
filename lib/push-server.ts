@@ -8,7 +8,7 @@ if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY)
     console.warn('VAPID keys are missing. Push notifications will not work.');
 }
 
-export async function sendPushNotification(userId: string, title: string, message: string, url: string = '/') {
+export async function sendPushNotification(userId: string, title: string, message: string, url: string = '/', metadata: any = {}) {
     try {
         if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
             console.error('VAPID keys are missing');
@@ -35,7 +35,8 @@ export async function sendPushNotification(userId: string, title: string, messag
         const payload = JSON.stringify({
             title,
             body: message,
-            url
+            url,
+            metadata
         });
 
         const promises = subscriptions.map(async (sub) => {

@@ -173,33 +173,33 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
         "space-y-4 transition-all duration-300 overflow-hidden",
         isExpanded ? "max-h-[1000px] opacity-100 mt-2" : "max-h-0 opacity-0 p-0"
       )}>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5">
           {MOODS.map((mood) => (
             <button
               key={mood}
               onClick={() => { setSelectedMood(mood); setIsCustomMode(false); }}
               className={cn(
-                'flex flex-col items-center gap-1 p-2 rounded-xl border border-white/10 transition-all',
+                'flex flex-col items-center gap-1 p-1.5 rounded-xl border border-white/10 transition-all',
                 selectedMood === mood && !isCustomMode
                   ? 'bg-primary/20 border-primary'
                   : 'bg-white/5 hover:bg-white/10'
               )}
             >
-              <span className="text-3xl">{MOOD_EMOJIS[mood]}</span>
-              <span className="text-xs capitalize text-white w-full truncate text-center font-medium opacity-90">{mood}</span>
+              <span className="text-2xl">{MOOD_EMOJIS[mood]}</span>
+              <span className="text-[10px] capitalize text-white w-full truncate text-center font-medium opacity-90">{mood}</span>
             </button>
           ))}
           <button
             onClick={() => { setIsCustomMode(true); setSelectedMood(null); }}
             className={cn(
-              'flex flex-col items-center gap-1 p-2 rounded-xl border border-white/10 transition-all',
+              'flex flex-col items-center gap-1 p-1.5 rounded-xl border border-white/10 transition-all',
               isCustomMode
                 ? 'bg-primary/20 border-primary'
                 : 'bg-white/5 hover:bg-white/10'
             )}
           >
-            <span className="text-3xl"><Plus className="w-8 h-8 text-white/40" /></span>
-            <span className="text-xs capitalize text-white w-full truncate text-center font-medium opacity-90">Custom</span>
+            <span className="text-2xl"><Plus className="w-6 h-6 text-white/40" /></span>
+            <span className="text-[10px] capitalize text-white w-full truncate text-center font-medium opacity-90">Custom</span>
           </button>
         </div>
 

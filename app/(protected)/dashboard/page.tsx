@@ -128,8 +128,9 @@ export default async function DashboardPage() {
                         </div>
                         <div className="flex flex-col items-center lg:items-start space-y-0.5">
                             <div className="flex items-center gap-2">
-                                <p className="text-rose-100/70 uppercase text-xs tracking-[0.2em] whitespace-nowrap">
-                                    Connected with <span className="text-rose-300 font-bold">{partnerProfile?.display_name || 'Partner'}</span>
+                                <p className="text-rose-100/70 uppercase text-xs tracking-[0.2em] lg:whitespace-normal whitespace-nowrap">
+                                    Connected with <br className="hidden lg:block" />
+                                    <span className="text-rose-300 font-bold lg:text-lg lg:tracking-[0.1em]">{partnerProfile?.display_name || 'Partner'}</span>
                                 </p>
                                 <PartnerStatus partnerId={partnerProfile?.id} />
                             </div>
@@ -246,8 +247,28 @@ export default async function DashboardPage() {
                     })()}
 
                     {/* 3. ATMOSPHERE LAYER: Polaroid & Doodle (Fixed Gap) */}
-                    <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-2">
-                        <ScrollReveal className="lg:col-start-2" delay={0.1}>
+                    {/* 3. ATMOSPHERE LAYER: Partner Mood, Your Mood, Polaroid & Doodle */}
+                    <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-2">
+                        {/* 1. Partner Mood - FIRST */}
+                        <ScrollReveal className="lg:col-span-1" delay={0.1}>
+                            <div className="glass-card p-1.5 h-full">
+                                <PartnerMood
+                                    partnerName={partnerProfile?.display_name || 'Partner'}
+                                    partnerAvatar={partnerProfile?.avatar_url}
+                                    moods={partnerTodayMoods}
+                                />
+                            </div>
+                        </ScrollReveal>
+
+                        {/* 2. Your Mood - SECOND */}
+                        <ScrollReveal className="lg:col-span-1" delay={0.15}>
+                            <div className="glass-card p-1.5 h-full">
+                                <MoodCheckIn hasPartner={hasPartner} userMoods={userTodayMoods} />
+                            </div>
+                        </ScrollReveal>
+
+                        {/* Polaroid - Center Column */}
+                        <ScrollReveal className="lg:col-span-1" delay={0.15}>
                             <StackedPolaroids
                                 userPolaroid={userPolaroid}
                                 partnerPolaroid={partnerPolaroid}
@@ -259,7 +280,8 @@ export default async function DashboardPage() {
                             />
                         </ScrollReveal>
 
-                        <ScrollReveal className="lg:col-span-1" delay={0.15}>
+                        {/* Doodle - Right Column */}
+                        <ScrollReveal className="lg:col-span-1 h-full" delay={0.2}>
                             <SharedDoodle
                                 savedPath={doodle?.path_data}
                                 onSave={async (path) => {
@@ -270,45 +292,38 @@ export default async function DashboardPage() {
                         </ScrollReveal>
                     </div>
 
-                    {/* 4. CONTENT LAYER: Partner Mood, Mood Check-in & Daily Inspiration */}
-                    <ScrollReveal className="lg:col-span-4" delay={0.2}>
-                        <div className="glass-card p-1.5 relative group overflow-hidden h-full">
-                            <PartnerMood
-                                partnerName={partnerProfile?.display_name || 'Partner'}
-                                partnerAvatar={partnerProfile?.avatar_url}
-                                moods={partnerTodayMoods}
-                            />
-                        </div>
-                    </ScrollReveal>
 
-                    <ScrollReveal className="lg:col-span-4" delay={0.25}>
-                        <div className="glass-card p-1.5 h-full">
-                            <MoodCheckIn hasPartner={hasPartner} userMoods={userTodayMoods} />
-                        </div>
-                    </ScrollReveal>
 
-                    <ScrollReveal className="lg:col-span-4" delay={0.3}>
+
+
+                    {/* 4. CONTENT LAYER: Daily Inspiration & Distance Widget */}
+                    <ScrollReveal className="lg:col-span-2" delay={0.3}>
                         <div className="glass-card p-4 md:p-5 flex flex-col justify-between relative overflow-hidden group h-full">
                             <DailyContent />
                         </div>
                     </ScrollReveal>
 
-                    <ScrollReveal className="lg:col-span-4" delay={0.35}>
-                        <OnThisDay
-                            memories={onThisDayMemories}
-                            milestones={onThisDayMilestones}
-                            partnerName={partnerProfile?.display_name || 'Partner'}
-                        />
-                    </ScrollReveal>
-
-                    {/* 6. LOCATION LAYER: Distance & Time Widget (Normalized) */}
-                    <ScrollReveal className="lg:col-span-4" delay={0.4}>
+                    <ScrollReveal className="lg:col-span-2" delay={0.35}>
                         <DistanceTimeWidget userProfile={profile} partnerProfile={partnerProfile} />
                     </ScrollReveal>
 
-                    {/* 7. FUTURE LAYER: Shared Bucket List (Normalized) */}
-                    <ScrollReveal className="lg:col-span-4" delay={0.45}>
-                        <SharedBucketList initialItems={bucketList} />
+                    {/* MEMORY & FUTURE LAYER: On This Day & Bucket List */}
+                    <ScrollReveal className="lg:col-span-2" delay={0.4}>
+                        <div className="h-full min-h-[400px]">
+                            <OnThisDay
+                                memories={onThisDayMemories}
+                                milestones={onThisDayMilestones}
+                                partnerName={partnerProfile?.display_name || 'Partner'}
+                            />
+                        </div>
+                    </ScrollReveal>
+
+
+
+                    <ScrollReveal className="lg:col-span-2" delay={0.45}>
+                        <div className="h-full min-h-[400px]">
+                            <SharedBucketList initialItems={bucketList} />
+                        </div>
                     </ScrollReveal>
                 </div>
             </div>

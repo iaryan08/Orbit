@@ -6,7 +6,11 @@ self.addEventListener('push', (event) => {
         body: data.body || 'You have a new update!',
         icon: '/android-chrome-192x192.png',
         badge: '/favicon-32x32.png',
-        data: data.url || '/',
+        data: {
+            url: data.url || '/',
+            metadata: data.metadata || {}
+        },
+        vibrate: data.metadata?.type === 'heartbeat' ? [500, 150, 500, 150, 500] : [200, 100, 200]
     };
 
     event.waitUntil(self.registration.showNotification(title, options));

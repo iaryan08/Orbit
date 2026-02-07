@@ -201,7 +201,7 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
     };
 
     return (
-        <div className="relative w-full aspect-square md:aspect-[4/3] bg-[#1a1118]/10 backdrop-blur-md rounded-3xl border border-white/10 overflow-hidden shadow-2xl group/doodle">
+        <div className="relative w-full aspect-square md:aspect-auto md:h-full bg-[#1a1118]/10 backdrop-blur-md rounded-3xl border border-white/10 overflow-hidden shadow-2xl group/doodle">
             <canvas
                 ref={canvasRef}
                 className={cn(

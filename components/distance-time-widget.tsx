@@ -145,26 +145,6 @@ export function DistanceTimeWidget({ userProfile, partnerProfile }: DistanceWidg
                         </div>
                     </div>
 
-                    {/* Modern Overlay for missing/blocked location */}
-                    {(!hasUserLoc || isBlocked) && (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.98 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="absolute inset-0 z-30 bg-rose-950/20 backdrop-blur-xl flex flex-col items-center justify-center p-6 rounded-[inherit] border border-rose-500/10"
-                        >
-                            <MapPin className="w-6 h-6 text-rose-400/50 mb-3 animate-pulse" />
-                            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-rose-100/40 mb-4 text-center">
-                                {isBlocked ? "GPS Permission Required" : "Location Sync Needed"}
-                            </p>
-                            <button
-                                onClick={handleUpdateLocation}
-                                disabled={updating}
-                                className="px-8 py-2.5 bg-rose-500/20 hover:bg-rose-500/40 text-rose-100 border border-rose-500/30 rounded-full text-[10px] font-black uppercase tracking-widest transition-all"
-                            >
-                                {updating ? 'Syncing...' : (isBlocked ? 'Fix Permission' : 'Enable Always')}
-                            </button>
-                        </motion.div>
-                    )}
 
                     {/* Center Graph */}
                     <div className="flex-1 flex flex-col items-center justify-center relative h-full min-h-[40px]">

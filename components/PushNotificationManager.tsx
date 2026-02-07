@@ -41,9 +41,15 @@ export default function PushNotificationManager() {
     }, []);
 
     useEffect(() => {
-        // Show prompt if supported, logged in, not subscribed/denied, and not dismissed
-        if (isSupported && hasUser && !dismissed) {
-            if (permission !== 'granted' || !subscription) {
+        // Show popup ONLY if:
+        // 1. Push is supported
+        // 2. User is logged in
+        // 3. Notifications are NOT enabled (permission !== 'granted' OR no subscription)
+        // 4. Not dismissed in this session
+        if (isSupported && hasUser) {
+            const isEnabled = permission === 'granted' && subscription;
+
+            if (!isEnabled && !dismissed) {
                 const timer = setTimeout(() => setIsVisible(true), 3000);
                 return () => clearTimeout(timer);
             }
@@ -98,55 +104,60 @@ export default function PushNotificationManager() {
     return (
         <AnimatePresence>
             {isVisible && (
-                <motion.div
-                    initial={{ y: 100, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: 100, opacity: 0 }}
-                    className="fixed top-24 left-6 right-6 md:top-auto md:bottom-10 md:left-auto md:right-10 md:w-96 z-[60]"
-                >
-                    <div className="glass-card-vibrant p-5 border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden group">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-purple-600" />
+                <>
+                    {/* Blur Background Overlay */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[59]"
+                        onClick={handleDismiss}
+                    />
 
-                        <button
-                            onClick={handleDismiss}
-                            className="absolute top-3 right-3 text-white/40 hover:text-white transition-colors"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
+                    {/* Notification Prompt */}
+                    <motion.div
+                        initial={{ y: 100, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: 100, opacity: 0 }}
+                        className="fixed top-24 left-6 right-6 md:top-auto md:bottom-10 md:left-auto md:right-10 md:w-96 z-[60]"
+                    >
+                        <div className="glass-card-vibrant p-5 border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden group">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-purple-600" />
 
-                        <div className="flex gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400/20 to-rose-500/20 flex items-center justify-center shrink-0 border border-white/10">
-                                <Bell className="w-6 h-6 text-amber-300 animate-bounce-slow" />
-                            </div>
-                            <div className="space-y-1">
-                                <h3 className="text-sm font-bold text-white flex items-center gap-2 tracking-tight">
-                                    Don't miss a heartbeat
-                                    <Sparkles className="w-3 h-3 text-amber-400" />
-                                </h3>
-                                <p className="text-[11px] text-white/60 leading-relaxed">
-                                    Enable notifications on this device to get real-time love notes and updates from your partner.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="mt-5 flex gap-2">
-                            <Button
-                                onClick={handleSubscribe}
-                                className="flex-1 btn-rosy h-10 text-[11px] font-black uppercase tracking-widest"
-                            >
-                                <ShieldCheck className="w-3.5 h-3.5 mr-2" />
-                                Enable Now
-                            </Button>
-                            <Button
-                                variant="ghost"
+                            <button
                                 onClick={handleDismiss}
-                                className="px-4 h-10 text-[11px] font-bold text-white/40 hover:text-white uppercase tracking-widest"
+                                className="absolute top-3 right-3 text-white/40 hover:text-white transition-colors z-10"
                             >
-                                Later
-                            </Button>
+                                <X className="w-4 h-4" />
+                            </button>
+
+                            <div className="flex gap-4">
+                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400/20 to-rose-500/20 flex items-center justify-center shrink-0 border border-white/10">
+                                    <Bell className="w-6 h-6 text-amber-300 animate-bounce-slow" />
+                                </div>
+                                <div className="space-y-1 pr-6">
+                                    <h3 className="text-sm font-bold text-white flex items-center gap-2 tracking-tight">
+                                        Don't miss a heartbeat
+                                        <Sparkles className="w-3 h-3 text-amber-400" />
+                                    </h3>
+                                    <p className="text-[11px] text-white/60 leading-relaxed">
+                                        Enable notifications on this device to get real-time love notes and updates from your partner.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="mt-5">
+                                <Button
+                                    onClick={handleSubscribe}
+                                    className="w-full btn-rosy h-10 text-[11px] font-black uppercase tracking-widest"
+                                >
+                                    <ShieldCheck className="w-3.5 h-3.5 mr-2" />
+                                    Enable Now
+                                </Button>
+                            </div>
                         </div>
-                    </div>
-                </motion.div>
+                    </motion.div>
+                </>
             )}
         </AnimatePresence>
     );

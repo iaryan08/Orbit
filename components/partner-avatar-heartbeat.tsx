@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Heart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+import { sendHeartbeat as triggerHeartbeatPush } from '@/lib/actions/notifications'
+
 interface PartnerAvatarProps {
     partnerProfile: any
     coupleId: string
@@ -64,7 +66,7 @@ export function PartnerAvatarHeartbeat({ partnerProfile, coupleId, className }: 
     const handlePressStart = () => {
         setIsPressing(true)
         timeoutRef.current = setTimeout(() => {
-            sendHeartbeat()
+            handleSendHeartbeat()
         }, 600) // 600ms threshold for "Long Press"
     }
 
@@ -76,13 +78,14 @@ export function PartnerAvatarHeartbeat({ partnerProfile, coupleId, className }: 
         }
     }
 
-    const sendHeartbeat = async () => {
+    const handleSendHeartbeat = async () => {
         // Feedback for sender
         if (typeof navigator !== 'undefined' && navigator.vibrate) {
             navigator.vibrate(50)
         }
         setIsSending(true)
 
+        // 1. Real-time broadcast for when both are online
         if (channelRef.current) {
             await channelRef.current.send({
                 type: 'broadcast',
@@ -90,6 +93,10 @@ export function PartnerAvatarHeartbeat({ partnerProfile, coupleId, className }: 
                 payload: {}
             })
         }
+
+        // 2. Background push for when partner is offline
+        await triggerHeartbeatPush()
+
         setTimeout(() => setIsSending(false), 2000)
     }
 
