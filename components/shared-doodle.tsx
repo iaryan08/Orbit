@@ -248,28 +248,31 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
     };
 
     return (
-        <div className="relative w-full h-[280px] md:h-full bg-[#1a1118]/10 backdrop-blur-md rounded-3xl border border-white/10 overflow-hidden shadow-xl group/doodle">
-            <canvas
-                ref={canvasRef}
-                className={cn(
-                    "w-full h-full transition-opacity",
-                    activeTool !== 'pan' ? "cursor-crosshair" : "cursor-default",
-                    isSending ? "opacity-30" : "opacity-100",
-                    activeTool !== 'pan' && "touch-none"
-                )}
-                onPointerDown={startDrawing}
-                onPointerMove={draw}
-                onPointerUp={stopDrawing}
-                onPointerLeave={stopDrawing}
-            />
+        <div className="relative w-full h-[400px] md:h-full bg-[#1a1118]/10 backdrop-blur-md rounded-3xl border border-white/10 overflow-hidden shadow-xl group/doodle">
+            {/* Scrollable Canvas Area */}
+            <div className="w-full h-full overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                <canvas
+                    ref={canvasRef}
+                    className={cn(
+                        "w-full h-full min-w-[600px] min-h-[500px] transition-opacity block",
+                        activeTool !== 'pan' ? "cursor-crosshair" : "cursor-default",
+                        isSending ? "opacity-30" : "opacity-100",
+                        activeTool !== 'pan' && "touch-none"
+                    )}
+                    onPointerDown={startDrawing}
+                    onPointerMove={draw}
+                    onPointerUp={stopDrawing}
+                    onPointerLeave={stopDrawing}
+                />
+            </div>
 
             {!isReadOnly && (
                 <>
                     {/* View/Pan Mode: Show Edit Button */}
                     {activeTool === 'pan' && (
-                        <div className="absolute bottom-4 right-4 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">
+                        <div className="absolute bottom-4 right-4 flex items-center gap-2 animate-in fade-in slide-in-from-bottom-4 z-10">
                             {/* Actions (Undo/Clear) */}
-                            <div className="flex items-center gap-1 bg-black/20 backdrop-blur-md rounded-full p-1 border border-white/5">
+                            <div className="flex items-center gap-1 bg-black/10 backdrop-blur-sm rounded-full p-1 border border-white/5">
                                 <Button
                                     variant="ghost" size="icon"
                                     className="w-8 h-8 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors"
@@ -291,7 +294,7 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
                             {/* Enter Draw Mode FAB */}
                             <Button
                                 size="icon"
-                                className="w-10 h-10 rounded-full bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-900/20 border border-white/10"
+                                className="w-10 h-10 rounded-full bg-rose-500 hover:bg-rose-600 text-white shadow-lg border border-white/10"
                                 onClick={() => setActiveTool('pen')}
                             >
                                 <Pen className="w-4 h-4" />
@@ -301,15 +304,15 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
 
                     {/* Edit/Draw Mode: Show Tools */}
                     {activeTool !== 'pan' && (
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/60 backdrop-blur-xl px-4 py-2 rounded-full border border-white/10 shadow-2xl animate-in slide-in-from-bottom-4 zoom-in-95">
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/30 backdrop-blur-xl px-3 py-1.5 rounded-full border border-white/10 shadow-lg animate-in slide-in-from-bottom-4 zoom-in-95 z-10">
                             {/* Colors */}
-                            <div className="flex items-center gap-2 mr-2">
+                            <div className="flex items-center gap-1.5 mr-1">
                                 {['#fb7185', '#fcd34d', '#4ade80', '#60a5fa', '#ffffff'].map(c => (
                                     <button
                                         key={c}
                                         className={cn(
-                                            "w-5 h-5 rounded-full transition-all ring-1 ring-white/10 hover:scale-110",
-                                            color === c && activeTool === 'pen' ? "scale-110 ring-2 ring-white shadow-lg shadow-white/20" : "opacity-80 hover:opacity-100"
+                                            "w-4 h-4 rounded-full transition-all ring-1 ring-white/10 hover:scale-110",
+                                            color === c && activeTool === 'pen' ? "scale-125 ring-2 ring-white shadow-lg shadow-white/20" : "opacity-80 hover:opacity-100"
                                         )}
                                         style={{ backgroundColor: c }}
                                         onClick={() => {
@@ -320,63 +323,56 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
                                 ))}
                             </div>
 
-                            <div className="w-px h-5 bg-white/10" />
+                            <div className="w-px h-4 bg-white/10" />
 
                             {/* Eraser */}
                             <Button
                                 variant="ghost" size="icon"
                                 className={cn(
-                                    "w-8 h-8 rounded-full hover:bg-white/10 transition-colors",
+                                    "w-7 h-7 rounded-full hover:bg-white/10 transition-colors",
                                     activeTool === 'eraser' ? "bg-white/20 text-white" : "text-white/60 hover:text-white"
                                 )}
-                                onClick={() => setActiveTool('eraser')}
+                                onClick={() => setActiveTool(activeTool === 'eraser' ? 'pen' : 'eraser')}
                             >
-                                <Eraser className="w-4 h-4" />
+                                <Eraser className="w-3.5 h-3.5" />
                             </Button>
 
                             <Button
                                 variant="ghost" size="icon"
-                                className="w-8 h-8 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+                                className="w-7 h-7 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
                                 onClick={handleUndo}
                                 disabled={allStrokes.length === 0}
                             >
-                                <Undo2 className="w-4 h-4" />
+                                <Undo2 className="w-3.5 h-3.5" />
                             </Button>
 
-                            <div className="w-px h-5 bg-white/10" />
+                            <div className="w-px h-4 bg-white/10" />
 
                             {/* Close / Exit Draw Mode */}
                             <Button
                                 variant="ghost" size="icon"
-                                className="w-8 h-8 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+                                className="w-7 h-7 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
                                 onClick={() => setActiveTool('pan')}
                             >
-                                <X className="w-5 h-5" />
+                                <X className="w-4 h-4" />
                             </Button>
                         </div>
                     )}
                 </>
             )}
 
-            <div className="absolute top-4 left-5 flex items-center gap-2">
-                <div className="p-1 px-2 rounded-full bg-rose-500/10 border border-rose-500/20">
+            <div className="absolute top-4 left-5 flex items-center gap-2 z-10">
+                <div className="p-1 px-2 rounded-full bg-rose-500/10 border border-rose-500/20 backdrop-blur-md">
                     <p className="text-[9px] font-bold text-rose-300 uppercase tracking-[0.2em]">Shared Guestbook</p>
                 </div>
                 {isDirty && !isSending && !isAutoSaving && (
                     <div className="flex items-center gap-1.5 animate-in fade-in slide-in-from-left-2 duration-500">
                         <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                        <span className="text-[9px] text-white/40 font-medium italic">Unsent changes</span>
                     </div>
                 )}
                 {isAutoSaving && (
                     <div className="flex items-center gap-1.5 animate-in fade-in slide-in-from-left-2 duration-500">
                         <Loader2 className="w-3 h-3 text-rose-400 animate-spin" />
-                        <span className="text-[9px] text-white/60 font-medium italic">Syncing...</span>
-                    </div>
-                )}
-                {showSuccess && (
-                    <div className="flex items-center gap-1.5 animate-in fade-in slide-in-from-left-2 duration-500">
-                        <span className="text-[9px] text-purple-400 font-bold uppercase tracking-widest">Saved!</span>
                     </div>
                 )}
             </div>

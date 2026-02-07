@@ -281,15 +281,16 @@ export default async function DashboardPage() {
                             />
                         </ScrollReveal>
 
-                        {/* Doodle - Right Column */}
                         <ScrollReveal className="lg:col-span-1 h-full" delay={0.2}>
-                            <SharedDoodle
-                                savedPath={doodle?.path_data}
-                                onSave={async (path) => {
-                                    'use server'
-                                    await saveDoodle(path)
-                                }}
-                            />
+                            <div className="h-full min-h-[400px]">
+                                <SharedDoodle
+                                    savedPath={doodle?.path_data}
+                                    onSave={async (path) => {
+                                        'use server'
+                                        await saveDoodle(path)
+                                    }}
+                                />
+                            </div>
                         </ScrollReveal>
                     </div>
 
