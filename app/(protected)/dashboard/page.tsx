@@ -3,13 +3,15 @@ import { createClient } from '@/lib/supabase/server'
 import dynamic from 'next/dynamic'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Heart, PenLine, ImageIcon, Gamepad2, Calendar, Sparkles, Flame, MapPin, Camera } from 'lucide-react'
+import { MapPin, Sparkles, Gamepad2, Calendar, Camera } from 'lucide-react'
 import Link from 'next/link'
 import type { MoodType } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 import { DashboardShell } from '@/components/dashboard-shell'
 import { ScrollReveal } from '@/components/scroll-reveal'
 import { QuickCreateButtons } from '@/components/quick-create-buttons'
+import { RelationshipStats } from '@/components/relationship-stats'
+import { IntimacyAlert } from '@/components/intimacy-alert'
 
 // Dynamic Imports with Loading Skeletons
 const MoodCheckIn = dynamic<{ hasPartner: boolean; userMoods?: any[] }>(() => import('@/components/mood-check-in').then(mod => mod.MoodCheckIn), {
@@ -74,13 +76,7 @@ export default async function DashboardPage() {
 
     const hasPartner = !!couple
 
-    // Quick actions for dashboard
-    const quickActions = [
-        { href: '/letters', icon: PenLine, label: 'Write Letter', color: 'text-pink-500' },
-        { href: '/memories', icon: ImageIcon, label: 'Add Memory', color: 'text-amber-500' },
-        { href: '/intimacy', icon: Heart, label: 'Intimacy', color: 'text-rose-500' },
-        // { href: '/games', icon: Gamepad2, label: 'Play Game', color: 'text-emerald-500' },
-    ]
+
 
     if (!hasPartner) {
         return (
@@ -160,92 +156,19 @@ export default async function DashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8 md:mt-12">
 
                     {/* 1. PRIMARY STATS: Together Counter (Priority #1) */}
-                    {(() => {
-                        const startDate = couple?.anniversary_date || couple?.paired_at;
-                        const daysTogether = startDate
-                            ? Math.floor((new Date().getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))
-                            : 0;
-
-                        return (
-                            <ScrollReveal className="lg:col-span-4" delay={0}>
-                                <div className="glass-card p-4 md:p-6 flex flex-row items-center justify-between gap-4 md:gap-8 relative overflow-hidden group min-h-[100px]">
-                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-500/30 via-amber-500/30 to-rose-500/30 opacity-50" />
-
-                                    {/* Days Together */}
-                                    <div className="flex items-center gap-3 md:gap-5 flex-1">
-                                        <div className="relative shrink-0">
-                                            <Heart className="w-10 h-10 md:w-12 md:h-12 text-rose-500/80" fill="currentColor" />
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <div className="flex items-baseline gap-1">
-                                                <span className="text-3xl md:text-5xl font-bold text-rose-50 tracking-tighter leading-none">
-                                                    {daysTogether}
-                                                </span>
-                                                <span className="text-xs md:text-sm text-rose-100/50 font-serif italic">Days</span>
-                                            </div>
-                                            <p className="text-[8px] md:text-[10px] uppercase text-white/30 tracking-widest font-bold">Since Start</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="h-10 w-px bg-white/10 shrink-0" />
-
-                                    {/* Letters & Memories Stacked (One below other) */}
-                                    <div className="flex flex-col gap-4 flex-1 justify-center items-start pl-4 md:pl-8">
-                                        <div className="flex items-center gap-3">
-                                            <PenLine className="w-4 h-4 text-rose-300/50" />
-                                            <div className="flex flex-col">
-                                                <div className="flex items-baseline gap-1">
-                                                    <span className="text-xl md:text-2xl font-bold text-white/90 leading-none">{lettersCount}</span>
-                                                    <span className={cn(
-                                                        "text-[9px] uppercase text-white/20 tracking-widest font-bold",
-                                                        daysTogether > 999 && "hidden md:inline"
-                                                    )}>Letters</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <ImageIcon className="w-4 h-4 text-amber-300/50" />
-                                            <div className="flex flex-col">
-                                                <div className="flex items-baseline gap-1">
-                                                    <span className="text-xl md:text-2xl font-bold text-white/90 leading-none">{memoriesCount}</span>
-                                                    <span className={cn(
-                                                        "text-[9px] uppercase text-white/20 tracking-widest font-bold",
-                                                        daysTogether > 999 && "hidden md:inline"
-                                                    )}>Memories</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </ScrollReveal>
-                        );
-                    })()}
+                    {/* 1. PRIMARY STATS: Together Counter (Priority #1) */}
+                    <RelationshipStats
+                        couple={couple}
+                        lettersCount={lettersCount}
+                        memoriesCount={memoriesCount}
+                    />
 
                     {/* 2. DYNAMIC LAYER: Heat Alert */}
-                    {(() => {
-                        const today = result.data.currentDateIST
-                        const pId = partnerProfile?.id
-                        const pLog = result.data.cycleLogs?.find((l: any) => l.user_id === pId && l.log_date === today)
-                        if (pLog?.sex_drive === 'very_high') {
-                            return (
-                                <ScrollReveal className="lg:col-span-4" delay={0.05}>
-                                    <div className="glass-card p-4 bg-gradient-to-r from-orange-600/30 to-red-600/30 border-orange-500/50 flex items-center justify-between relative overflow-hidden group">
-                                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-red-600/10 animate-pulse" />
-                                        <div className="flex items-center gap-5 relative z-10 w-full md:justify-start">
-                                            <Flame className="w-6 h-6 text-orange-500 animate-pulse" fill="currentColor" />
-                                            <div>
-                                                <h3 className="text-base font-bold text-white leading-tight">Intense Passion Alert</h3>
-                                                <p className="text-xs text-orange-100/90 font-medium">
-                                                    {partnerProfile?.display_name || 'Partner'} is feeling a burning desire for you right now.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </ScrollReveal>
-                            )
-                        }
-                        return null
-                    })()}
+                    {/* 2. DYNAMIC LAYER: Heat Alert */}
+                    <IntimacyAlert
+                        lunaraData={result.data}
+                        partnerProfile={partnerProfile}
+                    />
 
                     {/* 3. ATMOSPHERE LAYER: Partner Mood, Your Mood, Polaroid & Doodle */}
                     {/* 3. ATMOSPHERE LAYER: Partner Mood, Your Mood, Polaroid & Doodle */}
