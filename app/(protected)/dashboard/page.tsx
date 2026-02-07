@@ -128,9 +128,8 @@ export default async function DashboardPage() {
                         </div>
                         <div className="flex flex-col items-center lg:items-start space-y-0.5">
                             <div className="flex items-center gap-2">
-                                <p className="text-rose-100/70 uppercase text-xs tracking-[0.2em] lg:whitespace-normal whitespace-nowrap">
-                                    Connected with <br className="hidden lg:block" />
-                                    <span className="text-rose-300 font-bold lg:text-lg lg:tracking-[0.1em]">{partnerProfile?.display_name || 'Partner'}</span>
+                                <p className="text-rose-100/70 uppercase text-xs tracking-[0.2em] whitespace-nowrap">
+                                    Connected with <span className="text-rose-300 font-bold">{partnerProfile?.display_name || 'Partner'}</span>
                                 </p>
                                 <PartnerStatus partnerId={partnerProfile?.id} />
                             </div>
@@ -303,7 +302,7 @@ export default async function DashboardPage() {
                         </div>
                     </ScrollReveal>
 
-                    <ScrollReveal className="lg:col-span-2" delay={0.35}>
+                    <ScrollReveal className="lg:col-span-2 h-full" delay={0.35}>
                         <DistanceTimeWidget userProfile={profile} partnerProfile={partnerProfile} />
                     </ScrollReveal>
 
