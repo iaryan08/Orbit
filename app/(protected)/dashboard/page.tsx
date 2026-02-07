@@ -70,6 +70,8 @@ export default async function DashboardPage() {
         bucketList
     } = result.data
 
+    const hasOnThisDay = (onThisDayMemories?.length || 0) > 0 || (onThisDayMilestones?.length || 0) > 0
+
     const hasPartner = !!couple
 
     // Quick actions for dashboard
@@ -307,19 +309,19 @@ export default async function DashboardPage() {
                     </ScrollReveal>
 
                     {/* MEMORY & FUTURE LAYER: On This Day & Bucket List */}
-                    <ScrollReveal className="lg:col-span-2" delay={0.4}>
-                        <div className="h-full min-h-[400px]">
-                            <OnThisDay
-                                memories={onThisDayMemories}
-                                milestones={onThisDayMilestones}
-                                partnerName={partnerProfile?.display_name || 'Partner'}
-                            />
-                        </div>
-                    </ScrollReveal>
+                    {hasOnThisDay && (
+                        <ScrollReveal className="lg:col-span-2 h-full" delay={0.4}>
+                            <div className="h-full min-h-[400px]">
+                                <OnThisDay
+                                    memories={onThisDayMemories}
+                                    milestones={onThisDayMilestones}
+                                    partnerName={partnerProfile?.display_name || 'Partner'}
+                                />
+                            </div>
+                        </ScrollReveal>
+                    )}
 
-
-
-                    <ScrollReveal className="lg:col-span-2" delay={0.45}>
+                    <ScrollReveal className={cn("h-full", hasOnThisDay ? "lg:col-span-2" : "lg:col-span-4")} delay={0.45}>
                         <div className="h-full min-h-[400px]">
                             <SharedBucketList initialItems={bucketList} />
                         </div>

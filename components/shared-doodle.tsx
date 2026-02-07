@@ -2,12 +2,19 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Trash2, Send, Undo2, Loader2, Sparkles, CheckCircle2 } from "lucide-react";
+import { Trash2, Send, Undo2, Loader2, Sparkles, CheckCircle2, Pen, Eraser, Hand, Palette, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Point {
     x: number;
     y: number;
+}
+
+interface Stroke {
+    points: Point[];
+    color: string;
+    width: number;
+    isEraser?: boolean;
 }
 
 interface SharedDoodleProps {
@@ -18,7 +25,9 @@ interface SharedDoodleProps {
 
 export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDoodleProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [allStrokes, setAllStrokes] = useState<Point[][]>([]);
+    const [allStrokes, setAllStrokes] = useState<Stroke[]>([]);
+    const [activeTool, setActiveTool] = useState<'pan' | 'pen' | 'eraser'>('pan');
+    const [color, setColor] = useState('#fb7185');
     const [lastSyncedPath, setLastSyncedPath] = useState<string>("");
     const [isSending, setIsSending] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -26,7 +35,7 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
 
     const isDrawing = useRef(false);
     const currentStroke = useRef<Point[]>([]);
-    const allStrokesRef = useRef<Point[][]>([]);
+    const allStrokesRef = useRef<Stroke[]>([]);
     const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     // Sync ref with state for the redraw engine
@@ -34,6 +43,7 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
         allStrokesRef.current = allStrokes;
     }, [allStrokes]);
 
+    // Redraw engine - uses refs to avoid staleness
     // Redraw engine - uses refs to avoid staleness
     const redraw = useCallback(() => {
         const canvas = canvasRef.current;
@@ -46,28 +56,32 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
 
         context.lineCap = "round";
         context.lineJoin = "round";
-        context.strokeStyle = "#fb7185";
-        context.lineWidth = 3;
 
-        allStrokesRef.current.forEach(stroke => {
-            if (stroke.length < 2) return;
+        const drawStroke = (points: Point[], strokeColor: string, width: number, isEraser?: boolean) => {
+            if (points.length < 2) return;
             context.beginPath();
-            context.moveTo(stroke[0].x, stroke[0].y);
-            for (let i = 1; i < stroke.length; i++) {
-                context.lineTo(stroke[i].x, stroke[i].y);
+            context.strokeStyle = isEraser ? "#000000" : strokeColor; // Eraser color doesn't matter for destination-out
+            context.lineWidth = width;
+            context.globalCompositeOperation = isEraser ? 'destination-out' : 'source-over';
+
+            context.moveTo(points[0].x, points[0].y);
+            for (let i = 1; i < points.length; i++) {
+                context.lineTo(points[i].x, points[i].y);
             }
             context.stroke();
+        };
+
+        allStrokesRef.current.forEach(stroke => {
+            drawStroke(stroke.points, stroke.color, stroke.width, stroke.isEraser);
         });
 
         if (isDrawing.current && currentStroke.current.length > 1) {
-            context.beginPath();
-            context.moveTo(currentStroke.current[0].x, currentStroke.current[0].y);
-            for (let i = 1; i < currentStroke.current.length; i++) {
-                context.lineTo(currentStroke.current[i].x, currentStroke.current[i].y);
-            }
-            context.stroke();
+            drawStroke(currentStroke.current, color, activeTool === 'eraser' ? 20 : 3, activeTool === 'eraser');
         }
-    }, []);
+
+        // Reset composite operation
+        context.globalCompositeOperation = 'source-over';
+    }, [color, activeTool]);
 
     // Track if there are unsent changes
     const isDirty = useMemo(() => {
@@ -111,24 +125,45 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
     }, [isDirty, isSending, performSave, allStrokes]);
 
     // Handle incoming data from DB
+    // Handle incoming data from DB with migration
     useEffect(() => {
         if (savedPath && savedPath !== lastSyncedPath) {
             try {
                 const parsed = JSON.parse(savedPath);
                 if (Array.isArray(parsed)) {
-                    const strokes = (parsed.length > 0 && !Array.isArray(parsed[0])) ? [parsed] : parsed;
+                    let strokes: Stroke[] = [];
+                    if (parsed.length > 0) {
+                        // Check if it's new format (Stroke[]) or old format (Point[][])
+                        // A Stroke has 'points', 'color', etc.
+                        if (parsed[0].points) {
+                            strokes = parsed;
+                        } else if (Array.isArray(parsed[0])) {
+                            // Convert old Point[][] to Stroke[]
+                            strokes = parsed.map((points: any) => ({
+                                points,
+                                color: '#fb7185',
+                                width: 3,
+                                isEraser: false
+                            }));
+                        } else if (parsed[0].x !== undefined) {
+                            // Point[] single stroke? Unlikely for Point[][], usually wrapped.
+                            // But handle just in case.
+                            strokes = [{ points: parsed, color: '#fb7185', width: 3, isEraser: false }];
+                        }
+                    }
 
                     const currentPathStr = JSON.stringify(allStrokes);
-                    if (currentPathStr === lastSyncedPath || lastSyncedPath === "") {
-                        setAllStrokes(strokes);
-                        setLastSyncedPath(savedPath);
-                    }
+                    // Avoid overwrite if conflict? For now trust server if different.
+                    // But wait, if allStrokes is empty locally, we accept server.
+                    // Ideally check timestamps but we don't have them.
+                    setAllStrokes(strokes);
+                    setLastSyncedPath(savedPath);
                 }
             } catch (e) {
                 console.error("Failed to parse saved doodle", e);
             }
         }
-    }, [savedPath, lastSyncedPath, allStrokes]);
+    }, [savedPath, lastSyncedPath]);
 
     // Setup and Resize Logic
     useEffect(() => {
@@ -166,10 +201,16 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
     };
 
     const startDrawing = (e: React.PointerEvent) => {
-        if (isReadOnly || isSending) return;
+        if (isReadOnly || isSending || activeTool === 'pan') return;
+        e.preventDefault(); // crucial for touch
         if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
         isDrawing.current = true;
+
+        // Capture pointer to track outside canvas
+        (e.target as HTMLElement).setPointerCapture(e.pointerId);
+
         currentStroke.current = [getPos(e)];
+        redraw();
     };
 
     const draw = (e: React.PointerEvent) => {
@@ -183,7 +224,13 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
         if (!isDrawing.current) return;
         isDrawing.current = false;
         if (currentStroke.current.length > 1) {
-            const newStrokes = [...allStrokesRef.current, [...currentStroke.current]];
+            const newStroke: Stroke = {
+                points: [...currentStroke.current],
+                color: color,
+                width: activeTool === 'eraser' ? 20 : 3,
+                isEraser: activeTool === 'eraser'
+            };
+            const newStrokes = [...allStrokesRef.current, newStroke];
             setAllStrokes(newStrokes);
         }
         currentStroke.current = [];
@@ -201,12 +248,14 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
     };
 
     return (
-        <div className="relative w-full aspect-square md:aspect-auto md:h-full bg-[#1a1118]/10 backdrop-blur-md rounded-3xl border border-white/10 overflow-hidden shadow-2xl group/doodle">
+        <div className="relative w-full h-[280px] md:h-full bg-[#1a1118]/10 backdrop-blur-md rounded-3xl border border-white/10 overflow-hidden shadow-xl group/doodle">
             <canvas
                 ref={canvasRef}
                 className={cn(
-                    "w-full h-full touch-none cursor-crosshair transition-opacity",
-                    isSending ? "opacity-30" : "opacity-100"
+                    "w-full h-full transition-opacity",
+                    activeTool !== 'pan' ? "cursor-crosshair" : "cursor-default",
+                    isSending ? "opacity-30" : "opacity-100",
+                    activeTool !== 'pan' && "touch-none"
                 )}
                 onPointerDown={startDrawing}
                 onPointerMove={draw}
@@ -215,27 +264,98 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
             />
 
             {!isReadOnly && (
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/20 backdrop-blur-2xl p-1.5 rounded-full border border-white/10 shadow-2xl transition-all duration-300 group-hover/doodle:scale-105">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="w-9 h-9 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
-                        onClick={handleUndo}
-                        disabled={allStrokes.length === 0 || isSending}
-                    >
-                        <Undo2 className="w-4 h-4" />
-                    </Button>
+                <>
+                    {/* View/Pan Mode: Show Edit Button */}
+                    {activeTool === 'pan' && (
+                        <div className="absolute bottom-4 right-4 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4">
+                            {/* Actions (Undo/Clear) */}
+                            <div className="flex items-center gap-1 bg-black/20 backdrop-blur-md rounded-full p-1 border border-white/5">
+                                <Button
+                                    variant="ghost" size="icon"
+                                    className="w-8 h-8 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors"
+                                    onClick={handleUndo}
+                                    disabled={allStrokes.length === 0 || isSending}
+                                >
+                                    <Undo2 className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                    variant="ghost" size="icon"
+                                    className="w-8 h-8 rounded-full hover:bg-rose-500/20 text-white/40 hover:text-rose-400 transition-colors"
+                                    onClick={clear}
+                                    disabled={allStrokes.length === 0 || isSending}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </Button>
+                            </div>
 
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        className="w-9 h-9 rounded-full hover:bg-rose-500/20 text-white/60 hover:text-rose-400 transition-colors"
-                        onClick={clear}
-                        disabled={allStrokes.length === 0 || isSending}
-                    >
-                        <Trash2 className="w-4 h-4" />
-                    </Button>
-                </div>
+                            {/* Enter Draw Mode FAB */}
+                            <Button
+                                size="icon"
+                                className="w-10 h-10 rounded-full bg-rose-500 hover:bg-rose-600 text-white shadow-lg shadow-rose-900/20 border border-white/10"
+                                onClick={() => setActiveTool('pen')}
+                            >
+                                <Pen className="w-4 h-4" />
+                            </Button>
+                        </div>
+                    )}
+
+                    {/* Edit/Draw Mode: Show Tools */}
+                    {activeTool !== 'pan' && (
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/60 backdrop-blur-xl px-4 py-2 rounded-full border border-white/10 shadow-2xl animate-in slide-in-from-bottom-4 zoom-in-95">
+                            {/* Colors */}
+                            <div className="flex items-center gap-2 mr-2">
+                                {['#fb7185', '#fcd34d', '#4ade80', '#60a5fa', '#ffffff'].map(c => (
+                                    <button
+                                        key={c}
+                                        className={cn(
+                                            "w-5 h-5 rounded-full transition-all ring-1 ring-white/10 hover:scale-110",
+                                            color === c && activeTool === 'pen' ? "scale-110 ring-2 ring-white shadow-lg shadow-white/20" : "opacity-80 hover:opacity-100"
+                                        )}
+                                        style={{ backgroundColor: c }}
+                                        onClick={() => {
+                                            setColor(c);
+                                            setActiveTool('pen');
+                                        }}
+                                    />
+                                ))}
+                            </div>
+
+                            <div className="w-px h-5 bg-white/10" />
+
+                            {/* Eraser */}
+                            <Button
+                                variant="ghost" size="icon"
+                                className={cn(
+                                    "w-8 h-8 rounded-full hover:bg-white/10 transition-colors",
+                                    activeTool === 'eraser' ? "bg-white/20 text-white" : "text-white/60 hover:text-white"
+                                )}
+                                onClick={() => setActiveTool('eraser')}
+                            >
+                                <Eraser className="w-4 h-4" />
+                            </Button>
+
+                            <Button
+                                variant="ghost" size="icon"
+                                className="w-8 h-8 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+                                onClick={handleUndo}
+                                disabled={allStrokes.length === 0}
+                            >
+                                <Undo2 className="w-4 h-4" />
+                            </Button>
+
+                            <div className="w-px h-5 bg-white/10" />
+
+                            {/* Close / Exit Draw Mode */}
+                            <Button
+                                variant="ghost" size="icon"
+                                className="w-8 h-8 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+                                onClick={() => setActiveTool('pan')}
+                            >
+                                <X className="w-5 h-5" />
+                            </Button>
+                        </div>
+                    )}
+                </>
             )}
 
             <div className="absolute top-4 left-5 flex items-center gap-2">
