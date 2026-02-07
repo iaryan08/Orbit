@@ -23,7 +23,7 @@ interface StackedPolaroidsProps {
 }
 
 export function StackedPolaroids({ userPolaroid, partnerPolaroid, partnerName, onDelete }: StackedPolaroidsProps) {
-    const [view, setView] = useState<"user" | "partner">("user");
+    const [view, setView] = useState<"partner" | "user">("partner");
     const hasAny = userPolaroid || partnerPolaroid;
 
     if (!hasAny) {
@@ -45,11 +45,11 @@ export function StackedPolaroids({ userPolaroid, partnerPolaroid, partnerName, o
     }
 
     const items = [
-        { id: "user", label: "You", data: userPolaroid, canDelete: true, emptyLabel: "Please upload" },
-        { id: "partner", label: partnerName, data: partnerPolaroid, canDelete: false, emptyLabel: "Not uploaded yet" }
+        { id: "partner", label: partnerName, data: partnerPolaroid, canDelete: false, emptyLabel: "Not uploaded yet" },
+        { id: "user", label: "You", data: userPolaroid, canDelete: true, emptyLabel: "Please upload" }
     ];
 
-    const activeIndex = view === "user" ? 0 : 1;
+    const activeIndex = view === "partner" ? 0 : 1;
 
     return (
         <div className="relative w-[230px] h-[300px] mx-auto group select-none touch-none">
@@ -84,7 +84,9 @@ export function StackedPolaroids({ userPolaroid, partnerPolaroid, partnerName, o
                                 label={item.label}
                                 emptyLabel={item.emptyLabel}
                                 developedStatus={isActive}
-                                onDelete={item.canDelete && item.data ? () => onDelete?.(item.data.id) : undefined}
+                                onDelete={item.canDelete && item.data ? () => {
+                                    if (item.data) onDelete?.(item.data.id);
+                                } : undefined}
                             />
                         </motion.div>
                     );

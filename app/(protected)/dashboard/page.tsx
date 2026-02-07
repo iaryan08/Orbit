@@ -270,9 +270,9 @@ export default async function DashboardPage() {
                         </ScrollReveal>
                     </div>
 
-                    {/* 4. CONTENT LAYER: Daily Inspiration & Partner Mood */}
-                    <ScrollReveal className="lg:col-span-1" delay={0.2}>
-                        <div className="glass-card p-1.5 relative group overflow-hidden h-full max-h-[160px]">
+                    {/* 4. CONTENT LAYER: Partner Mood, Mood Check-in & Daily Inspiration */}
+                    <ScrollReveal className="lg:col-span-4" delay={0.2}>
+                        <div className="glass-card p-1.5 relative group overflow-hidden h-full">
                             <PartnerMood
                                 partnerName={partnerProfile?.display_name || 'Partner'}
                                 partnerAvatar={partnerProfile?.avatar_url}
@@ -281,16 +281,15 @@ export default async function DashboardPage() {
                         </div>
                     </ScrollReveal>
 
-                    <ScrollReveal className="lg:col-span-3" delay={0.25}>
-                        <div className="glass-card p-4 md:p-5 flex flex-col justify-between relative overflow-hidden group h-full">
-                            <DailyContent />
+                    <ScrollReveal className="lg:col-span-4" delay={0.25}>
+                        <div className="glass-card p-1.5 h-full">
+                            <MoodCheckIn hasPartner={hasPartner} userMoods={userTodayMoods} />
                         </div>
                     </ScrollReveal>
 
-                    {/* 5. HISTORY LAYER: Mood Check-in & On This Day (Always Visible) */}
                     <ScrollReveal className="lg:col-span-4" delay={0.3}>
-                        <div className="glass-card p-1.5">
-                            <MoodCheckIn hasPartner={hasPartner} userMoods={userTodayMoods} />
+                        <div className="glass-card p-4 md:p-5 flex flex-col justify-between relative overflow-hidden group h-full">
+                            <DailyContent />
                         </div>
                     </ScrollReveal>
 

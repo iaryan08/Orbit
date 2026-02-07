@@ -94,21 +94,21 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
         }
     }, [onSave, isDirty, isSending]);
 
-    // Auto-save logic: 5s after last interaction
+    // Auto-save logic: 2s after last interaction
     useEffect(() => {
-        if (isDirty && !isDrawing.current && !isSending) {
+        if (isDirty && !isSending) {
             if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
 
             autoSaveTimerRef.current = setTimeout(() => {
                 setIsAutoSaving(true);
                 performSave();
-            }, 3000);
+            }, 2000);
         }
 
         return () => {
             if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
         };
-    }, [isDirty, isSending, performSave]);
+    }, [isDirty, isSending, performSave, allStrokes]);
 
     // Handle incoming data from DB
     useEffect(() => {

@@ -77,18 +77,18 @@ export function PartnerMood({ partnerName, partnerAvatar, moods }: PartnerMoodPr
             <p className="text-sm font-bold text-white tracking-widest uppercase truncate leading-none mb-1.5 opacity-90 group-hover:text-rose-100 transition-colors">
               {partnerName}
             </p>
-            <div className="flex items-center gap-2">
-              <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] leading-none shrink-0">His Vibe</span>
+            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
+              <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] leading-none shrink-0">{partnerName} Vibes</span>
               {latestMood.note ? (
                 <>
-                  <div className="w-1 h-1 rounded-full bg-white/10 shrink-0" />
+                  <div className="hidden md:block w-1 h-1 rounded-full bg-white/10 shrink-0" />
                   <p className="text-[10px] text-white/30 italic truncate">
                     "{latestMood.note}"
                   </p>
                 </>
               ) : (
                 <>
-                  <div className="w-1 h-1 rounded-full bg-white/10 shrink-0" />
+                  <div className="hidden md:block w-1 h-1 rounded-full bg-white/10 shrink-0" />
                   <p className="text-[10px] text-white/30 italic truncate capitalize">
                     {moodLabel}
                   </p>

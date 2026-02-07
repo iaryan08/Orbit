@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Bell, Check, Circle, ExternalLink, Calendar, Heart, Mail, Sparkles, X, Trash2, BellOff, Info, RotateCw } from 'lucide-react'
+import { Bell, Check, Circle, ExternalLink, Calendar, Heart, Mail, Sparkles, X, Trash2, BellOff, Info, RotateCw, MapPin } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     Popover,
@@ -36,6 +36,7 @@ export function NotificationBell({ className }: { className?: string }) {
     const [pushSubscription, setPushSubscription] = useState<PushSubscription | null>(null)
     const [checkingPush, setCheckingPush] = useState(true)
     const [isIncognito, setIsIncognito] = useState(false)
+    const [locationPermission, setLocationPermission] = useState<PermissionState>('prompt')
     const router = useRouter()
     const supabase = createClient()
 
@@ -100,6 +101,17 @@ export function NotificationBell({ className }: { className?: string }) {
         if ('storage' in navigator && 'estimate' in navigator.storage) {
             const { quota } = await navigator.storage.estimate();
             if (quota && quota < 120000000) setIsIncognito(true);
+        }
+
+        // Check Location Permission
+        if ('permissions' in navigator) {
+            try {
+                const status = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
+                setLocationPermission(status.state);
+                status.onchange = () => setLocationPermission(status.state);
+            } catch (e) {
+                console.warn("Geolocation permission check failed:", e);
+            }
         }
     }
 
@@ -247,40 +259,78 @@ export function NotificationBell({ className }: { className?: string }) {
                     )}
                 </div>
 
-                {/* Notification Prompt - Show ONLY if not fully active */}
-                {!checkingPush && isPushSupported && (!pushSubscription || permission !== 'granted') && (
-                    <div className={cn(
-                        "p-4 border-b",
-                        isIncognito || permission === 'denied' ? "bg-red-500/10 border-red-500/20" : "bg-amber-500/10 border-amber-500/20"
-                    )}>
-                        <div className="flex gap-3">
-                            <div className="mt-0.5 shrink-0">
-                                {isIncognito || permission === 'denied' ? <BellOff className="h-4 w-4 text-red-400" /> : <BellOff className="h-4 w-4 text-amber-400" />}
-                            </div>
-                            <div className="flex-1 space-y-1">
-                                <p className={cn("text-xs font-bold uppercase tracking-tight", isIncognito || permission === 'denied' ? "text-red-200" : "text-amber-200")}>
-                                    {isIncognito ? "Incognito Detected" : permission === 'denied' ? "Notifications Blocked" : "Enable Live Notifications"}
-                                </p>
-                                <p className={cn("text-[10px] leading-tight", isIncognito || permission === 'denied' ? "text-red-200/60" : "text-amber-200/60")}>
-                                    {isIncognito
-                                        ? "Live push notifications (popups) are disabled in Private/Incognito mode."
-                                        : permission === 'denied'
-                                            ? "You have blocked notifications. Please reset the site permission in your browser settings to stay updated."
-                                            : "Get real-time updates on your phone even when the app is closed."}
-                                </p>
-                                {!isIncognito && permission !== 'denied' && !pushSubscription && (
-                                    <Button
-                                        onClick={handleSubscribe}
-                                        variant="link"
-                                        className="h-auto p-0 text-amber-400 text-[10px] font-black uppercase tracking-widest hover:text-amber-300"
-                                    >
-                                        Enable Now →
-                                    </Button>
-                                )}
+                {/* System Alerts: Location & Notifications */}
+                <div className="flex flex-col">
+                    {/* Location Prompt */}
+                    {locationPermission !== 'granted' && (
+                        <div className={cn(
+                            "p-4 border-b transition-colors",
+                            locationPermission === 'denied' ? "bg-rose-500/10 border-rose-500/20" : "bg-amber-500/10 border-amber-500/20"
+                        )}>
+                            <div className="flex gap-3">
+                                <div className="mt-0.5 shrink-0">
+                                    <MapPin className={cn("h-4 w-4", locationPermission === 'denied' ? "text-rose-400" : "text-amber-400")} />
+                                </div>
+                                <div className="flex-1 space-y-1">
+                                    <p className={cn("text-xs font-bold uppercase tracking-tight", locationPermission === 'denied' ? "text-rose-200" : "text-amber-200")}>
+                                        {locationPermission === 'denied' ? "Location Access Blocked" : "Enable Location Sharing"}
+                                    </p>
+                                    <p className={cn("text-[10px] leading-tight", locationPermission === 'denied' ? "text-rose-200/60" : "text-amber-200/60")}>
+                                        {locationPermission === 'denied'
+                                            ? "Distance tracking is disabled. Please reset location permissions in your browser settings to connect."
+                                            : "Share your location to calculate real-time distance and time between you and your partner."}
+                                    </p>
+                                    {locationPermission !== 'denied' && (
+                                        <Button
+                                            onClick={() => {
+                                                navigator.geolocation.getCurrentPosition(() => setLocationPermission('granted'))
+                                            }}
+                                            variant="link"
+                                            className="h-auto p-0 text-amber-400 text-[10px] font-black uppercase tracking-widest hover:text-amber-300"
+                                        >
+                                            Allow Access Now →
+                                        </Button>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )}
+
+                    {/* Notification Prompt - Show ONLY if not fully active */}
+                    {!checkingPush && isPushSupported && (!pushSubscription || permission !== 'granted') && (
+                        <div className={cn(
+                            "p-4 border-b transition-colors",
+                            isIncognito || permission === 'denied' ? "bg-red-500/10 border-red-500/20" : "bg-amber-500/20 border-amber-500/20"
+                        )}>
+                            <div className="flex gap-3">
+                                <div className="mt-0.5 shrink-0">
+                                    {isIncognito || permission === 'denied' ? <BellOff className="h-4 w-4 text-red-400" /> : <BellOff className="h-4 w-4 text-amber-400" />}
+                                </div>
+                                <div className="flex-1 space-y-1">
+                                    <p className={cn("text-xs font-bold uppercase tracking-tight", isIncognito || permission === 'denied' ? "text-red-200" : "text-amber-200")}>
+                                        {isIncognito ? "Incognito Detected" : permission === 'denied' ? "Notifications Blocked" : "Enable Live Notifications"}
+                                    </p>
+                                    <p className={cn("text-[10px] leading-tight", isIncognito || permission === 'denied' ? "text-red-200/60" : "text-amber-200/60")}>
+                                        {isIncognito
+                                            ? "Live push notifications (popups) are disabled in Private/Incognito mode."
+                                            : permission === 'denied'
+                                                ? "You have blocked notifications. Please reset notifications permissions in your browser settings."
+                                                : "Get real-time updates on your phone even when the app is closed."}
+                                    </p>
+                                    {!isIncognito && permission !== 'denied' && !pushSubscription && (
+                                        <Button
+                                            onClick={handleSubscribe}
+                                            variant="link"
+                                            className="h-auto p-0 text-amber-400 text-[10px] font-black uppercase tracking-widest hover:text-amber-300"
+                                        >
+                                            Enable Now →
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
 
 
                 <ScrollArea className="h-[400px]">

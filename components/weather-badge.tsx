@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudRain, CloudSnow, Sun, Wind, Thermometer } from 'lucide-react'
+import { Cloud, CloudDrizzle, CloudFog, CloudLightning, CloudRain, CloudSnow, Sun } from 'lucide-react'
+import { fetchWeather } from '@/lib/actions/weather'
 
 interface WeatherBadgeProps {
     lat?: number | null;
@@ -16,25 +17,16 @@ export function WeatherBadge({ lat, lon, city }: WeatherBadgeProps) {
     useEffect(() => {
         if (!lat || !lon) return
 
-        const fetchWeather = async () => {
+        const getWeatherData = async () => {
             setLoading(true)
-            try {
-                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
-                const data = await res.json()
-                if (data.current_weather) {
-                    setWeather({
-                        temp: Math.round(data.current_weather.temperature),
-                        code: data.current_weather.weathercode
-                    })
-                }
-            } catch (err) {
-                console.error('Weather fetch error:', err)
-            } finally {
-                setLoading(false)
+            const data = await fetchWeather(lat, lon)
+            if (data) {
+                setWeather(data)
             }
+            setLoading(false)
         }
 
-        fetchWeather()
+        getWeatherData()
     }, [lat, lon])
 
     if (!lat || !lon || !weather) return null

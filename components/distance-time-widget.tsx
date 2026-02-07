@@ -74,10 +74,16 @@ export function DistanceTimeWidget({ userProfile, partnerProfile }: DistanceWidg
             },
             (error) => {
                 setUpdating(false)
+                let msg = "Geolocation error"
                 if (error.code === error.PERMISSION_DENIED) {
                     setIsBlocked(true)
+                    msg = "Geolocation permission denied"
+                } else if (error.code === error.POSITION_UNAVAILABLE) {
+                    msg = "Geolocation position unavailable"
+                } else if (error.code === error.TIMEOUT) {
+                    msg = "Geolocation request timed out"
                 }
-                console.error(error)
+                console.warn(`${msg}:`, error.message)
             },
             { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
         )
