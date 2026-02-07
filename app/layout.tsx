@@ -1,5 +1,5 @@
 import React from "react"
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Outfit, Cormorant_Garamond } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from '@/components/ui/toaster'
@@ -20,9 +20,17 @@ const _pinyon = Pinyon_Script({
   variable: "--font-pinyon",
 });
 
+export const viewport: Viewport = {
+  themeColor: '#000000',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+}
+
 export const metadata: Metadata = {
   title: 'MoonBetweenUs',
   description: 'A private space for couples to share love, memories, and moments together',
+  manifest: '/site.webmanifest',
   icons: {
     icon: [
       {
