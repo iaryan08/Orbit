@@ -28,7 +28,7 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'MoonBetweenUs',
+  title: 'Orbit',
   description: 'A private space for couples to share love, memories, and moments together',
   manifest: '/site.webmanifest',
   icons: {

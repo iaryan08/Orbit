@@ -25,10 +25,8 @@ export function PartnerAvatarHeartbeat({ partnerProfile, coupleId, className }: 
     useEffect(() => {
         if (!coupleId) return
 
-        // Request notification permission for background alerts
-        if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
-            Notification.requestPermission()
-        }
+        // Automatic permission request removed to prevent unwanted prompts
+
 
         // Unique channel for touch events
         const channel = supabase.channel(`touch-${coupleId}`)

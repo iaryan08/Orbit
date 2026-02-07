@@ -825,7 +825,7 @@ export async function updateLocation(data: { city?: string, timezone?: string, l
     try {
       const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${data.latitude}&lon=${data.longitude}&zoom=10`, {
         headers: {
-          'User-Agent': 'MoonBetweenUs/1.0',
+          'User-Agent': 'Orbit/1.0',
           'Accept-Language': 'en'
         }
       })

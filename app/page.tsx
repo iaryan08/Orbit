@@ -23,7 +23,7 @@ export default function HomePage() {
             </div>
 
             <h1 className="text-5xl md:text-8xl font-serif font-black text-rose-50 balance leading-[1] tracking-tight text-glow-white">
-              Moon Between Us
+              Orbit
               <span className="block text-vibrant-animate mt-2 italic"> Love & Connection</span>
             </h1>
 
@@ -115,7 +115,7 @@ export default function HomePage() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="flex items-center gap-3">
               <Heart className="w-6 h-6 text-primary" fill="currentColor" />
-              <span className="font-serif font-bold text-xl text-white tracking-tight">MoonBetweenUs</span>
+              <span className="font-serif font-bold text-xl text-white tracking-tight">Orbit</span>
             </div>
             <p className="text-rose-100/70 font-medium text-sm">
               Made with love for couples everywhere

@@ -21,7 +21,7 @@ export async function broadcastUpdateNotification() {
     }
 
     const title = "New Features are Here! ✨"
-    const message = "We've added major updates to Moon Between Us:\n\n" +
+    const message = "We've added major updates to Orbit:\n\n" +
         "• 💓 Heartbeat: Long-press your partner's avatar to send a real physical vibration.\n" +
         "• 📸 Stacked Polaroids: Swipe through your latest shared moments.\n" +
         "• ⚡ Presence Sync: Watch the screen flash when you're both online together.\n\n" +

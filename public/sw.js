@@ -1,7 +1,7 @@
 self.addEventListener('push', (event) => {
     console.log('Push event received:', event);
     const data = event.data ? event.data.json() : {};
-    const title = data.title || 'Moon Between Us';
+    const title = data.title || 'Orbit';
     const options = {
         body: data.body || 'You have a new update!',
         icon: '/android-chrome-192x192.png',
