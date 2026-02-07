@@ -34,8 +34,8 @@ export default function PushNotificationManager() {
                 checkSubscription();
             }
 
-            // Check if dismissed in this session
-            const isDismissed = sessionStorage.getItem('push-prompt-dismissed');
+            // Check if user has already denied or dismissed the prompt permanently
+            const isDismissed = localStorage.getItem('push-prompt-dismissed');
             if (isDismissed) setDismissed(true);
         }
     }, []);
@@ -98,6 +98,8 @@ export default function PushNotificationManager() {
     const handleDismiss = () => {
         setIsVisible(false);
         setDismissed(true);
+        // Remember this choice permanently
+        localStorage.setItem('push-prompt-dismissed', 'true');
         sessionStorage.setItem('push-prompt-dismissed', 'true');
     };
 

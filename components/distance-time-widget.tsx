@@ -159,7 +159,7 @@ export function DistanceTimeWidget({ userProfile, partnerProfile }: DistanceWidg
                                         <div className="w-full h-px bg-indigo-500/20 relative">
                                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent w-full h-full" />
                                         </div>
-                                        <span className="text-xs font-bold text-indigo-200 bg-indigo-950/40 px-2 py-0.5 rounded-full -mt-2.5 z-10 border border-indigo-500/30">
+                                        <span className="text-xs font-bold text-indigo-200 bg-indigo-950/40 px-4 py-0.5 rounded-full -mt-2.5 z-10 border border-indigo-500/30 whitespace-nowrap">
                                             {distance} km
                                         </span>
                                     </>
