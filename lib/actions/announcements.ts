@@ -20,11 +20,12 @@ export async function broadcastUpdateNotification() {
         return { success: false, error: "Database error" }
     }
 
-    const title = "New Features are Here! ✨"
-    const message = "We've added major updates to Orbit:\n\n" +
-        "• 💓 Heartbeat: Long-press your partner's avatar to send a real physical vibration.\n" +
-        "• 📸 Stacked Polaroids: Swipe through your latest shared moments.\n" +
-        "• ⚡ Presence Sync: Watch the screen flash when you're both online together.\n\n" +
+    const title = "The Visionary Update is Here! 📸"
+    const message = "We've overhauled how you see your memories in Orbit:\n\n" +
+        "• 📸 Visionary View: Tap any image to explode it into a stunning in-app full-screen mode.\n" +
+        "• ⚡ Blazing Speed: Intelligent lazy loading makes your memory lane faster than ever.\n" +
+        "• 📱 Mobile Perfect: New responsive controls that only appear when you need them.\n" +
+        "• 🎯 Context First: Always view the story behind the photo before diving into high-res.\n\n" +
         "Tap to check it out!"
 
     let sentCount = 0
