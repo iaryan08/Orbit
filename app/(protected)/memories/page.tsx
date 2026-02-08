@@ -7,27 +7,18 @@ import React from "react"
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-} from "@/components/ui/dialog";
-import { Camera, Plus, Calendar, MapPin, Heart, Upload, X, ImageIcon, Trash2 } from "lucide-react";
+import { MemoryDetailDialog } from "@/components/memory-detail-dialog";
+import { Camera, Plus, Calendar, MapPin, Heart, ImageIcon, Trash2, Edit2, Maximize2 } from "lucide-react";
 import { AddMemoryDialog } from "@/components/dialogs/add-memory-dialog";
 import { createClient } from "@/lib/supabase/client";
 import { markAsViewed, refreshDashboard, deleteMemory } from "@/lib/actions/auth";
+import { FullScreenImageModal } from "@/components/full-screen-image-modal";
 import { createMemory, updateMemory } from "@/lib/actions/memories";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import Image from "next/image";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import { Edit2 } from "lucide-react";
 import { getTodayIST } from "@/lib/utils";
 import { optimizeImage } from "@/lib/image-optimization";
 import { useAppMode } from "@/components/app-mode-context";
@@ -53,6 +44,7 @@ export default function MemoriesPage() {
     const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
     const [uploading, setUploading] = useState(false);
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+    const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [existingImages, setExistingImages] = useState<string[]>([]);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -64,8 +56,21 @@ export default function MemoriesPage() {
         memory_date: getTodayIST(),
     });
     const [editingMemory, setEditingMemory] = useState<Memory | null>(null);
+    const [userId, setUserId] = useState<string | null>(null);
     const { toast } = useToast();
     const supabase = createClient();
+    const searchParams = useSearchParams();
+
+    // Deep linking for notifications
+    useEffect(() => {
+        const openId = searchParams.get('open');
+        if (openId && memories.length > 0) {
+            const memoryToOpen = memories.find(m => m.id === openId);
+            if (memoryToOpen) {
+                setSelectedMemory(memoryToOpen);
+            }
+        }
+    }, [searchParams, memories]);
 
     useEffect(() => {
         fetchMemories();
@@ -95,6 +100,11 @@ export default function MemoriesPage() {
                 };
             }
         };
+
+        // Get current user ID
+        supabase.auth.getUser().then(({ data }) => {
+            if (data?.user) setUserId(data.user.id);
+        });
 
         const cleanup = setupRealtime();
         return () => {
@@ -352,14 +362,15 @@ export default function MemoriesPage() {
                                         fill
                                         className="object-cover"
                                         priority={index < 4}
+                                        loading={index < 4 ? undefined : "lazy"}
                                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                     />
                                     {memory.image_urls.length > 1 && (
-                                        <div className="absolute bottom-2 right-2 bg-background/80 text-foreground text-xs px-2 py-1 rounded-full">
+                                        <div className="absolute bottom-2 right-2 bg-black/50 backdrop-blur-md px-2 py-1 rounded text-[10px] text-white/90 font-bold">
                                             +{memory.image_urls.length - 1} more
                                         </div>
                                     )}
-                                    {memory.user_id === (supabase as any).auth?.user?.id && (
+                                    {userId === memory.user_id && (
                                         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
                                             <Button
                                                 variant="ghost"
@@ -406,16 +417,16 @@ export default function MemoriesPage() {
                                     <ImageIcon className="h-10 w-10 text-muted-foreground" />
                                 </div>
                             )}
-                            <CardHeader className="pb-2 pt-3">
-                                <CardTitle className="text-base font-serif font-bold text-white tracking-tight line-clamp-1 pb-1">{memory.title}</CardTitle>
+                            <CardHeader className="px-3 pb-0 -mt-[20px] -mb-[20px]">
+                                <CardTitle className="text-base font-serif font-bold text-white tracking-tight line-clamp-1">{memory.title}</CardTitle>
                             </CardHeader>
-                            <CardContent className="pt-0">
+                            <CardContent className="px-3 pt-1 pb-3">
                                 {memory.description && (
-                                    <p className="text-sm text-rose-50/70 line-clamp-2 mb-3 leading-relaxed">
+                                    <p className="text-xs text-rose-50/50 line-clamp-2 mb-2 leading-relaxed italic">
                                         {memory.description}
                                     </p>
                                 )}
-                                <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest font-bold text-rose-200/40 pt-3 border-t border-white/5 pb-1">
+                                <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest font-bold text-rose-200/20 pt-2 border-t border-white/5">
                                     <span className="flex items-center gap-1">
                                         <Calendar className="h-3 w-3" />
                                         {format(new Date(memory.memory_date), "MMM d, yyyy")}
@@ -434,165 +445,16 @@ export default function MemoriesPage() {
             )}
 
             {/* Memory Detail Modal */}
-            <Dialog open={!!selectedMemory} onOpenChange={() => setSelectedMemory(null)}>
-                <DialogContent className="sm:max-w-[600px] glass-card border-primary/10">
-                    {selectedMemory && (
-                        <>
-                            <DialogHeader>
-                                <DialogTitle className="font-serif flex items-center justify-between text-2xl text-rose-400">
-                                    <span>{selectedMemory?.title}</span>
-                                    {selectedMemory?.user_id === (supabase as any).auth?.user?.id && (
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="text-white/50 hover:text-white"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    // Close detail and open edit
-                                                    const memoryToEdit = selectedMemory;
-                                                    setSelectedMemory(null);
-                                                    setEditingMemory(memoryToEdit);
-                                                    setNewMemory({
-                                                        title: memoryToEdit.title,
-                                                        description: memoryToEdit.description || "",
-                                                        location: memoryToEdit.location || "",
-                                                        memory_date: memoryToEdit.memory_date,
-                                                    });
-                                                    setExistingImages(memoryToEdit.image_urls || []);
-                                                    setPreviewUrls([]);
-                                                    setSelectedFiles([]);
-                                                    setIsAdding(true);
-                                                }}
-                                            >
-                                                <Edit2 className="h-4 w-4 mr-2" />
-                                                Edit
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="text-red-400/50 hover:text-red-400 hover:bg-red-500/10"
-                                                onClick={async (e) => {
-                                                    e.stopPropagation();
-                                                    if (!confirm("Are you sure you want to delete this memory?")) return;
-                                                    if (selectedMemory?.id) {
-                                                        await deleteMemory(selectedMemory.id);
-                                                        setSelectedMemory(null);
-                                                        fetchMemories();
-                                                        router.refresh();
-                                                        await refreshDashboard();
-                                                        toast({ title: "Memory deleted" });
-                                                    }
-                                                }}
-                                            >
-                                                <Trash2 className="h-4 w-4 mr-2" />
-                                                Delete
-                                            </Button>
-                                        </div>
-                                    )}
-                                </DialogTitle>
-                                <DialogDescription className="sr-only">
-                                    View your captured memory in detail.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                                {selectedMemory?.image_urls && selectedMemory.image_urls.length > 0 && (
-                                    <div className="relative h-[350px] w-full flex items-center justify-center overflow-hidden py-4">
-                                        <AnimatePresence initial={false}>
-                                            {selectedMemory.image_urls.map((url, index) => {
-                                                // Only show current and next image for performance/clarity
-                                                if (index < currentImageIndex || index > currentImageIndex + 1) return null;
-
-                                                const isTop = index === currentImageIndex;
-
-                                                return (
-                                                    <motion.div
-                                                        key={`${selectedMemory?.id}-${index}`}
-                                                        style={{
-                                                            zIndex: (selectedMemory?.image_urls?.length || 0) - index,
-                                                            position: 'absolute'
-                                                        }}
-                                                        initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                                                        animate={{
-                                                            scale: isTop ? 1 : 0.95,
-                                                            opacity: 1,
-                                                            y: isTop ? 0 : 10,
-                                                            rotate: isTop ? 0 : (index % 2 === 0 ? 2 : -2)
-                                                        }}
-                                                        exit={{
-                                                            x: isTop ? (Math.random() > 0.5 ? 500 : -500) : 0,
-                                                            opacity: 0,
-                                                            rotate: isTop ? (Math.random() > 0.5 ? 45 : -45) : 0,
-                                                            transition: { duration: 0.4 }
-                                                        }}
-                                                        drag={isTop ? "x" : false}
-                                                        dragConstraints={{ left: 0, right: 0 }}
-                                                        onDragEnd={(_, info) => {
-                                                            if (Math.abs(info.offset.x) > 100) {
-                                                                if (currentImageIndex < (selectedMemory?.image_urls?.length || 0) - 1) {
-                                                                    setCurrentImageIndex(prev => prev + 1);
-                                                                } else {
-                                                                    // Loops back to start or stay at end? 
-                                                                    // User said "browse", usually means circular or stop.
-                                                                    // Let's loop back for better UX in "Tinder" style.
-                                                                    setCurrentImageIndex(0);
-                                                                }
-                                                            }
-                                                        }}
-                                                        className="w-[90%] h-full cursor-grab active:cursor-grabbing"
-                                                    >
-                                                        <div className="relative w-full h-full bg-white/5 rounded-2xl overflow-hidden border border-white/10 shadow-2xl glass-card">
-                                                            <Image
-                                                                src={url || "/placeholder.svg"}
-                                                                alt={`${selectedMemory.title} ${index + 1}`}
-                                                                fill
-                                                                className="object-cover"
-                                                                draggable={false}
-                                                            />
-                                                            <div className="absolute bottom-4 right-4 bg-black/20 backdrop-blur-[4px] text-white text-[10px] px-2 py-1 rounded-full border border-white/10 font-bold uppercase tracking-widest">
-                                                                {index + 1} / {selectedMemory.image_urls.length}
-                                                            </div>
-                                                        </div>
-                                                    </motion.div>
-                                                );
-                                            })}
-                                        </AnimatePresence>
-
-                                        {/* Empty state when all swiped if no loop (but I added loop above) */}
-                                        {selectedMemory.image_urls.length > 1 && (
-                                            <div className="absolute top-1/2 left-4 -translate-y-1/2 opacity-20 hover:opacity-100 transition-opacity">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="rounded-full bg-black/20"
-                                                    onClick={() => setCurrentImageIndex(prev => (prev === 0 ? selectedMemory.image_urls.length - 1 : prev - 1))}
-                                                >
-                                                    <Heart className="h-4 w-4 -rotate-90" />
-                                                </Button>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                                {selectedMemory.description && (
-                                    <p className="text-rose-50 leading-relaxed font-serif italic text-lg pb-1">{selectedMemory.description}</p>
-                                )}
-                                <div className="flex items-center gap-4 text-sm text-rose-100/60 border-t border-white/10 pt-4 pb-1">
-                                    <span className="flex items-center gap-1">
-                                        <Calendar className="h-4 w-4" />
-                                        {format(new Date(selectedMemory.memory_date), "MMMM d, yyyy")}
-                                    </span>
-                                    {selectedMemory.location && (
-                                        <span className="flex items-center gap-1">
-                                            <MapPin className="h-4 w-4" />
-                                            <span className="text-amber-200/80">{selectedMemory.location}</span>
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        </>
-                    )}
-                </DialogContent>
-            </Dialog>
+            <MemoryDetailDialog
+                isOpen={!!selectedMemory}
+                memory={selectedMemory}
+                onClose={() => setSelectedMemory(null)}
+            />
+            {/* Full Screen Image Viewer */}
+            <FullScreenImageModal
+                src={fullScreenImage}
+                onClose={() => setFullScreenImage(null)}
+            />
         </div >
     );
 }

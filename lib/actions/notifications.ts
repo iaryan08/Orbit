@@ -14,6 +14,7 @@ export type NotificationType =
     | 'on_this_day'
     | 'spark'
     | 'heartbeat'
+    | 'comment'
 
 interface CreateNotificationParams {
     recipientId: string

@@ -44,9 +44,9 @@ export function getAtmosphereTheme() {
 
   return {
     overlay: 'linear-gradient(135deg, rgba(20, 16, 15, 0.3) 0%, rgba(45, 25, 42, 0.6) 100%)', // Deep Night
-    accent: 'indigo-400',
-    orb1: 'rgba(129, 140, 248, 0.1)',  // Indigo
-    orb2: 'rgba(168, 85, 247, 0.1)',   // Purple
+    accent: 'purple-400',
+    orb1: 'rgba(168, 85, 247, 0.1)',  // Purple
+    orb2: 'rgba(219, 39, 119, 0.08)',   // Pinkish Purple
     mode: 'night' as const
   }
 }

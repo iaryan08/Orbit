@@ -85,7 +85,7 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
     if (!mounted) return null;
 
     return (
-        <div className="fixed top-0 left-0 w-full h-[100lvh] z-0 overflow-hidden pointer-events-none bg-black">
+        <div className="fixed top-0 left-0 w-full h-[100lvh] z-0 overflow-hidden pointer-events-none bg-neutral-950">
             {/* Background Image Layer - Reduced Opacity for Readability */}
             <div className={`absolute inset-0 transition-opacity duration-1000 ${bgImage ? 'opacity-100' : 'opacity-0'}`}>
                 {bgImage && (
@@ -96,7 +96,7 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
                                 alt="Background"
                                 fill
                                 priority
-                                className="object-cover opacity-40 contrast-[1.05] saturate-[0.8]"
+                                className="object-cover opacity-40 contrast-[1.05] saturate-[0.8] blur-[2px]"
                                 quality={85}
                                 sizes="100vw"
                             />
@@ -107,7 +107,7 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
                                 alt="Background"
                                 fill
                                 priority
-                                className="object-cover opacity-40 contrast-[1.05] saturate-[0.8]"
+                                className="object-cover opacity-40 contrast-[1.05] saturate-[0.8] blur-[2px]"
                                 quality={85}
                                 sizes="100vw"
                             />

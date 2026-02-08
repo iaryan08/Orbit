@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
 import { Camera, Trash2, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { PolaroidDetailModal } from "./polaroid-detail-modal";
 
 interface PolaroidData {
     id: string;
@@ -24,6 +26,25 @@ interface StackedPolaroidsProps {
 
 export function StackedPolaroids({ userPolaroid, partnerPolaroid, partnerName, onDelete }: StackedPolaroidsProps) {
     const [view, setView] = useState<"partner" | "user">("partner");
+    const [selectedPolaroid, setSelectedPolaroid] = useState<PolaroidData | null>(null);
+    const [selectedTitle, setSelectedTitle] = useState("");
+    const searchParams = useSearchParams();
+
+    // Deep linking for notifications
+    useEffect(() => {
+        const polaroidId = searchParams.get('polaroidId');
+        if (polaroidId) {
+            if (userPolaroid?.id === polaroidId) {
+                setSelectedPolaroid(userPolaroid);
+                setSelectedTitle("You");
+                setView("user");
+            } else if (partnerPolaroid?.id === polaroidId) {
+                setSelectedPolaroid(partnerPolaroid);
+                setSelectedTitle(partnerName);
+                setView("partner");
+            }
+        }
+    }, [searchParams, userPolaroid, partnerPolaroid, partnerName]);
     const hasAny = userPolaroid || partnerPolaroid;
 
     if (!hasAny) {
@@ -52,70 +73,100 @@ export function StackedPolaroids({ userPolaroid, partnerPolaroid, partnerName, o
     const activeIndex = view === "partner" ? 0 : 1;
 
     return (
-        <div className="relative w-[230px] h-[300px] mx-auto group select-none touch-none">
-            <AnimatePresence mode="popLayout">
-                {items.map((item, index) => {
-                    const isActive = index === activeIndex;
-                    const isBelow = !isActive;
+        <>
+            <div className="relative w-[230px] h-[300px] mx-auto group select-none touch-none">
+                <AnimatePresence mode="popLayout">
+                    {items.map((item, index) => {
+                        const isActive = index === activeIndex;
+                        const isBelow = !isActive;
 
-                    return (
-                        <motion.div
+                        return (
+                            <motion.div
+                                key={item.id}
+                                style={{ zIndex: isActive ? 20 : 10 }}
+                                className="absolute inset-0 cursor-grab active:cursor-grabbing"
+                                initial={false}
+                                animate={{
+                                    x: isActive ? 0 : (index === 0 ? -15 : 15),
+                                    y: isActive ? 0 : 8,
+                                    rotate: isActive ? (index === 0 ? -1 : 1) : (index === 0 ? 4 : -4),
+                                    scale: isActive ? 1 : 0.94,
+                                    opacity: isActive ? 1 : 0.7,
+                                }}
+                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                drag="x"
+                                dragConstraints={{ left: 0, right: 0 }}
+                                onDragEnd={(e, { offset, velocity }) => {
+                                    if (offset.x > 50 || velocity.x > 500) setView("user");
+                                    if (offset.x < -50 || velocity.x < -500) setView("partner");
+                                }}
+                            >
+                                <PolaroidItem
+                                    data={item.data}
+                                    label={item.label}
+                                    emptyLabel={item.emptyLabel}
+                                    developedStatus={isActive}
+                                    onDelete={item.canDelete && item.data ? () => {
+                                        if (item.data) onDelete?.(item.data.id);
+                                    } : undefined}
+                                    onClick={() => {
+                                        if (item.data) {
+                                            setSelectedPolaroid(item.data);
+                                            setSelectedTitle(item.label);
+                                        }
+                                    }}
+                                />
+                            </motion.div>
+                        );
+                    })}
+                </AnimatePresence>
+
+                {/* Pagination Dots */}
+                <div className="absolute -bottom-6 left-0 right-0 flex justify-center gap-1.5">
+                    {items.map((item, idx) => (
+                        <div
                             key={item.id}
-                            style={{ zIndex: isActive ? 20 : 10 }}
-                            className="absolute inset-0 cursor-grab active:cursor-grabbing"
-                            initial={false}
-                            animate={{
-                                x: isActive ? 0 : (index === 0 ? -15 : 15),
-                                y: isActive ? 0 : 8,
-                                rotate: isActive ? (index === 0 ? -1 : 1) : (index === 0 ? 4 : -4),
-                                scale: isActive ? 1 : 0.94,
-                                opacity: isActive ? 1 : 0.7,
-                            }}
-                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            drag="x"
-                            dragConstraints={{ left: 0, right: 0 }}
-                            onDragEnd={(e, { offset, velocity }) => {
-                                if (offset.x > 50 || velocity.x > 500) setView("user");
-                                if (offset.x < -50 || velocity.x < -500) setView("partner");
-                            }}
-                        >
-                            <PolaroidItem
-                                data={item.data}
-                                label={item.label}
-                                emptyLabel={item.emptyLabel}
-                                developedStatus={isActive}
-                                onDelete={item.canDelete && item.data ? () => {
-                                    if (item.data) onDelete?.(item.data.id);
-                                } : undefined}
-                            />
-                        </motion.div>
-                    );
-                })}
-            </AnimatePresence>
+                            className={cn(
+                                "w-1.5 h-1.5 rounded-full transition-all duration-300",
+                                idx === activeIndex ? "bg-rose-400 w-3" : "bg-white/20"
+                            )}
+                        />
+                    ))}
+                </div>
 
-            {/* Pagination Dots */}
-            <div className="absolute -bottom-6 left-0 right-0 flex justify-center gap-1.5">
-                {items.map((item, idx) => (
-                    <div
-                        key={item.id}
-                        className={cn(
-                            "w-1.5 h-1.5 rounded-full transition-all duration-300",
-                            idx === activeIndex ? "bg-rose-400 w-3" : "bg-white/20"
-                        )}
-                    />
-                ))}
+                <div className="absolute -top-6 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-[8px] font-bold text-white/40 uppercase tracking-[0.2em]">
+                        Swipe to flip • {view === "partner" ? partnerName : "You"}
+                    </span>
+                </div>
             </div>
 
-            <div className="absolute -top-6 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-[8px] font-bold text-white/40 uppercase tracking-[0.2em]">
-                    Swipe to flip • {view === "partner" ? partnerName : "You"}
-                </span>
-            </div>
-        </div>
+            {/* Polaroid Detail Modal */}
+            <PolaroidDetailModal
+                polaroid={selectedPolaroid}
+                title={selectedTitle}
+                isOpen={!!selectedPolaroid}
+                onClose={() => setSelectedPolaroid(null)}
+            />
+        </>
     );
 }
 
-function PolaroidItem({ data, label, emptyLabel, onDelete, developedStatus }: { data: PolaroidData | null, label: string, emptyLabel: string, onDelete?: () => void, developedStatus: boolean }) {
+function PolaroidItem({
+    data,
+    label,
+    emptyLabel,
+    onDelete,
+    developedStatus,
+    onClick
+}: {
+    data: PolaroidData | null
+    label: string
+    emptyLabel: string
+    onDelete?: () => void
+    developedStatus: boolean
+    onClick?: () => void
+}) {
     const [developed, setDeveloped] = useState(false);
 
     useEffect(() => {
@@ -131,7 +182,10 @@ function PolaroidItem({ data, label, emptyLabel, onDelete, developedStatus }: { 
     }, [data, developedStatus]);
 
     return (
-        <div className="bg-white p-2.5 pb-8 shadow-xl relative w-full h-full border border-gray-100">
+        <div
+            className="bg-white p-2.5 pb-8 shadow-xl relative w-full h-full border border-gray-100 cursor-pointer hover:shadow-2xl transition-shadow"
+            onClick={onClick}
+        >
             <div className="relative aspect-square bg-[#1a1a1a] overflow-hidden rounded-sm">
                 {data ? (
                     <>

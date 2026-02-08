@@ -119,7 +119,58 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Hide scrollbars but allow scrolling */
+.memory-no-scrollbar,
+.polaroid-no-scrollbar,
+.no-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.memory-no-scrollbar::-webkit-scrollbar,
+.polaroid-no-scrollbar::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari and Opera */
+}
+
+/* Minimalist scrollbar */
+.minimal-scrollbar::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+  display: block !important;
+}
+
+.minimal-scrollbar::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.minimal-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.4) !important;
+  border-radius: 99px !important;
+  border: 1px solid transparent !important;
+  background-clip: content-box !important;
+}
+
+.minimal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.6) !important;
+}
+
+.minimal-scrollbar::-webkit-scrollbar-button,
+.minimal-scrollbar::-webkit-scrollbar-corner {
+  display: none !important;
+}
+
+.minimal-scrollbar {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(255, 255, 255, 0.4) transparent !important;
+  -ms-overflow-style: none !important;
 }

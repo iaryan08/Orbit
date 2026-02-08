@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
-import { Camera, Download, Share2, Trash2 } from "lucide-react";
+import { Camera, Download, Share2, Trash2, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FullScreenImageModal } from "./full-screen-image-modal";
 
 interface PolaroidCardProps {
     imageUrl: string;
@@ -16,6 +17,7 @@ interface PolaroidCardProps {
 
 export function PolaroidCard({ imageUrl, caption, createdAt, onDelete, isDeveloping = false }: PolaroidCardProps) {
     const [developed, setDeveloped] = useState(!isDeveloping);
+    const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
 
     useEffect(() => {
         if (isDeveloping) {
@@ -53,6 +55,7 @@ export function PolaroidCard({ imageUrl, caption, createdAt, onDelete, isDevelop
                     {!developed && (
                         <div className="absolute inset-0 bg-white/10 animate-pulse pointer-events-none" />
                     )}
+
                 </div>
 
                 {/* Caption/Time Slot */}
@@ -79,6 +82,12 @@ export function PolaroidCard({ imageUrl, caption, createdAt, onDelete, isDevelop
                     </Button>
                 )}
             </div>
+
+            {/* Full Screen Image Viewer */}
+            <FullScreenImageModal
+                src={fullScreenImage}
+                onClose={() => setFullScreenImage(null)}
+            />
         </div>
     );
 }
