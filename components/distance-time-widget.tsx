@@ -167,11 +167,11 @@ export function DistanceTimeWidget({ userProfile, partnerProfile }: DistanceWidg
                                 {formatTime(userProfile?.timezone || 'UTC')}
                             </div>
                             <div className="text-xs text-white/40 font-medium mt-1 flex flex-col gap-0.5">
-                                <div className="flex items-center gap-1 flex-wrap">
+                                <div className="flex items-center gap-1">
                                     <span className="leading-tight">{userProfile?.city || 'Your Time'}</span>
                                     {userProfile?.location_source === 'ip' && <span className="text-[10px] text-rose-400 font-bold shrink-0">(IP)</span>}
-                                    <span className="hidden md:inline opacity-30 text-[10px] shrink-0">{userProfile?.timezone}</span>
                                 </div>
+                                <span className="hidden md:inline opacity-30 text-[10px] shrink-0 -mt-0.5">{userProfile?.timezone}</span>
                                 {hasUserLoc && (
                                     <span className="text-[9px] opacity-40 uppercase tracking-tighter">
                                         Seen {formatRelativeTime(userProfile.updated_at, currentTime)}
@@ -211,13 +211,13 @@ export function DistanceTimeWidget({ userProfile, partnerProfile }: DistanceWidg
                                 {partnerProfile?.timezone ? formatTime(partnerProfile.timezone) : '--:--'}
                             </div>
                             <div className="text-xs text-white/40 font-medium mt-1 flex flex-col items-end gap-0.5">
-                                <div className="flex items-center gap-1 flex-row-reverse flex-wrap justify-end">
+                                <div className="flex items-center gap-1 flex-row-reverse">
                                     <span className="leading-tight text-right">{partnerProfile?.city || (partnerProfile?.display_name || 'Partner')}</span>
                                     {partnerProfile?.location_source === 'ip' && <span className="text-[10px] text-rose-400 font-bold shrink-0">(IP)</span>}
-                                    <span className="hidden md:inline opacity-30 text-[10px] shrink-0">{partnerProfile?.timezone}</span>
                                 </div>
+                                <span className="hidden md:inline opacity-30 text-[10px] shrink-0 -mt-0.5 text-right">{partnerProfile?.timezone}</span>
                                 {hasPartnerLoc && (
-                                    <span className="text-[9px] opacity-40 uppercase tracking-tighter">
+                                    <span className="text-[9px] opacity-40 uppercase tracking-tighter text-right">
                                         Seen {formatRelativeTime(partnerProfile.updated_at, currentTime)}
                                     </span>
                                 )}
