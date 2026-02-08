@@ -277,7 +277,7 @@
   input,
   textarea,
   select {
-    @apply text-foreground bg-white/5 border-white/10 placeholder:text-muted-foreground/50;
+    @apply text-foreground bg-white/5 placeholder:text-muted-foreground/50;
   }
 
   /* Browser Autofill Fix - Keep it Dark & Romantic */
@@ -373,7 +373,6 @@
   /* Premium Buttons - High Contrast & Sweet Aesthetic */
   .btn-premium {
     @apply relative overflow-hidden transition-all duration-500 rounded-full font-medium tracking-wide;
-    border: 1px solid rgba(255, 255, 255, 0.2);
     background: linear-gradient(to right, rgba(236, 209, 213, 0.1), rgba(212, 195, 163, 0.1));
     color: #e5e5e5;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
@@ -424,7 +423,7 @@
 
   /* Modal/Dialog Styles */
   .glass-dialog-vibrant {
-    @apply backdrop-blur-[8px] border border-white/10 shadow-2xl overflow-hidden rounded-[2rem];
+    @apply backdrop-blur-[8px] shadow-2xl overflow-hidden rounded-[2rem];
     background: rgba(10, 5, 5, 0.7);
     /* Darker backdrop for readability */
     box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(255, 255, 255, 0.05);

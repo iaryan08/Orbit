@@ -105,10 +105,11 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
         }
     }, [memory, isOpen, currentUserId, supabase, toast])
 
-    // Reset image index when memory changes
+    // Reset image index and full screen state when memory changes or modal closes
     useEffect(() => {
         setCurrentImageIndex(0)
-    }, [memory?.id])
+        setFullScreenImage(null)
+    }, [memory?.id, isOpen])
 
     if (!memory) return null
 
@@ -157,7 +158,13 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent
-                className="p-0 overflow-hidden border-none bg-neutral-950/80 backdrop-blur-xl sm:max-w-[400px] w-[80vw] h-auto max-h-[82vh] flex flex-col transition-all duration-500 rounded-3xl shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)]"
+                className="p-0 overflow-hidden border-none bg-neutral-950/80 backdrop-blur-xl sm:max-w-[400px] w-[80vw] h-auto max-h-[82vh] flex flex-col transition-all duration-300 rounded-3xl shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)]"
+                onInteractOutside={(e) => {
+                    if (fullScreenImage) e.preventDefault()
+                }}
+                onEscapeKeyDown={(e) => {
+                    if (fullScreenImage) e.preventDefault()
+                }}
             >
                 <DialogTitle className="sr-only">Memory Details</DialogTitle>
                 <DialogDescription className="sr-only">
@@ -207,7 +214,7 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
                                         className="w-full h-full cursor-grab active:cursor-grabbing"
                                     >
                                         <div
-                                            className="relative w-full h-full bg-neutral-900 overflow-hidden shadow-2xl border-b border-white/5 cursor-pointer"
+                                            className="relative w-full h-full bg-neutral-900 overflow-hidden shadow-2xl cursor-pointer"
                                             onClick={() => setFullScreenImage(url)}
                                         >
                                             <Image
@@ -225,14 +232,14 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
                                                         e.stopPropagation();
                                                         setFullScreenImage(url);
                                                     }}
-                                                    className="w-7 h-7 flex items-center justify-center rounded-full bg-black/40 border border-white/10 text-white/50 hover:text-white hover:bg-black/60 transition-all backdrop-blur-md"
+                                                    className="w-7 h-7 flex items-center justify-center rounded-full bg-black/40 text-white/50 hover:text-white hover:bg-black/60 transition-all backdrop-blur-md"
                                                     title="View Fullscreen"
                                                 >
                                                     <Maximize2 className="h-3 w-3" />
                                                 </button>
                                             </div>
 
-                                            <div className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded-full border border-white/10 font-black uppercase tracking-[0.2em]">
+                                            <div className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded-full font-black uppercase tracking-[0.2em]">
                                                 {index + 1} / {memory.image_urls.length}
                                             </div>
                                         </div>
@@ -247,7 +254,7 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-8 w-8 rounded-full bg-black/40 border border-white/10 hover:bg-black/60"
+                                        className="h-8 w-8 rounded-full bg-black/40 hover:bg-black/60"
                                         onClick={() => setCurrentImageIndex(prev => (prev === 0 ? memory.image_urls.length - 1 : prev - 1))}
                                     >
                                         <Heart className="h-4 w-4 -rotate-90 text-rose-300" />
@@ -257,7 +264,7 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-8 w-8 rounded-full bg-black/40 border border-white/10 hover:bg-black/60"
+                                        className="h-8 w-8 rounded-full bg-black/40 hover:bg-black/60"
                                         onClick={() => setCurrentImageIndex(prev => (prev === memory.image_urls.length - 1 ? 0 : prev + 1))}
                                     >
                                         <Heart className="h-4 w-4 rotate-90 text-rose-300" />
@@ -303,7 +310,7 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
                                     initial={false}
                                     animate={{ maxHeight: isExpanded ? "1000px" : "3.6rem" }}
                                     transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-                                    className="relative overflow-hidden border-l border-white/10 pl-4"
+                                    className="relative overflow-hidden pl-4"
                                 >
                                     <p className={cn(
                                         "text-xs text-white/50 leading-relaxed font-medium italic transition-colors group-hover/desc:text-white/70",

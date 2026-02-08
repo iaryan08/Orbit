@@ -54,9 +54,8 @@ export function PolaroidCard({ imageUrl, caption, createdAt, onDelete, isDevelop
             `}
                     />
 
-                    {/* Professional Overlay */}
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                        <div className="bg-black/40 backdrop-blur-md p-2 rounded-full border border-white/10 shadow-2xl">
+                        <div className="bg-black/40 backdrop-blur-md p-2 rounded-full shadow-2xl">
                             <Maximize2 className="w-4 h-4 text-white" />
                         </div>
                     </div>
@@ -84,7 +83,7 @@ export function PolaroidCard({ imageUrl, caption, createdAt, onDelete, isDevelop
                     <Button
                         variant="destructive"
                         size="icon"
-                        className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md border border-white/20 hover:bg-rose-500"
+                        className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md hover:bg-rose-500"
                         onClick={onDelete}
                     >
                         <Trash2 className="w-4 h-4" />

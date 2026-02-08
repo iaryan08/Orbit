@@ -56,38 +56,40 @@ export function FullScreenImageModal({ src, onClose }: FullScreenImageModalProps
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/95 backdrop-blur-md group"
+                        transition={{ duration: 0.2 }}
+                        className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/95 backdrop-blur-md group cursor-pointer"
+                        onClick={onClose}
                     >
-                        {/* Controls - Fixed to be visible or hover-based */}
+                        {/* Controls - Always visible at low opacity, bright on hover */}
                         <div
-                            className="absolute top-6 right-6 flex items-center gap-4 z-[10001] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300"
+                            className="absolute top-6 right-6 flex items-center gap-4 z-[10001] opacity-40 group-hover:opacity-100 transition-opacity duration-300 pointer-events-auto"
+                            onClick={(e) => e.stopPropagation()}
                         >
                             <button
                                 onClick={() => setRotate(r => r + 90)}
-                                className="p-2.5 rounded-full bg-white/5 border border-white/10 text-white/50 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+                                className="p-2.5 rounded-full bg-white/5 text-white hover:bg-white/10 transition-all cursor-pointer"
                                 title="Rotate"
                             >
                                 <RotateCw className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={() => setScale(s => Math.min(s + 0.5, 4))}
-                                className="p-2.5 rounded-full bg-white/5 border border-white/10 text-white/50 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+                                className="p-2.5 rounded-full bg-white/5 text-white hover:bg-white/10 transition-all cursor-pointer"
                                 title="Zoom In"
                             >
                                 <ZoomIn className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={() => setScale(s => Math.max(s - 0.5, 0.5))}
-                                className="p-2.5 rounded-full bg-white/5 border border-white/10 text-white/50 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+                                className="p-2.5 rounded-full bg-white/5 text-white hover:bg-white/10 transition-all cursor-pointer"
                                 title="Zoom Out"
                             >
                                 <ZoomOut className="w-5 h-5" />
                             </button>
-                            <div className="w-[1px] h-6 bg-white/10 mx-2 hidden sm:block" />
+                            <div className="w-[8px] hidden sm:block" />
                             <button
                                 onClick={onClose}
-                                className="p-2.5 rounded-full bg-white/10 border border-white/20 text-white hover:bg-rose-500 transition-all cursor-pointer shadow-lg"
+                                className="p-2.5 rounded-full bg-white/10 text-white hover:bg-rose-500 transition-all cursor-pointer shadow-lg"
                                 title="Close"
                             >
                                 <X className="w-5 h-5" />
@@ -103,8 +105,9 @@ export function FullScreenImageModal({ src, onClose }: FullScreenImageModalProps
                                 opacity: 1
                             }}
                             exit={{ scale: 0.98, opacity: 0 }}
-                            transition={{ duration: 0.3, ease: "easeOut" }}
-                            className="relative w-full h-full p-4 flex items-center justify-center overflow-auto minimal-scrollbar"
+                            transition={{ duration: 0.2, ease: "easeOut" }}
+                            className="relative w-full h-full p-4 flex items-center justify-center overflow-auto minimal-scrollbar cursor-default"
+                            onClick={(e) => e.stopPropagation()}
                         >
                             <div className="relative w-full h-full max-w-[95vw] max-h-[95vh]">
                                 <Image

@@ -66,9 +66,9 @@ export function CommentsDisplay({
                             }
                         }}
                         className={cn(
-                            "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs",
+                            "w-full bg-white/5 rounded-xl px-4 py-2.5 text-xs",
                             "text-white placeholder:text-white/20",
-                            "focus:outline-none focus:border-rose-500/30 focus:bg-white/10",
+                            "focus:outline-none focus:bg-white/10",
                             compact && "px-3 py-2 text-[11px] rounded-lg"
                         )}
                         disabled={isLoading}
@@ -79,7 +79,7 @@ export function CommentsDisplay({
                         onClick={handleAddComment}
                         disabled={!newComment.trim() || isLoading}
                         className={cn(
-                            "bg-rose-500 text-white border border-rose-400/20 rounded-xl p-2.5 flex items-center justify-center",
+                            "bg-rose-500 text-white rounded-xl p-2.5 flex items-center justify-center",
                             "transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
                             compact && "p-2 rounded-lg"
                         )}
@@ -103,7 +103,7 @@ export function CommentsDisplay({
                         >
                             <div className="flex gap-3">
                                 <div className={cn(
-                                    "relative flex-shrink-0 bg-white/5 rounded-full overflow-hidden border border-white/10 shadow-lg mt-0.5",
+                                    "relative flex-shrink-0 bg-white/5 rounded-full overflow-hidden shadow-lg mt-0.5",
                                     compact ? "w-6 h-6" : "w-8 h-8"
                                 )}>
                                     {comment.profiles?.avatar_url ? (

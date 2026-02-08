@@ -116,7 +116,7 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
             autoSaveTimerRef.current = setTimeout(() => {
                 setIsAutoSaving(true);
                 performSave();
-            }, 2000);
+            }, 3000);
         }
 
         return () => {
@@ -249,13 +249,13 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
 
     return (
         <div className="relative w-full h-[400px] md:h-full bg-[#1a1118]/10 backdrop-blur-md rounded-3xl border border-white/10 overflow-hidden shadow-xl group/doodle">
-            {/* Scrollable Canvas Area */}
-            <div className="w-full h-full overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            {/* Triple-sized (3x Width, 2x Height) Scrollable Canvas Area */}
+            <div className="w-full h-full overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] relative">
                 <canvas
                     ref={canvasRef}
                     className={cn(
-                        "w-full h-full min-w-[600px] min-h-[500px] transition-opacity block",
-                        activeTool !== 'pan' ? "cursor-crosshair" : "cursor-default",
+                        "w-[300%] h-[200%] min-h-[800px] transition-opacity block",
+                        activeTool !== 'pan' ? "cursor-crosshair" : "cursor-grab active:cursor-grabbing",
                         isSending ? "opacity-30" : "opacity-100",
                         activeTool !== 'pan' && "touch-none"
                     )}
@@ -264,6 +264,7 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
                     onPointerUp={stopDrawing}
                     onPointerLeave={stopDrawing}
                 />
+
             </div>
 
             {!isReadOnly && (

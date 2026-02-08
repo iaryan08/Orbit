@@ -102,6 +102,13 @@ export function PolaroidDetailModal({ polaroid, title, isOpen, onClose }: Polaro
         }
     }, [polaroid, isOpen, supabase, currentUserId])
 
+    // Clear state when modal closes
+    useEffect(() => {
+        if (!isOpen) {
+            setFullScreenImage(null)
+        }
+    }, [isOpen])
+
     if (!polaroid) return null
 
     const handleAddComment = async (content: string) => {
@@ -149,7 +156,13 @@ export function PolaroidDetailModal({ polaroid, title, isOpen, onClose }: Polaro
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent
-                className="p-0 overflow-hidden border-none bg-neutral-950/80 backdrop-blur-xl sm:max-w-[400px] w-[85vw] h-auto max-h-[82vh] flex flex-col transition-all duration-500 rounded-3xl shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)]"
+                className="p-0 overflow-hidden border-none bg-neutral-950/80 backdrop-blur-xl sm:max-w-[400px] w-[85vw] h-auto max-h-[82vh] flex flex-col transition-all duration-300 rounded-3xl shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)]"
+                onInteractOutside={(e) => {
+                    if (fullScreenImage) e.preventDefault()
+                }}
+                onEscapeKeyDown={(e) => {
+                    if (fullScreenImage) e.preventDefault()
+                }}
             >
                 <DialogTitle className="sr-only">Polaroid Details</DialogTitle>
                 <DialogDescription className="sr-only">
@@ -177,7 +190,7 @@ export function PolaroidDetailModal({ polaroid, title, isOpen, onClose }: Polaro
                                     e.stopPropagation();
                                     setFullScreenImage(polaroid.image_url);
                                 }}
-                                className="w-7 h-7 flex items-center justify-center rounded-full bg-black/40 border border-white/10 text-white/50 hover:text-white hover:bg-black/60 transition-all backdrop-blur-md"
+                                className="w-7 h-7 flex items-center justify-center rounded-full bg-black/40 text-white/50 hover:text-white hover:bg-black/60 transition-all backdrop-blur-md"
                                 title="View Fullscreen"
                             >
                                 <Maximize2 className="h-3 w-3" />
@@ -214,7 +227,7 @@ export function PolaroidDetailModal({ polaroid, title, isOpen, onClose }: Polaro
                                 initial={false}
                                 animate={{ maxHeight: isExpanded ? "1000px" : "2.6rem" }}
                                 transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-                                className="relative overflow-hidden border-l border-white/10 pl-4"
+                                className="relative overflow-hidden pl-4"
                             >
                                 <p className={cn(
                                     "text-[11px] text-rose-300/60 font-medium italic transition-colors group-hover/caption:text-rose-300/80",

@@ -347,7 +347,7 @@ export default function MemoriesPage() {
                     {memories.map((memory, index) => (
                         <Card
                             key={memory.id}
-                            className="cursor-pointer overflow-hidden transition-all hover:shadow-lg hover:border-primary/40 group/card relative"
+                            className="cursor-pointer overflow-hidden transition-all hover:shadow-lg group/card relative"
                             onClick={() => {
                                 setSelectedMemory(memory);
                                 setCurrentImageIndex(0);
@@ -366,7 +366,7 @@ export default function MemoriesPage() {
                                     />
 
                                     {memory.image_urls.length > 1 && (
-                                        <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] text-white/90 font-bold border border-white/10">
+                                        <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] text-white/90 font-bold">
                                             +{memory.image_urls.length - 1} more
                                         </div>
                                     )}
@@ -376,7 +376,7 @@ export default function MemoriesPage() {
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                className="h-8 w-8 bg-black/40 text-white/70 hover:text-white hover:bg-black/60 rounded-full border border-white/10 backdrop-blur-md"
+                                                className="h-8 w-8 bg-black/40 text-white/70 hover:text-white hover:bg-black/60 rounded-full backdrop-blur-md"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     setEditingMemory(memory);
