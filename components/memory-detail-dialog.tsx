@@ -278,7 +278,7 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
                     {/* Unified Scrollable Content Section */}
                     <div className="flex-1 overflow-y-auto minimal-scrollbar bg-neutral-950/40">
                         {/* Metadata Header */}
-                        <div className="px-6 pt-4 pb-2">
+                        <div className="px-6 pt-4 pb-0">
                             <div className="space-y-3">
                                 {memory.title && (
                                     <h2 className="text-2xl font-serif font-bold text-white tracking-tight leading-none">

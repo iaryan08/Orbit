@@ -15,6 +15,7 @@ export type NotificationType =
     | 'spark'
     | 'heartbeat'
     | 'comment'
+    | 'polaroid'
 
 interface CreateNotificationParams {
     recipientId: string

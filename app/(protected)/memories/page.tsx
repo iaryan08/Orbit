@@ -418,7 +418,7 @@ export default function MemoriesPage() {
                                     <ImageIcon className="h-10 w-10 text-neutral-700" />
                                 </div>
                             )}
-                            <CardHeader className="px-4 py-3">
+                            <CardHeader className="px-4 py-0">
                                 <CardTitle className="text-base font-serif font-bold text-white tracking-tight line-clamp-1">{memory.title}</CardTitle>
                             </CardHeader>
                             <CardContent className="px-4 pb-4 pt-0">

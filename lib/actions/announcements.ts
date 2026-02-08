@@ -20,13 +20,13 @@ export async function broadcastUpdateNotification() {
         return { success: false, error: "Database error" }
     }
 
-    const title = "The Visionary Update is Here! 📸"
-    const message = "We've overhauled how you see your memories in Orbit:\n\n" +
-        "• 📸 Visionary View: Tap any image to explode it into a stunning in-app full-screen mode.\n" +
-        "• ⚡ Blazing Speed: Intelligent lazy loading makes your memory lane faster than ever.\n" +
-        "• 📱 Mobile Perfect: New responsive controls that only appear when you need them.\n" +
-        "• 🎯 Context First: Always view the story behind the photo before diving into high-res.\n\n" +
-        "Tap to check it out!"
+    const title = "Zen & Cohesion Update is Live! 🌿"
+    const message = "We've refined the Orbit experience to be even more beautiful:\n\n" +
+        "• 🖼️ Cleaner Canvas: Modals and cards now have tighter, distraction-free spacing.\n" +
+        "• ✍️ Typography Tune-up: Metadata is now cleaner and easier to read without italics.\n" +
+        "• ⚡ Performance Boost: Smoother animations and faster interactions across the board.\n" +
+        "• 🔔 Smart Notifications: You'll now be notified when memories, letters, or polaroids are updated.\n\n" +
+        "Enjoy a calmer, more polished space for your memories."
 
     let sentCount = 0
     let pushCount = 0
@@ -50,7 +50,7 @@ export async function broadcastUpdateNotification() {
             if (!notifyError) sentCount++
 
             // Push Notification
-            const pushResult = await sendPushNotification(profile.id, title, "Tap to see what's new in your shared world! ❤️", '/dashboard')
+            const pushResult = await sendPushNotification(profile.id, title, "Enjoy a calmer, more polished space for your memories.", '/dashboard')
             if (pushResult.success) pushCount += (pushResult.sent || 0)
 
         } catch (e) {

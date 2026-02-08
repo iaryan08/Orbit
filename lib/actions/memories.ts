@@ -93,6 +93,35 @@ export async function updateMemory(memoryId: string, payload: {
 
     if (error) return { error: error.message }
 
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('couple_id, display_name')
+        .eq('id', user.id)
+        .single();
+
+    if (profile?.couple_id) {
+        const { data: couple } = await supabase
+            .from('couples')
+            .select('user1_id, user2_id')
+            .eq('id', profile.couple_id)
+            .single();
+
+        if (couple) {
+            const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id;
+            if (partnerId) {
+                await sendNotification({
+                    recipientId: partnerId,
+                    actorId: user.id,
+                    type: 'memory',
+                    title: 'Memory Updated',
+                    message: `${profile.display_name || 'Your partner'} updated the memory: "${payload.title}"`,
+                    actionUrl: '/memories',
+                    metadata: { memory_id: memoryId }
+                });
+            }
+        }
+    }
+
     revalidatePath('/memories')
     revalidatePath('/dashboard')
     return { success: true }

@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { createPolaroid } from "@/lib/actions/polaroids";
 
 interface UploadPolaroidDialogProps {
     open: boolean;
@@ -66,8 +67,8 @@ export function UploadPolaroidDialog({ open, onOpenChange }: UploadPolaroidDialo
             streamRef.current = stream;
             if (videoRef.current) {
                 videoRef.current.srcObject = stream;
-                try { await videoRef.current.play(); } catch {}
-                try { videoRef.current.focus(); } catch {}
+                try { await videoRef.current.play(); } catch { }
+                try { videoRef.current.focus(); } catch { }
             }
 
             // try to apply continuous autofocus if supported
@@ -81,7 +82,7 @@ export function UploadPolaroidDialog({ open, onOpenChange }: UploadPolaroidDialo
                         // ignore constraint errors
                     }
                 }
-            } catch (e) {}
+            } catch (e) { }
 
             setIsCameraActive(true);
         } catch (e: any) {
@@ -97,7 +98,7 @@ export function UploadPolaroidDialog({ open, onOpenChange }: UploadPolaroidDialo
             streamRef.current = null;
         }
         if (videoRef.current) {
-            try { videoRef.current.pause(); } catch {}
+            try { videoRef.current.pause(); } catch { }
             videoRef.current.srcObject = null;
         }
         setIsCameraActive(false);
@@ -165,32 +166,18 @@ export function UploadPolaroidDialog({ open, onOpenChange }: UploadPolaroidDialo
                 .from("memories")
                 .getPublicUrl(fileName);
 
-            // Delete previous polaroids for this couple to keep only the latest one
-            await supabase
-                .from("polaroids")
-                .delete()
-                .eq("couple_id", profile.couple_id);
+            // Call Server Action
+            const result = await createPolaroid({
+                imageUrl: publicUrl,
+                caption: caption
+            });
 
-            // Save new polaroid
-            const { error: dbError } = await supabase
-                .from("polaroids")
-                .insert({
-                    image_url: publicUrl,
-                    caption: caption,
-                    user_id: user.id,
-                    couple_id: profile.couple_id
-                });
-
-            if (dbError) {
-                if (dbError.code === '42P01') {
-                    throw new Error("Polaroids table missing. Please run the SQL setup in Supabase SQL Editor.");
-                }
-                throw dbError;
-            }
+            if (result.error) throw new Error(result.error);
 
             toast({
-                title: "Polaroid developing...",
+                title: "Polaroid snapped!",
                 description: "Your partner will see this moment soon.",
+                variant: "purple"
             });
 
             onOpenChange(false);

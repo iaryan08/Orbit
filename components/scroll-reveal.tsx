@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useEffect, useRef, useState } from 'react'
+import { ReactNode } from 'react'
 import { motion } from 'framer-motion'
 
 interface ScrollRevealProps {
@@ -16,33 +16,15 @@ export function ScrollReveal({
     className = "",
     once = true
 }: ScrollRevealProps) {
-    const [isVisible, setIsVisible] = useState(false)
-    const ref = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setIsVisible(true)
-                    if (once && ref.current) observer.unobserve(ref.current)
-                }
-            },
-            {
-                threshold: 0.1,
-                rootMargin: "200px" // Trigger 200px before appearing
-            }
-        )
-
-        if (ref.current) observer.observe(ref.current)
-
-        return () => {
-            if (ref.current) observer.unobserve(ref.current)
-        }
-    }, [once])
-
     return (
-        <div className={className}>
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once, margin: "-50px" }}
+            transition={{ duration: 0.5, delay, ease: "easeOut" }}
+            className={className}
+        >
             {children}
-        </div>
+        </motion.div>
     )
 }
