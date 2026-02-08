@@ -37,25 +37,34 @@ export function PolaroidCard({ imageUrl, caption, createdAt, onDelete, isDevelop
                     boxShadow: '0 20px 50px rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.05)'
                 }}
             >
-                <div className="relative aspect-square bg-[#1a1a1a] overflow-hidden rounded-sm">
+                <div
+                    className="relative aspect-square bg-[#1a1a1a] overflow-hidden rounded-sm cursor-pointer group/img"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setFullScreenImage(imageUrl);
+                    }}
+                >
                     <Image
                         src={imageUrl}
                         alt="Polaroid Memory"
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className={`object-cover transition-all duration-[60000ms] ease-out
+                        className={`object-cover transition-all duration-700 ease-out group-hover/img:scale-105
               ${developed ? 'filter-none grayscale-0 opacity-100' : 'blur-xl grayscale opacity-0'}
             `}
-                        style={{
-                            transitionProperty: 'filter, opacity'
-                        }}
                     />
+
+                    {/* Professional Overlay */}
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                        <div className="bg-black/40 backdrop-blur-md p-2 rounded-full border border-white/10 shadow-2xl">
+                            <Maximize2 className="w-4 h-4 text-white" />
+                        </div>
+                    </div>
 
                     {/* Subtle Flash Overlay */}
                     {!developed && (
                         <div className="absolute inset-0 bg-white/10 animate-pulse pointer-events-none" />
                     )}
-
                 </div>
 
                 {/* Caption/Time Slot */}

@@ -44,7 +44,6 @@ export default function MemoriesPage() {
     const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
     const [uploading, setUploading] = useState(false);
     const [previewUrls, setPreviewUrls] = useState<string[]>([]);
-    const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [existingImages, setExistingImages] = useState<string[]>([]);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -348,34 +347,36 @@ export default function MemoriesPage() {
                     {memories.map((memory, index) => (
                         <Card
                             key={memory.id}
-                            className="cursor-pointer overflow-hidden transition-all hover:shadow-lg hover:border-primary/40 group/card"
+                            className="cursor-pointer overflow-hidden transition-all hover:shadow-lg hover:border-primary/40 group/card relative"
                             onClick={() => {
                                 setSelectedMemory(memory);
                                 setCurrentImageIndex(0);
                             }}
                         >
                             {memory.image_urls && memory.image_urls.length > 0 ? (
-                                <div className="relative aspect-video">
+                                <div className="relative aspect-video overflow-hidden">
                                     <Image
                                         src={memory.image_urls[0] || "/placeholder.svg"}
                                         alt={memory.title}
                                         fill
-                                        className="object-cover"
+                                        className="object-cover transition-transform duration-700 group-hover/card:scale-105"
                                         priority={index < 4}
                                         loading={index < 4 ? undefined : "lazy"}
                                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                     />
+
                                     {memory.image_urls.length > 1 && (
-                                        <div className="absolute bottom-2 right-2 bg-black/50 backdrop-blur-md px-2 py-1 rounded text-[10px] text-white/90 font-bold">
+                                        <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] text-white/90 font-bold border border-white/10">
                                             +{memory.image_urls.length - 1} more
                                         </div>
                                     )}
+
                                     {userId === memory.user_id && (
-                                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                                        <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover/card:opacity-100 transition-all duration-300 z-20">
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                className="h-8 w-8 bg-black/40 text-white/70 hover:text-white hover:bg-black/60 rounded-full"
+                                                className="h-8 w-8 bg-black/40 text-white/70 hover:text-white hover:bg-black/60 rounded-full border border-white/10 backdrop-blur-md"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     setEditingMemory(memory);
@@ -391,12 +392,12 @@ export default function MemoriesPage() {
                                                     setIsAdding(true);
                                                 }}
                                             >
-                                                <Edit2 className="h-3 w-3" />
+                                                <Edit2 className="h-3.5 w-3.5" />
                                             </Button>
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                className="h-8 w-8 bg-black/40 text-red-400/70 hover:text-red-400 hover:bg-black/60 rounded-full"
+                                                className="h-8 w-8 bg-black/40 text-red-400/70 hover:text-red-400 hover:bg-black/60 rounded-full border border-white/10 backdrop-blur-md"
                                                 onClick={async (e) => {
                                                     e.stopPropagation();
                                                     if (!confirm("Are you sure you want to delete this memory?")) return;
@@ -407,34 +408,34 @@ export default function MemoriesPage() {
                                                     toast({ title: "Memory deleted" });
                                                 }}
                                             >
-                                                <Trash2 className="h-3 w-3" />
+                                                <Trash2 className="h-3.5 w-3.5" />
                                             </Button>
                                         </div>
                                     )}
                                 </div>
                             ) : (
-                                <div className="aspect-video bg-secondary flex items-center justify-center">
-                                    <ImageIcon className="h-10 w-10 text-muted-foreground" />
+                                <div className="aspect-video bg-neutral-900 flex items-center justify-center">
+                                    <ImageIcon className="h-10 w-10 text-neutral-700" />
                                 </div>
                             )}
-                            <CardHeader className="px-3 pb-0 -mt-[20px] -mb-[20px]">
+                            <CardHeader className="px-4 py-3">
                                 <CardTitle className="text-base font-serif font-bold text-white tracking-tight line-clamp-1">{memory.title}</CardTitle>
                             </CardHeader>
-                            <CardContent className="px-3 pt-1 pb-3">
+                            <CardContent className="px-4 pb-4 pt-0">
                                 {memory.description && (
-                                    <p className="text-xs text-rose-50/50 line-clamp-2 mb-2 leading-relaxed italic">
-                                        {memory.description}
+                                    <p className="text-xs text-rose-100/40 line-clamp-2 mb-3 leading-relaxed italic">
+                                        "{memory.description}"
                                     </p>
                                 )}
-                                <div className="flex items-center gap-3 text-[10px] uppercase tracking-widest font-bold text-rose-200/20 pt-2 border-t border-white/5">
-                                    <span className="flex items-center gap-1">
+                                <div className="flex items-center gap-4 text-[10px] uppercase tracking-[0.2em] font-bold text-rose-200/20">
+                                    <span className="flex items-center gap-1.5">
                                         <Calendar className="h-3 w-3" />
                                         {format(new Date(memory.memory_date), "MMM d, yyyy")}
                                     </span>
                                     {memory.location && (
-                                        <span className="flex items-center gap-1">
+                                        <span className="flex items-center gap-1.5">
                                             <MapPin className="h-3 w-3" />
-                                            <span className="text-amber-200/60 truncate">{memory.location}</span>
+                                            <span className="truncate max-w-[100px]">{memory.location}</span>
                                         </span>
                                     )}
                                 </div>
@@ -444,17 +445,11 @@ export default function MemoriesPage() {
                 </div>
             )}
 
-            {/* Memory Detail Modal */}
             <MemoryDetailDialog
                 isOpen={!!selectedMemory}
                 memory={selectedMemory}
                 onClose={() => setSelectedMemory(null)}
             />
-            {/* Full Screen Image Viewer */}
-            <FullScreenImageModal
-                src={fullScreenImage}
-                onClose={() => setFullScreenImage(null)}
-            />
-        </div >
+        </div>
     );
 }
