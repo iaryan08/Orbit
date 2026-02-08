@@ -316,7 +316,7 @@ export function DashboardHeader({
               "transition-[background-color,border-color,shadow] duration-300" // No transition-all
             )}
           >
-            <TooltipProvider delayDuration={0}>
+            <TooltipProvider delayDuration={100}>
               <motion.div
                 whileHover={{ scale: 0.95 }}
                 whileTap={{ scale: 0.85, y: 1 }}
