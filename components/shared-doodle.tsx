@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Trash2, Send, Undo2, Loader2, Sparkles, CheckCircle2, Pen, Eraser, Hand, Palette, X } from "lucide-react";
+import { Trash2, Undo2, Loader2, Pen, Eraser, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Point {
@@ -30,7 +30,6 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
     const [color, setColor] = useState('#fb7185');
     const [lastSyncedPath, setLastSyncedPath] = useState<string>("");
     const [isSending, setIsSending] = useState(false);
-    const [showSuccess, setShowSuccess] = useState(false);
     const [isAutoSaving, setIsAutoSaving] = useState(false);
 
     const isDrawing = useRef(false);
@@ -43,7 +42,6 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
         allStrokesRef.current = allStrokes;
     }, [allStrokes]);
 
-    // Redraw engine - uses refs to avoid staleness
     // Redraw engine - uses refs to avoid staleness
     const redraw = useCallback(() => {
         const canvas = canvasRef.current;
@@ -98,8 +96,6 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
             const pathData = JSON.stringify(allStrokesRef.current);
             await onSave(pathData);
             setLastSyncedPath(pathData);
-            setShowSuccess(true);
-            setTimeout(() => setShowSuccess(false), 3000);
         } catch (error) {
             console.error("Failed to save doodle", error);
         } finally {

@@ -30,7 +30,7 @@ import {
 } from 'lucide-react'
 import { NotificationBell } from './notification-bell'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useAppMode } from './app-mode-context'
 import { LunaraToggle } from './lunara-toggle'
@@ -54,7 +54,6 @@ export function DashboardHeader({
   unreadCounts = { memories: 0, letters: 0 }
 }: DashboardHeaderProps) {
   const pathname = usePathname()
-  const router = useRouter()
   const [scrolled, setScrolled] = useState(false)
   const [hoveredPath, setHoveredPath] = useState<string | null>(null)
   const [isVisible, setIsVisible] = useState(true)
@@ -62,7 +61,7 @@ export function DashboardHeader({
 
   const [mounted, setMounted] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
-  const { mode, activeLunaraTab, setActiveLunaraTab } = useAppMode()
+  const { mode } = useAppMode()
 
   useEffect(() => {
     setMounted(true)

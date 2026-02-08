@@ -1,9 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 
 import dynamic from 'next/dynamic'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { MapPin, Sparkles, Gamepad2, Calendar, Camera } from 'lucide-react'
+import { MapPin, Sparkles, Gamepad2 } from 'lucide-react'
 import Link from 'next/link'
 import type { MoodType } from '@/lib/constants'
 import { cn } from '@/lib/utils'
