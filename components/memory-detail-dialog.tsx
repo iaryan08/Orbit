@@ -272,11 +272,11 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
                                 </div>
                             </>
                         )}
-                        <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-neutral-950 to-transparent z-40" />
+                        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent z-40" />
                     </div>
 
                     {/* Unified Scrollable Content Section */}
-                    <div className="flex-1 overflow-y-auto minimal-scrollbar bg-neutral-950/40">
+                    <div className="flex-1 overflow-y-auto minimal-scrollbar bg-gradient-to-b from-neutral-950/80 to-neutral-950/40">
                         {/* Metadata Header */}
                         <div className="px-6 pt-4 pb-0">
                             <div className="space-y-3">

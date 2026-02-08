@@ -156,7 +156,7 @@ export function PolaroidDetailModal({ polaroid, title, isOpen, onClose }: Polaro
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent
-                className="p-0 overflow-hidden border-none bg-neutral-950/80 backdrop-blur-xl sm:max-w-[400px] w-[85vw] h-auto max-h-[82vh] flex flex-col transition-all duration-300 rounded-3xl shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)]"
+                className="p-0 overflow-hidden border-none bg-neutral-950/90 backdrop-blur-xl sm:max-w-[400px] w-[85vw] h-auto max-h-[82vh] flex flex-col transition-all duration-300 rounded-3xl shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)]"
                 onInteractOutside={(e) => {
                     if (fullScreenImage) e.preventDefault()
                 }}
@@ -170,9 +170,9 @@ export function PolaroidDetailModal({ polaroid, title, isOpen, onClose }: Polaro
                 </DialogDescription>
                 <div className="relative w-full flex flex-col group min-h-0">
 
-                    <div className="relative h-[320px] w-full flex-shrink-0 flex items-center justify-center bg-neutral-900/50">
+                    <div className="relative h-[300px] w-full flex-shrink-0 flex items-center justify-center bg-neutral-900 overflow-hidden">
                         <div
-                            className="relative h-[300px] w-full flex-shrink-0 cursor-pointer"
+                            className="relative w-full h-full cursor-pointer"
                             onClick={() => setFullScreenImage(polaroid.image_url)}
                         >
                             <Image
@@ -196,14 +196,16 @@ export function PolaroidDetailModal({ polaroid, title, isOpen, onClose }: Polaro
                                 <Maximize2 className="h-3 w-3" />
                             </button>
                         </div>
+
+                        {/* Blend gradient overlay */}
+                        <div className="absolute inset-x-0 bottom-0 h-[60px] bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent pointer-events-none z-40" />
                     </div>
-                    <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-neutral-950/60 to-transparent pointer-events-none" />
                 </div>
 
                 {/* Unified Scrollable Content Section */}
-                <div className="flex-1 overflow-y-auto minimal-scrollbar bg-neutral-950/40">
+                <div className="-mt-[18px] flex-1 overflow-y-auto minimal-scrollbar bg-gradient-to-b from-neutral-950/80 to-neutral-950/40">
                     {/* Metadata Header */}
-                    <div className="px-6 pt-4 pb-2">
+                    <div className="px-6 pt-2 pb-2">
                         <div className="space-y-3">
                             {title && (
                                 <h2 className="text-2xl font-serif font-bold text-white tracking-tight leading-none">

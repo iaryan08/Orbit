@@ -222,64 +222,72 @@ export function UploadPolaroidDialog({ open, onOpenChange }: UploadPolaroidDialo
                             Capture
                         </Button>
                     </div>
-                    <div
-                        className="group relative aspect-square w-full bg-white/5 rounded-xl border-2 border-dashed border-white/10 flex items-center justify-center overflow-visible hover:border-rose-500/50 transition-colors cursor-pointer"
-                        onClick={() => { if (mode === 'upload') fileInputRef.current?.click(); }}
-                    >
+                    <div className="relative w-full aspect-square bg-black rounded-xl overflow-hidden border border-white/10 group">
                         {mode === 'camera' ? (
-                            <div className="w-full h-full flex items-center justify-center relative">
-                                {!isCameraActive && !preview && (
-                                    <div className="text-xs text-white/40">Camera not available</div>
-                                )}
+                            <>
                                 <video
                                     ref={videoRef}
-                                    className={`w-full h-full object-cover ${cameraFacing === 'user' ? 'scale-x-[-1]' : ''}`}
+                                    autoPlay
                                     playsInline
+                                    muted
+                                    className={`absolute inset-0 w-full h-full object-cover ${cameraFacing === 'user' ? 'scale-x-[-1]' : ''}`}
                                 />
-                                {preview && (
-                                    <>
-                                        <Image src={preview} alt="Preview" fill className="object-cover" />
-                                        <div className="absolute inset-0 bg-black/40" />
-                                    </>
+                                {!isCameraActive && !file && !cameraError && (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-neutral-900 z-10">
+                                        <Loader2 className="w-6 h-6 animate-spin text-neutral-500" />
+                                    </div>
                                 )}
 
-                                {/* Overlays: flip (top-right, mobile-only) and capture (bottom-center) */}
-                                {!preview && (
-                                    <>
-                                        <div className="absolute top-2 right-2 md:hidden pointer-events-auto">
-                                            <Button
-                                                variant="ghost"
-                                                onClick={async () => {
-                                                    const newFacing = cameraFacing === 'environment' ? 'user' : 'environment';
-                                                    setCameraFacing(newFacing);
-                                                    stopCamera();
-                                                    setTimeout(() => startCamera(newFacing), 150);
-                                                }}
-                                                className="h-10 w-10 p-0 flex items-center justify-center rounded-full bg-black/40"
-                                            >
-                                                <RotateCw className="w-4 h-4" />
-                                            </Button>
-                                        </div>
+                                {/* Camera Controls Panel */}
+                                <div className="absolute bottom-4 left-0 right-0 z-20 flex justify-center items-center gap-6 pointer-events-none">
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        size="icon"
+                                        className="w-10 h-10 rounded-full bg-black/40 backdrop-blur-md border border-white/10 hover:bg-black/60 pointer-events-auto"
+                                        onClick={() => {
+                                            const newFacing = cameraFacing === 'user' ? 'environment' : 'user';
+                                            setCameraFacing(newFacing);
+                                            stopCamera();
+                                            setTimeout(() => startCamera(newFacing), 100);
+                                        }}
+                                    >
+                                        <RotateCw className="w-4 h-4 text-white" />
+                                    </Button>
 
-                                        <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-10 pointer-events-auto">
-                                            <button onClick={capturePhoto} className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center shadow-lg border border-white/20">
-                                                <Camera className="w-6 h-6 text-white" />
-                                            </button>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        ) : preview ? (
-                            <>
-                                <Image src={preview} alt="Preview" fill className="object-cover" />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                    <Upload className="w-8 h-8 text-white" />
+                                    <button
+                                        type="button"
+                                        onClick={capturePhoto}
+                                        className="w-16 h-16 rounded-full border-4 border-white/20 bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors pointer-events-auto shadow-xl"
+                                    >
+                                        <div className="w-12 h-12 rounded-full bg-white shadow-inner" />
+                                    </button>
+
+                                    <div className="w-10 h-10" /> {/* Spacer for symmetry */}
                                 </div>
                             </>
                         ) : (
-                            <div className="text-center p-6">
-                                <Upload className="w-8 h-8 text-white/20 mx-auto mb-2" />
-                                <p className="text-xs text-white/40">Select or drop a photo</p>
+                            // Upload Mode
+                            <div
+                                className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-colors"
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                {preview ? (
+                                    <Image
+                                        src={preview}
+                                        alt="Preview"
+                                        fill
+                                        className="object-cover"
+                                    />
+                                ) : (
+                                    <>
+                                        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                                            <Upload className="w-6 h-6 text-neutral-400" />
+                                        </div>
+                                        <p className="text-sm font-medium text-neutral-300">Tap to select photo</p>
+                                        <p className="text-xs text-neutral-500 mt-1">Square format recommended</p>
+                                    </>
+                                )}
                             </div>
                         )}
                     </div>

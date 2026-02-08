@@ -244,7 +244,7 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
     };
 
     return (
-        <div className="relative w-full h-[400px] md:h-full bg-[#1a1118]/10 backdrop-blur-md rounded-3xl border border-white/10 overflow-hidden shadow-xl group/doodle">
+        <div className="relative w-full h-full bg-[#1a1118]/10 backdrop-blur-md rounded-3xl border border-white/10 overflow-hidden shadow-xl group/doodle">
             {/* Triple-sized (3x Width, 2x Height) Scrollable Canvas Area */}
             <div className="w-full h-full overflow-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] relative">
                 <canvas

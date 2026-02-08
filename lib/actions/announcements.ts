@@ -40,7 +40,7 @@ export async function broadcastUpdateNotification() {
                 .from('notifications')
                 .insert({
                     recipient_id: profile.id,
-                    type: 'spark', // closest type or system
+                    type: 'announcement',
                     title,
                     message,
                     action_url: '/dashboard',

@@ -173,7 +173,7 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
         "space-y-4 transition-all duration-300 overflow-hidden",
         isExpanded ? "max-h-[1000px] opacity-100 mt-2" : "max-h-0 opacity-0 p-0"
       )}>
-        <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5">
+        <div className="grid grid-cols-3 md:grid-cols-4 gap-1.5">
           {MOODS.map((mood) => (
             <button
               key={mood}

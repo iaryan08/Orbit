@@ -203,8 +203,8 @@ export default async function DashboardPage() {
                         </ScrollReveal>
 
                         {/* Doodle - Mobile: Pos 4 (Flow). Desktop: Pos 6 (Row 2 end) -> lg:order-6 */}
-                        <ScrollReveal className="lg:col-span-2 lg:order-6 h-full" delay={0.2}>
-                            <div className="h-full min-h-[400px]">
+                        <ScrollReveal className="lg:col-span-2 lg:order-6" delay={0.2}>
+                            <div className="h-[400px] lg:h-[340px]">
                                 <SharedDoodle
                                     savedPath={doodle?.path_data}
                                     onSave={async (path) => {
@@ -217,7 +217,7 @@ export default async function DashboardPage() {
 
                         {/* Daily Inspiration - Mobile: Pos 5. Desktop: Pos 5. lg:order-5 */}
                         <ScrollReveal className="lg:col-span-2 lg:order-5" delay={0.3}>
-                            <div className="glass-card p-4 md:p-5 flex flex-col justify-between relative overflow-hidden group h-full">
+                            <div className="glass-card p-4 md:p-5 flex flex-col justify-between relative overflow-hidden group h-[400px] lg:h-[340px]">
                                 <DailyContent />
                             </div>
                         </ScrollReveal>

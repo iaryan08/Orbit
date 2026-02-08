@@ -101,12 +101,11 @@ export async function createPolaroid(payload: {
     if (!couple) return { error: "Couple data error" };
     const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id;
 
-    // Delete previous polaroids for this couple (keep only latest)
-    // Note: This logic was in the client dialog, preserving it here.
+    // Delete previous polaroid for this user specifically (keep only latest per user)
     await supabase
         .from("polaroids")
         .delete()
-        .eq("couple_id", profile.couple_id);
+        .eq("user_id", user.id);
 
     // Insert new polaroid
     const { data: polaroid, error } = await supabase

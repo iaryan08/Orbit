@@ -16,6 +16,8 @@ export type NotificationType =
     | 'heartbeat'
     | 'comment'
     | 'polaroid'
+    | 'bucket_list'
+    | 'announcement'
 
 interface CreateNotificationParams {
     recipientId: string
