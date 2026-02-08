@@ -6,6 +6,7 @@ import { headers } from 'next/headers'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { sendNotification } from '@/lib/actions/notifications'
 import { getTodayIST } from '@/lib/utils'
+import { resolveLocation } from '@/lib/location'
 
 export async function signUp(prevState: any, formData: FormData) {
   const supabase = await createClient()
@@ -812,42 +813,39 @@ export async function logSexDrive(level: string) {
   return { success: true }
 }
 
-export async function updateLocation(data: { city?: string, timezone?: string, latitude?: number, longitude?: number }) {
+export async function updateLocation(data: { latitude?: number, longitude?: number }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) return { error: 'Not authenticated' }
 
-  let city = data.city
+  // Get IP for fallback from headers
+  const headersList = await headers()
+  const ip = headersList.get('x-forwarded-for')?.split(',')[0] ||
+    headersList.get('x-real-ip') ||
+    headersList.get('cf-connecting-ip'); // Cloudflare support
 
-  // If we have coordinates but no city, try to get it on the server to avoid CORS
-  if (!city && data.latitude && data.longitude) {
-    try {
-      const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${data.latitude}&lon=${data.longitude}&zoom=10`, {
-        headers: {
-          'User-Agent': 'Orbit/1.0',
-          'Accept-Language': 'en'
-        }
-      })
-      if (geoRes.ok) {
-        const geoData = await geoRes.json()
-        city = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.suburb
-      }
-    } catch (e) {
-      console.error('Server-side reverse geocoding error:', e)
-    }
+  console.log(`[updateLocation] Received: lat=${data.latitude}, lng=${data.longitude}, ip=${ip}`)
+
+  // Resolve location with IP-Based Fallback and Offline Timezone support
+  const geo = await resolveLocation(data.latitude, data.longitude, ip)
+
+  if (!geo) {
+    console.warn('[updateLocation] Could not resolve location for user:', user.id)
+    return { error: 'Could not resolve location' }
   }
 
-  // Only update fields that are defined
-  const updates: any = { updated_at: new Date().toISOString() }
-  if (city !== undefined) updates.city = city
-  if (data.timezone !== undefined) updates.timezone = data.timezone
-  if (data.latitude !== undefined) updates.latitude = data.latitude
-  if (data.longitude !== undefined) updates.longitude = data.longitude
-
+  // Update timezone and location in database
   const { error } = await supabase
     .from('profiles')
-    .update(updates)
+    .update({
+      city: geo.city,
+      timezone: geo.timezone,
+      latitude: geo.latitude,
+      longitude: geo.longitude,
+      updated_at: new Date().toISOString(),
+      location_source: geo.isIp ? 'ip' : 'gps'
+    })
     .eq('id', user.id)
 
   if (error) return { error: error.message }
@@ -856,10 +854,10 @@ export async function updateLocation(data: { city?: string, timezone?: string, l
   revalidateTag(`dashboard-${user.id}`, 'default')
 
   // Also invalidate partner
-  const { data: profile } = await supabase.from('profiles').select('couple_id').eq('id', user.id).single()
+  const { data: profileWithCouple } = await supabase.from('profiles').select('couple_id').eq('id', user.id).single()
 
-  if (profile?.couple_id) {
-    const { data: couple } = await supabase.from('couples').select('user1_id, user2_id').eq('id', profile.couple_id).single()
+  if (profileWithCouple?.couple_id) {
+    const { data: couple } = await supabase.from('couples').select('user1_id, user2_id').eq('id', profileWithCouple.couple_id).single()
     if (couple) {
       const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
       if (partnerId) revalidateTag(`dashboard-${partnerId}`, 'default')

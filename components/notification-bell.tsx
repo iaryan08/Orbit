@@ -140,7 +140,7 @@ export function NotificationBell({ className }: { className?: string }) {
             const sub = await subscribeUserToPush()
             setPushSubscription(sub)
             await syncSubscription(sub)
-            toast.success('Live notifications enabled!')
+            // Silently enabled
         } catch (error) {
             console.error('Push sub error:', error)
             toast.error('Could not enable live notifications')

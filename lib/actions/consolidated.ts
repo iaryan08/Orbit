@@ -15,18 +15,40 @@ export async function fetchDashboardData() {
             const start = performance.now()
 
             try {
+                const selectFields = 'id, partner_id, couple_id, gender, display_name, avatar_url, city, timezone, latitude, longitude, location_source'
+                const fallbackFields = 'id, partner_id, couple_id, gender, display_name, avatar_url, city, timezone, latitude, longitude'
+
                 // STEP 1: Crucial Identity Data (Sequential but fast)
                 // We need this to determine WHO to fetch data for
-                const { data: profile } = await supabase
+                const { data: profile, error: profileError } = await supabase
                     .from('profiles')
-                    .select('id, partner_id, couple_id, gender, display_name, avatar_url, city, timezone, latitude, longitude')
+                    .select(selectFields)
                     .eq('id', user.id)
                     .single()
 
-                if (!profile) return { error: 'Profile not found' }
+                let profileData = profile;
+                let supportsLocationSource = true;
 
-                let partnerId = profile.partner_id
-                const coupleId = profile.couple_id
+                // Fallback: If location_source column is missing, fetch without it to prevent crash
+                if (profileError) {
+                    supportsLocationSource = false;
+                    const { data: retryProfile } = await supabase
+                        .from('profiles')
+                        .select(fallbackFields)
+                        .eq('id', user.id)
+                        .single()
+
+                    if (retryProfile) {
+                        profileData = retryProfile as any;
+                    } else {
+                        return { error: 'Profile not found' }
+                    }
+                }
+
+                if (!profileData) return { error: 'Profile not found' }
+
+                let partnerId = profileData.partner_id
+                const coupleId = profileData.couple_id
 
                 // If partner not linked in profile, try to find via couples table
                 // This is a "fix-it" step, usually fast or skipped
@@ -57,9 +79,11 @@ export async function fetchDashboardData() {
                 // Data stays visible for 24h from creation, instead of resetting at midnight
                 const rolling24hStart = new Date(now.getTime() - 24 * 60 * 60 * 1000)
 
+                const currentSelect = supportsLocationSource ? selectFields : fallbackFields;
+
                 const promises = [
-                    // 0. Partner Profile
-                    partnerId ? supabase.from('profiles').select('id, display_name, avatar_url, gender, city, timezone, latitude, longitude').eq('id', partnerId).single() : Promise.resolve({ data: null }),
+                    // 0. Partner Profile (Uses detected fields)
+                    partnerId ? supabase.from('profiles').select(currentSelect).eq('id', partnerId).single() : Promise.resolve({ data: null }),
 
                     // 1. Cycles (User & Partner)
                     supabase.from('cycle_profiles').select('user_id, last_period_start, avg_cycle_length, avg_period_length, sharing_enabled, onboarding_completed, period_ended_at').in('user_id', [user.id, partnerId].filter(Boolean)),
@@ -158,7 +182,7 @@ export async function fetchDashboardData() {
                     success: true,
                     data: {
                         // Identity
-                        profile: { ...profile, partner_id: partnerId },
+                        profile: { ...profileData, partner_id: partnerId },
                         partnerProfile: pProfileRes.data,
                         couple: coupleRes.data,
 

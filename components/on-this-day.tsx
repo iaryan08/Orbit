@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar, Heart, MapPin, Sparkles, Flame } from "lucide-react"
 import { format } from "date-fns"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { MemoryDetailDialog } from "./memory-detail-dialog"
 
 interface Memory {
     id: string
@@ -145,6 +146,8 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
 
     const [currentIndex, setCurrentIndex] = useState(0)
     const [direction, setDirection] = useState(0)
+    const [selectedMemory, setSelectedMemory] = useState<any | null>(null)
+    const [isDetailOpen, setIsDetailOpen] = useState(false)
 
     // Handle empty items with specialized view
     if (items.length === 0) return null;
@@ -167,6 +170,13 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
         setDirection(-1)
         setCurrentIndex(prev => (prev === 0 ? items.length - 1 : prev - 1))
     }
+
+    const handleItemClick = useCallback(() => {
+        if (currentItem.type === 'memory') {
+            setSelectedMemory(currentItem)
+            setIsDetailOpen(true)
+        }
+    }, [currentItem])
 
     const variants = {
         enter: (direction: number) => ({
@@ -227,16 +237,24 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
                     >
                         {currentItem.type === 'memory' ? (
                             // MEMORY CARD VIEW
-                            <div className="w-full h-full relative">
+                            <div
+                                className="w-full h-full relative cursor-pointer group/item pointer-events-auto"
+                                onClick={handleItemClick}
+                            >
                                 <Image
                                     src={currentItem.image_urls[0] || "/placeholder.svg"}
                                     alt={currentItem.title}
                                     fill
                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                    className="object-cover"
+                                    className="object-cover transition-transform duration-700 group-hover/item:scale-110"
                                     draggable={false}
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover/item:from-black/90 transition-all" />
+                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                    <div className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-bold uppercase tracking-widest">
+                                        View Story
+                                    </div>
+                                </div>
                                 <div className="absolute bottom-4 left-4 right-4 pointer-events-none">
                                     <h3 className="text-lg font-bold text-white leading-tight drop-shadow-md">{currentItem.title}</h3>
                                     <div className="flex items-center gap-3 mt-1 text-[10px] uppercase tracking-[0.2em] font-bold text-white/60">
@@ -324,6 +342,12 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
                     </>
                 )}
             </CardContent>
+
+            <MemoryDetailDialog
+                isOpen={isDetailOpen}
+                memory={selectedMemory}
+                onClose={() => setIsDetailOpen(false)}
+            />
         </Card>
     )
 }

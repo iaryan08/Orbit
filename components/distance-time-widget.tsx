@@ -28,12 +28,32 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
         Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
         Math.sin(dLon / 2) * Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const d = R * c; // Distance in km
-    return d;
+    return R * c; // Distance in km
 }
 
 function deg2rad(deg: number) {
     return deg * (Math.PI / 180);
+}
+
+function formatRelativeTime(dateString: string, now: Date) {
+    if (!dateString) return null;
+    try {
+        const date = new Date(dateString);
+        const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+        if (diffInSeconds < 30) return 'just now';
+
+        const diffInMinutes = Math.floor(diffInSeconds / 60);
+        if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+
+        const diffInHours = Math.floor(diffInMinutes / 60);
+        if (diffInHours < 24) return `${diffInHours}h ago`;
+
+        const diffInDays = Math.floor(diffInHours / 24);
+        return `${diffInDays}d ago`;
+    } catch (e) {
+        return null;
+    }
 }
 
 export function DistanceTimeWidget({ userProfile, partnerProfile }: DistanceWidgetProps) {
@@ -53,27 +73,30 @@ export function DistanceTimeWidget({ userProfile, partnerProfile }: DistanceWidg
 
     const handleUpdateLocation = () => {
         if (!navigator.geolocation) {
-            toast({ title: "Error", description: "Geolocation is not supported by your browser", variant: "destructive" })
+            console.error("Geolocation is not supported by your browser");
             return
         }
 
         setUpdating(true)
         navigator.geolocation.getCurrentPosition(
             async (position) => {
+                console.log("[Geolocation] Success:", position.coords.latitude, position.coords.longitude);
                 setIsBlocked(false)
                 const { latitude, longitude } = position.coords
-                const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
                 await updateLocation({
                     latitude,
-                    longitude,
-                    timezone
+                    longitude
                 })
 
                 setUpdating(false)
             },
-            (error) => {
+            async (error) => {
+                console.warn("[Geolocation] Failed:", error.code, error.message);
                 setUpdating(false)
+                // Added IP lookup when GPS is denied/unavailable
+                await updateLocation({});
+
                 let msg = "Geolocation error"
                 if (error.code === error.PERMISSION_DENIED) {
                     setIsBlocked(true)
@@ -102,8 +125,10 @@ export function DistanceTimeWidget({ userProfile, partnerProfile }: DistanceWidg
         }
     }
 
-    const hasUserLoc = userProfile?.latitude && userProfile?.longitude
-    const hasPartnerLoc = partnerProfile?.latitude && partnerProfile?.longitude
+    const hasUserLoc = (userProfile?.latitude !== undefined && userProfile?.latitude !== null) &&
+        (userProfile?.longitude !== undefined && userProfile?.longitude !== null)
+    const hasPartnerLoc = (partnerProfile?.latitude !== undefined && partnerProfile?.latitude !== null) &&
+        (partnerProfile?.longitude !== undefined && partnerProfile?.longitude !== null)
 
     const distance: string | null = (hasUserLoc && hasPartnerLoc)
         ? calculateDistance(userProfile.latitude, userProfile.longitude, partnerProfile.latitude, partnerProfile.longitude).toFixed(0)
@@ -139,10 +164,19 @@ export function DistanceTimeWidget({ userProfile, partnerProfile }: DistanceWidg
                         {/* User */}
                         <div className="text-left relative z-10">
                             <div className="text-2xl font-bold text-white leading-none">
-                                {formatTime(userProfile?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone)}
+                                {formatTime(userProfile?.timezone || 'UTC')}
                             </div>
-                            <div className="text-xs text-white/40 font-medium mt-1 flex items-center gap-1">
-                                {userProfile?.city || 'Your Time'}
+                            <div className="text-xs text-white/40 font-medium mt-1 flex flex-col gap-0.5">
+                                <div className="flex items-center gap-1 flex-wrap">
+                                    <span className="leading-tight">{userProfile?.city || 'Your Time'}</span>
+                                    {userProfile?.location_source === 'ip' && <span className="text-[10px] text-rose-400 font-bold shrink-0">(IP)</span>}
+                                    <span className="hidden md:inline opacity-30 text-[10px] shrink-0">{userProfile?.timezone}</span>
+                                </div>
+                                {hasUserLoc && (
+                                    <span className="text-[9px] opacity-40 uppercase tracking-tighter">
+                                        Seen {formatRelativeTime(userProfile.updated_at, currentTime)}
+                                    </span>
+                                )}
                             </div>
                         </div>
 
@@ -176,8 +210,17 @@ export function DistanceTimeWidget({ userProfile, partnerProfile }: DistanceWidg
                             <div className="text-2xl font-bold text-white/90 leading-none">
                                 {partnerProfile?.timezone ? formatTime(partnerProfile.timezone) : '--:--'}
                             </div>
-                            <div className="text-xs text-white/40 font-medium mt-1 flex items-center justify-end gap-1">
-                                {partnerProfile?.city || (partnerProfile?.display_name || 'Partner')}
+                            <div className="text-xs text-white/40 font-medium mt-1 flex flex-col items-end gap-0.5">
+                                <div className="flex items-center gap-1 flex-row-reverse flex-wrap justify-end">
+                                    <span className="leading-tight text-right">{partnerProfile?.city || (partnerProfile?.display_name || 'Partner')}</span>
+                                    {partnerProfile?.location_source === 'ip' && <span className="text-[10px] text-rose-400 font-bold shrink-0">(IP)</span>}
+                                    <span className="hidden md:inline opacity-30 text-[10px] shrink-0">{partnerProfile?.timezone}</span>
+                                </div>
+                                {hasPartnerLoc && (
+                                    <span className="text-[9px] opacity-40 uppercase tracking-tighter">
+                                        Seen {formatRelativeTime(partnerProfile.updated_at, currentTime)}
+                                    </span>
+                                )}
                             </div>
                         </div>
                     </div>

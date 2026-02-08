@@ -9,6 +9,15 @@ export function LocationTracker() {
     const [isVisible, setIsVisible] = useState(false)
 
     useEffect(() => {
+        if (isVisible) {
+            const timer = setTimeout(() => {
+                setIsVisible(false)
+            }, 5000)
+            return () => clearTimeout(timer)
+        }
+    }, [isVisible])
+
+    useEffect(() => {
         if (!navigator.permissions || !navigator.permissions.query) return
 
         const checkPermission = async () => {
