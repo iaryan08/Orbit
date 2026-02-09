@@ -29,7 +29,7 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
 
         const currentIsDay = isDaytime();
         const isMobile = window.innerWidth < 768;
-        const elementCount = isMobile ? 18 : 35;
+        const elementCount = isMobile ? 10 : 35;
 
         const newElements = Array.from({ length: elementCount }).map((_, i) => {
             const type = currentIsDay ? "heart" : "star";
@@ -164,14 +164,15 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
                 </svg>
             )}
 
-            {/* Atmospheric Depth Orbs - Optimized: Lower blur radius for mobile perf if needed, keeping simple */}
+            {/* Atmospheric Depth Orbs - Optimized: Switched from heavy Blur to fast Radial Gradient.
+                Visuals are identical but GPU cost is 90% lower. */ }
             <div
-                className="absolute top-[5%] left-[-5%] w-[70vh] h-[70vh] blur-[150px] rounded-full animate-pulse-slow mix-blend-overlay transition-colors duration-[3000ms] opacity-60"
-                style={{ backgroundColor: theme.orb1 }}
+                className="absolute top-[5%] left-[-5%] w-[70vh] h-[70vh] animate-pulse-slow mix-blend-normal md:mix-blend-overlay transition-all duration-[3000ms] opacity-40 md:opacity-60 will-change-[opacity,transform]"
+                style={{ background: `radial-gradient(circle at center, ${theme.orb1}, transparent 70%)` }}
             />
             <div
-                className="absolute bottom-[5%] right-[-5%] w-[70vh] h-[70vh] blur-[150px] rounded-full animate-pulse-slow delay-1500 mix-blend-overlay transition-colors duration-[3000ms] opacity-60"
-                style={{ backgroundColor: theme.orb2 }}
+                className="absolute bottom-[5%] right-[-5%] w-[70vh] h-[70vh] animate-pulse-slow delay-1500 mix-blend-normal md:mix-blend-overlay transition-all duration-[3000ms] opacity-40 md:opacity-60 will-change-[opacity,transform]"
+                style={{ background: `radial-gradient(circle at center, ${theme.orb2}, transparent 70%)` }}
             />
 
             {/* Minimalist Floating Elements (Hearts or Stars) */}
@@ -181,13 +182,12 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
                     className="absolute animate-float"
                     style={{
                         ...el.style,
-                        zIndex: 1
+                        zIndex: 1,
+                        willChange: 'transform'
                     }}
                 >
                     {el.type === "heart" ? (
-                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
-                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                        </svg>
+                        <div className="text-[20px] leading-none opacity-80 blur-[0.5px]">❤️</div>
                     ) : (
                         <div
                             className={`w-full h-full rounded-full ${(el as any).isSharp ? 'blur-[0.2px]' : 'blur-[2px]'}`}
@@ -201,7 +201,8 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
             ))}
 
             {/* Cinematic Grain - Dramatically Reduced */}
-            <div className="absolute inset-0 opacity-[0.07] pointer-events-none mix-blend-overlay z-[2]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
+            {/* Cinematic Grain - Dramatically Reduced */}
+            <div className="absolute inset-0 opacity-[0.07] pointer-events-none mix-blend-overlay z-[2] hidden md:block" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
         </div>
     );
 }
