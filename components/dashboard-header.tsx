@@ -58,6 +58,7 @@ export function DashboardHeader({
   const [hoveredPath, setHoveredPath] = useState<string | null>(null)
   const [isVisible, setIsVisible] = useState(true)
   const lastScrollYRef = useRef(0)
+  const ticking = useRef(false)
 
   const [mounted, setMounted] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
@@ -66,18 +67,24 @@ export function DashboardHeader({
   useEffect(() => {
     setMounted(true)
     const handleScroll = () => {
-      const currentScrollY = window.scrollY
+      if (!ticking.current) {
+        requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY
 
-      // Scrolled state for dock switching
-      setScrolled(currentScrollY > 40)
+          // Scrolled state for dock switching
+          setScrolled(currentScrollY > 40)
 
-      // Visibility logic (Hide on down, Show on up)
-      if (currentScrollY > lastScrollYRef.current && currentScrollY > 100) {
-        setIsVisible(false)
-      } else {
-        setIsVisible(true)
+          // Visibility logic (Hide on down, Show on up)
+          if (currentScrollY > lastScrollYRef.current && currentScrollY > 100) {
+            setIsVisible(false)
+          } else {
+            setIsVisible(true)
+          }
+          lastScrollYRef.current = currentScrollY
+          ticking.current = false
+        })
+        ticking.current = true
       }
-      lastScrollYRef.current = currentScrollY
     }
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768)
