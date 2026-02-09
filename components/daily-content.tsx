@@ -97,7 +97,7 @@ export function DailyContent() {
 
   return (
     <Card className="border-none bg-transparent shadow-none relative" glassy={false}>
-      <CardHeader className="pb-4 md:pb-2 p-0">
+      <CardHeader className="pb-2 p-0">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg font-serif text-white">
             <Sparkles className="h-5 w-5 text-cyan-400" />
@@ -138,7 +138,7 @@ export function DailyContent() {
           })}
         </div>
       </CardHeader>
-      <CardContent className="px-0 pt-6">
+      <CardContent className="px-0 pt-2">
         <div className="min-h-[100px] flex items-center justify-center">
           {loading ? (
             <div className="flex items-center gap-2 text-rose-100/60">

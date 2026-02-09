@@ -111,7 +111,7 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
             </div>
 
             <div className="flex flex-col min-w-0">
-              <p className="text-sm font-bold text-white tracking-widest uppercase truncate leading-none mb-1.5 opacity-90 group-hover:text-rose-100 transition-colors">
+              <p className="text-sm font-bold text-white tracking-widest uppercase whitespace-normal break-words leading-none mb-1.5 opacity-90 group-hover:text-rose-100 transition-colors">
                 {moodLabel}
               </p>
               <div className="flex items-center gap-2">
@@ -119,7 +119,7 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
                 {noteToShow && (
                   <>
                     <div className="w-1 h-1 rounded-full bg-white/10 shrink-0" />
-                    <p className="text-[10px] text-white/30 italic truncate">
+                    <p className="text-[10px] text-white/30 italic whitespace-normal break-words">
                       "{noteToShow}"
                     </p>
                   </>

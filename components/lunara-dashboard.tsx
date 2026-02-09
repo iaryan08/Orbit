@@ -76,11 +76,20 @@ export function LunaraDashboard({ initialData }: { initialData: any }) {
 
     const getCycleDay = () => {
         if (!cycleProfile?.last_period_start) return null
-        const start = startOfDay(new Date(cycleProfile.last_period_start))
-        const today = startOfDay(new Date())
-        const diff = differenceInDays(today, start)
+
+        // Use simpler date difference logic based on IST strings
+        const lastPeriod = new Date(cycleProfile.last_period_start)
+        const todayStr = getTodayIST() // Returns YYYY-MM-DD in IST
+        const todayDate = new Date(todayStr)
+
+        // Calculate difference in days directly
+        // When both dates are created from YYYY-MM-DD strings in the same environment,
+        // their time components match (local midnight), so diff is clean.
+        const diffTime = todayDate.getTime() - lastPeriod.getTime()
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24))
+
         const cycleLength = cycleProfile.avg_cycle_length || 28
-        return (diff % cycleLength) + 1
+        return (diffDays % cycleLength) + 1
     }
 
     const getPhaseInfo = (day: number) => {

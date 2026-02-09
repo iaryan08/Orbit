@@ -60,7 +60,7 @@ export function PartnerMood({ partnerName, partnerAvatar, moods }: PartnerMoodPr
       <CardContent className="flex items-center justify-between p-3 relative overflow-hidden h-full min-h-[70px]">
         <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
 
-        <div className="flex items-center gap-4 flex-1 min-w-0">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           <div className="relative shrink-0">
             <Avatar className="w-10 h-10 ring-1 ring-rose-200/10">
               <AvatarImage src={partnerAvatar || undefined} />
@@ -74,22 +74,22 @@ export function PartnerMood({ partnerName, partnerAvatar, moods }: PartnerMoodPr
           </div>
 
           <div className="flex flex-col min-w-0">
-            <p className="text-sm font-bold text-white tracking-widest uppercase truncate leading-none mb-1.5 opacity-90 group-hover:text-rose-100 transition-colors">
+            <p className="text-sm font-bold text-white tracking-widest uppercase whitespace-normal break-words leading-none mb-0.5 opacity-90 group-hover:text-rose-100 transition-colors">
               {partnerName}
             </p>
-            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
+            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-1.5">
               <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] leading-none shrink-0">Vibes</span>
               {latestMood.note ? (
                 <>
                   <div className="hidden md:block w-1 h-1 rounded-full bg-white/10 shrink-0" />
-                  <p className="text-[10px] text-white/30 italic truncate">
+                  <p className="text-[10px] text-white/30 italic whitespace-normal break-words md:flex-1 md:min-w-0 text-left">
                     "{latestMood.note}"
                   </p>
                 </>
               ) : (
                 <>
                   <div className="hidden md:block w-1 h-1 rounded-full bg-white/10 shrink-0" />
-                  <p className="text-[10px] text-white/30 italic truncate capitalize">
+                  <p className="text-[10px] text-white/30 italic whitespace-normal break-words capitalize md:flex-1 md:min-w-0 text-left">
                     {moodLabel}
                   </p>
                 </>
@@ -99,7 +99,7 @@ export function PartnerMood({ partnerName, partnerAvatar, moods }: PartnerMoodPr
         </div>
 
         <div className="flex flex-col items-end gap-1.5 pl-4 ml-auto shrink-0">
-          <div className="flex items-center gap-1 text-[8px] font-black text-white/20 uppercase tracking-widest">
+          <div className="flex items-center gap-1 text-[8px] font-black text-white/20 uppercase tracking-widest" suppressHydrationWarning>
             <Clock className="w-2.5 h-2.5" />
             {formatTime(latestMood.created_at)}
           </div>

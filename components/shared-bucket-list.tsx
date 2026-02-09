@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Trash2, Check, Sparkles, Target, Trophy } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -14,6 +14,26 @@ export function SharedBucketList({ initialItems = [] }: { initialItems: any[] })
     const [isAdding, setIsAdding] = useState(false)
     const { toast } = useToast()
     const inputRef = useRef<HTMLInputElement>(null)
+    const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+    const processingIds = useRef(new Set<string>())
+
+    // Sync with server state
+    useEffect(() => {
+        setItems(current => {
+            // Restore/Protect items currently being toggled/deleted
+            if (processingIds.current.size > 0) {
+                return initialItems.map(serverItem => {
+                    if (processingIds.current.has(serverItem.id)) {
+                        const local = current.find(i => i.id === serverItem.id)
+                        // If local version exists, prefer it. If deleted locally, return null to filter.
+                        return local || null
+                    }
+                    return serverItem
+                }).filter(Boolean)
+            }
+            return initialItems
+        })
+    }, [initialItems])
 
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -23,25 +43,22 @@ export function SharedBucketList({ initialItems = [] }: { initialItems: any[] })
         setNewItemTitle('')
         setIsAdding(true)
 
-        // Optimistic Add
+        // Optimistic Add - Immediate UI Update
         const optimItem = {
             id: 'optimistic-' + Date.now(),
             title: title,
             is_completed: false,
             created_at: new Date().toISOString()
         }
-        setItems([optimItem, ...items])
+        setItems(prev => [optimItem, ...prev])
 
         const res = await addBucketItem(title)
 
         setIsAdding(false)
         if (res.error) {
             toast({ title: "Error", description: res.error, variant: "destructive" })
-            setItems(items) // Revert
+            setItems(initialItems) // Revert to initial
         } else {
-            // Ideally we'd get the real ID back, but for now we'll rely on revalidation or just leave it until refresh
-            // Since we revalidatePath in the action, the parent component *should* refresh if it's a server component
-            // But client state might persist. Let's just keep the optimistic one visually for now.
             toast({ title: "Dream Added", description: "Added to your shared bucket list!", variant: "success" })
         }
     }
@@ -50,33 +67,51 @@ export function SharedBucketList({ initialItems = [] }: { initialItems: any[] })
         if (id.startsWith('optimistic-')) return
 
         const newStatus = !currentStatus
+        // Mark as processing immediately to protect from stale server updates
+        processingIds.current.add(id)
 
-        // Optimistic Update
-        setItems(items.map(i => i.id === id ? { ...i, is_completed: newStatus } : i))
+        // Optimistic Update - Immediate UI Update
+        setItems(prev => prev.map(i => i.id === id ? { ...i, is_completed: newStatus, completed_at: newStatus ? new Date().toISOString() : null } : i))
 
-        // Trigger confetti or sound effect here if completing?
+        // Sound effect (optional)
         if (newStatus) {
-            // maybe play sound
+            // playSound()
         }
 
         const res = await toggleBucketItem(id, newStatus)
+
+        // Remove from processing with a delay to ensure any immediate revalidations 
+        // that might contain stale data don't overwrite our local state
+        setTimeout(() => {
+            processingIds.current.delete(id)
+        }, 2000)
+
         if (res.error) {
             toast({ title: "Error", description: res.error, variant: "destructive" })
-            setItems(items) // Revert
+            setItems(initialItems) // Revert logic handled by next sync or manual reset could be better
         }
     }
 
     const handleDelete = async (id: string) => {
         if (id.startsWith('optimistic-')) return
 
-        // Optimistic Delete
-        const oldItems = [...items]
-        setItems(items.filter(i => i.id !== id))
+        processingIds.current.add(id)
+
+        // Optimistic Delete - Immediate UI Update
+        if (selectedItemId === id) setSelectedItemId(null)
+        setItems(prev => prev.filter(i => i.id !== id))
 
         const res = await deleteBucketItem(id)
+
+        // Remove from processing with a delay to ensure any immediate revalidations 
+        // that might contain stale data don't overwrite our local state
+        setTimeout(() => {
+            processingIds.current.delete(id)
+        }, 2000)
+
         if (res.error) {
             toast({ title: "Error", description: res.error, variant: "destructive" })
-            setItems(oldItems) // Revert
+            setItems(initialItems) // Revert
         }
     }
 
@@ -186,15 +221,18 @@ export function SharedBucketList({ initialItems = [] }: { initialItems: any[] })
                                     initial={{ opacity: 0, y: 10, scale: 0.98 }}
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
+                                    onClick={() => setSelectedItemId(prev => prev === item.id ? null : item.id)}
                                     className={cn(
-                                        "group flex items-center gap-3 p-3.5 rounded-2xl border transition-[background-color,border-color,opacity,shadow] duration-300",
+                                        "group flex items-center gap-3 p-3.5 rounded-2xl border transition-[background-color,border-color,opacity,shadow,transform] duration-300 cursor-pointer active:scale-[0.99]",
                                         item.is_completed
                                             ? "bg-rose-500/5 border-rose-500/10 opacity-60"
-                                            : "glass-card border-white/5 hover:border-rose-500/20 shadow-sm"
+                                            : item.id === selectedItemId
+                                                ? "bg-white/5 border-rose-500/20 shadow-lg"
+                                                : "glass-card border-white/5 hover:border-rose-500/20 shadow-sm"
                                     )}
                                 >
                                     <button
-                                        onClick={() => handleToggle(item.id, item.is_completed)}
+                                        onClick={(e) => { e.stopPropagation(); handleToggle(item.id, item.is_completed); }}
                                         className={cn(
                                             "w-6 h-6 rounded-full border flex items-center justify-center transition-[background-color,border-color,box-shadow,color] duration-300 flex-shrink-0",
                                             item.is_completed
@@ -219,8 +257,13 @@ export function SharedBucketList({ initialItems = [] }: { initialItems: any[] })
                                     )}
 
                                     <button
-                                        onClick={() => handleDelete(item.id)}
-                                        className="opacity-0 group-hover:opacity-100 p-2 rounded-xl text-rose-100/10 hover:text-red-400 hover:bg-red-500/10 transition-[opacity,color,background-color] ml-1"
+                                        onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
+                                        className={cn(
+                                            "p-2 rounded-xl text-rose-100/40 hover:text-red-400 hover:bg-red-500/10 transition-[opacity,transform,color,background-color] ml-1 shrink-0 duration-200",
+                                            item.id === selectedItemId
+                                                ? "opacity-100 scale-100"
+                                                : "opacity-0 scale-90 md:group-hover:opacity-100 md:group-hover:scale-100"
+                                        )}
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
