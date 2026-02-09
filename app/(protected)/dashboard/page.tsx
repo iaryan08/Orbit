@@ -130,6 +130,8 @@ export default async function DashboardPage() {
                                 <PartnerStatus partnerId={partnerProfile?.id} />
                             </div>
 
+
+
                             <div className="flex items-center justify-center lg:justify-start">
                                 {partnerProfile && (
                                     <WeatherBadge

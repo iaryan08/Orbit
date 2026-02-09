@@ -250,8 +250,7 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
                                             className="w-full h-full cursor-grab active:cursor-grabbing"
                                         >
                                             <div
-                                                className="relative w-full h-full bg-neutral-900 overflow-hidden shadow-2xl cursor-pointer"
-                                                onClick={() => setFullScreenImage(url)}
+                                                className="relative w-full h-full bg-neutral-900 overflow-hidden shadow-2xl"
                                             >
                                                 <Image
                                                     src={url || "/placeholder.svg"}
