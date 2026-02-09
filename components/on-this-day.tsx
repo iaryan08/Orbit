@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar, Heart, MapPin, Sparkles, Flame } from "lucide-react"
 import { format } from "date-fns"
 import Image from "next/image"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { MemoryDetailDialog } from "./memory-detail-dialog"
 
@@ -148,6 +148,7 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
     const [direction, setDirection] = useState(0)
     const [selectedMemory, setSelectedMemory] = useState<any | null>(null)
     const [isDetailOpen, setIsDetailOpen] = useState(false)
+    const isDraggingRef = useRef(false)
 
     // Handle empty items with specialized view
     if (items.length === 0) return null;
@@ -172,7 +173,7 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
     }
 
     const handleItemClick = useCallback(() => {
-        if (currentItem.type === 'memory') {
+        if (!isDraggingRef.current && currentItem.type === 'memory') {
             setSelectedMemory(currentItem)
             setIsDetailOpen(true)
         }
@@ -228,7 +229,9 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
                         drag="x"
                         dragConstraints={{ left: 0, right: 0 }}
                         dragElastic={0.2}
+                        onDragStart={() => { isDraggingRef.current = true }}
                         onDragEnd={(e, { offset, velocity }) => {
+                            setTimeout(() => { isDraggingRef.current = false }, 150)
                             const swipe = offset.x
                             if (swipe < -50) nextItem()
                             else if (swipe > 50) prevItem()
