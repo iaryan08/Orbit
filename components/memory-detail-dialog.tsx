@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { format } from "date-fns"
-import { Heart, Maximize2 } from "lucide-react"
+import { Heart } from "lucide-react"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -55,6 +55,7 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
     const [fullScreenImage, setFullScreenImage] = useState<string | null>(null)
     const [isExpanded, setIsExpanded] = useState(false)
     const { toast } = useToast()
+    const isDraggingRef = useRef(false)
 
     const supabase = createClient()
 
@@ -220,8 +221,9 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
                                         <motion.div
                                             key={`${memory?.id}-${index}`}
                                             style={{
-                                                zIndex: memory.image_urls.length - index,
-                                                position: 'absolute'
+                                                zIndex: isTop ? 50 : memory.image_urls.length - index,
+                                                position: 'absolute',
+                                                pointerEvents: isTop ? 'auto' : 'none'
                                             }}
                                             initial={{ scale: 0.9, opacity: 0, y: 30 }}
                                             animate={{
@@ -238,42 +240,54 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
                                             }}
                                             drag={isTop ? "x" : false}
                                             dragConstraints={{ left: 0, right: 0 }}
+                                            onDragStart={() => {
+                                                isDraggingRef.current = true
+                                            }}
                                             onDragEnd={(_, info) => {
-                                                if (Math.abs(info.offset.x) > 100) {
+                                                setTimeout(() => {
+                                                    isDraggingRef.current = false
+                                                }, 150) // Small delay to prevent click firing immediately after drag
+
+                                                const swipeThreshold = 100
+                                                const { offset, velocity } = info
+
+                                                // Swipe Left (Next)
+                                                if (offset.x < -swipeThreshold || velocity.x < -500) {
                                                     if (currentImageIndex < memory.image_urls.length - 1) {
                                                         setCurrentImageIndex(prev => prev + 1)
                                                     } else {
                                                         setCurrentImageIndex(0)
                                                     }
                                                 }
+                                                // Swipe Right (Previous)
+                                                else if (offset.x > swipeThreshold || velocity.x > 500) {
+                                                    if (currentImageIndex > 0) {
+                                                        setCurrentImageIndex(prev => prev - 1)
+                                                    } else {
+                                                        setCurrentImageIndex(memory.image_urls.length - 1)
+                                                    }
+                                                }
                                             }}
-                                            className="w-full h-full cursor-grab active:cursor-grabbing"
+                                            className="w-full h-full cursor-grab active:cursor-grabbing touch-pan-y"
                                         >
                                             <div
-                                                className="relative w-full h-full bg-neutral-900 overflow-hidden shadow-2xl"
+                                                className="relative w-full h-full bg-neutral-900 overflow-hidden shadow-2xl cursor-pointer"
+                                                onClick={() => {
+                                                    if (!isDraggingRef.current) {
+                                                        setFullScreenImage(url)
+                                                    }
+                                                }}
                                             >
                                                 <Image
                                                     src={url || "/placeholder.svg"}
                                                     alt={`${memory.title} ${index + 1}`}
                                                     fill
                                                     sizes="(max-width: 768px) 80vw, 400px"
-                                                    className="object-cover"
+                                                    className="object-cover pointer-events-none"
                                                     draggable={false}
                                                     loading="lazy"
                                                 />
-                                                {/* Full Screen Icon - Visible on mobile, hover on desktop */}
-                                                <div className="absolute top-4 left-4 z-[60] opacity-100 sm:opacity-0 sm:group-hover:opacity-40 sm:hover:!opacity-100 transition-opacity">
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setFullScreenImage(url);
-                                                        }}
-                                                        className="w-7 h-7 flex items-center justify-center rounded-full bg-black/40 text-white/50 hover:text-white hover:bg-black/60 transition-all backdrop-blur-md"
-                                                        title="View Fullscreen"
-                                                    >
-                                                        <Maximize2 className="h-3 w-3" />
-                                                    </button>
-                                                </div>
+
 
                                                 <div className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded-full font-black uppercase tracking-[0.2em]">
                                                     {index + 1} / {memory.image_urls.length}
