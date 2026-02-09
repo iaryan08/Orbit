@@ -282,11 +282,10 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
                                                     src={url || "/placeholder.svg"}
                                                     alt={`${memory.title} ${index + 1}`}
                                                     fill
-                                                    priority={isTop}
                                                     sizes="(max-width: 768px) 80vw, 400px"
                                                     className="object-cover pointer-events-none"
                                                     draggable={false}
-                                                    loading={isTop ? "eager" : "lazy"}
+                                                    loading="lazy"
                                                 />
 
 
