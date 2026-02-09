@@ -30,7 +30,7 @@ export function PartnerStatus({ partnerId }: { partnerId: string | null }) {
             .on('presence', { event: 'sync' }, checkPresence)
             .on('presence', { event: 'join' }, checkPresence)
             .on('presence', { event: 'leave' }, checkPresence)
-            .subscribe(async (status) => {
+            .subscribe(async (status: string) => {
                 if (status === 'SUBSCRIBED') {
                     const { data: { user } } = await supabase.auth.getUser()
                     if (user) {
@@ -50,7 +50,7 @@ export function PartnerStatus({ partnerId }: { partnerId: string | null }) {
     return (
         <div className="relative flex items-center justify-center">
             <span className={cn(
-                "w-2 h-2 rounded-full transition-all duration-500",
+                "w-2 h-2 rounded-full transition-colors duration-500",
                 isOnline
                     ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"
                     : "bg-white/10"

@@ -249,7 +249,7 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
                                     className="object-cover transition-transform duration-700 group-hover/item:scale-110"
                                     draggable={false}
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover/item:from-black/90 transition-all" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover/item:from-black/90 transition-[background-color]" />
                                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/item:opacity-100 transition-opacity">
                                     <div className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-bold uppercase tracking-widest">
                                         View Story
@@ -326,7 +326,7 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
                         <div className="absolute top-1/2 left-2 -translate-y-1/2 z-20">
                             <button
                                 onClick={prevItem}
-                                className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center text-white/30 hover:text-white hover:bg-black/40 transition-all cursor-pointer border border-white/5"
+                                className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center text-white/30 hover:text-white hover:bg-black/40 transition-[color,background-color] cursor-pointer border border-white/5"
                             >
                                 <Heart className="h-4 w-4 -rotate-90" />
                             </button>
@@ -334,7 +334,7 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
                         <div className="absolute top-1/2 right-2 -translate-y-1/2 z-20">
                             <button
                                 onClick={nextItem}
-                                className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center text-white/30 hover:text-white hover:bg-black/40 transition-all cursor-pointer border border-white/5"
+                                className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center text-white/30 hover:text-white hover:bg-black/40 transition-[color,background-color] cursor-pointer border border-white/5"
                             >
                                 <Heart className="h-4 w-4 rotate-90" />
                             </button>

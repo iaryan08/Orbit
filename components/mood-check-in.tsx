@@ -133,7 +133,7 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
             {userMoods.length > 1 && (
               <div className="flex gap-1 items-center">
                 {userMoods.slice(1, 4).map((m, i) => (
-                  <div key={i} className="text-[10px] opacity-20 hover:opacity-100 transition-all grayscale hover:grayscale-0">
+                  <div key={i} className="text-[10px] opacity-20 hover:opacity-100 transition-[opacity,filter] grayscale hover:grayscale-0">
                     {parseMood(m.mood).emoji}
                   </div>
                 ))}
@@ -148,7 +148,7 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
   return (
     <Card
       className={cn(
-        "bg-transparent border-none shadow-none transition-all duration-300 pt-4 relative",
+        "bg-transparent border-none shadow-none transition-[padding,gap] duration-300 pt-4 relative",
         isExpanded ? "pb-10 gap-8" : "pb-4 gap-0"
       )}
       glassy={false}
@@ -170,7 +170,7 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
         </Button>
       </CardHeader>
       <CardContent className={cn(
-        "space-y-4 transition-all duration-300 overflow-hidden",
+        "space-y-4 transition-[max-height,opacity,padding,margin] duration-300 overflow-hidden",
         isExpanded ? "max-h-[1000px] opacity-100 mt-2" : "max-h-0 opacity-0 p-0"
       )}>
         <div className="grid grid-cols-3 md:grid-cols-4 gap-1.5">
@@ -179,7 +179,7 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
               key={mood}
               onClick={() => { setSelectedMood(mood); setIsCustomMode(false); }}
               className={cn(
-                'flex flex-col items-center gap-1 p-1.5 rounded-xl border border-white/10 transition-all',
+                'flex flex-col items-center gap-1 p-1.5 rounded-xl border border-white/10 transition-[background-color,border-color]',
                 selectedMood === mood && !isCustomMode
                   ? 'bg-primary/20 border-primary'
                   : 'bg-white/5 hover:bg-white/10'
@@ -192,7 +192,7 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
           <button
             onClick={() => { setIsCustomMode(true); setSelectedMood(null); }}
             className={cn(
-              'flex flex-col items-center gap-1 p-1.5 rounded-xl border border-white/10 transition-all',
+              'flex flex-col items-center gap-1 p-1.5 rounded-xl border border-white/10 transition-[background-color,border-color]',
               isCustomMode
                 ? 'bg-primary/20 border-primary'
                 : 'bg-white/5 hover:bg-white/10'

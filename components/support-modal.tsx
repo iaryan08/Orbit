@@ -136,7 +136,7 @@ export function SupportModal({ isOpen, onClose, phase, day, partnerName, partner
                         </button>
                     </div>
 
-                    <div className="px-8 py-4 max-h-[60vh] overflow-y-auto space-y-4">
+                    <div className="px-8 py-4 max-h-[60vh] overflow-y-auto space-y-4 minimal-scrollbar">
                         {loading ? (
                             <div className="flex flex-col items-center justify-center py-12 gap-4">
                                 <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />

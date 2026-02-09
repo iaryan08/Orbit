@@ -61,7 +61,7 @@ export function LocationTracker() {
                         </div>
                         <button
                             onClick={() => setIsVisible(false)}
-                            className="p-2 hover:bg-white/5 rounded-full transition-all text-rose-100/20 hover:text-rose-100"
+                            className="p-2 hover:bg-white/5 rounded-full transition-colors text-rose-100/20 hover:text-rose-100"
                         >
                             <X className="w-4 h-4" />
                         </button>

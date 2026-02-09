@@ -46,14 +46,15 @@ export function NotificationBell({ className }: { className?: string }) {
     const supabase = createClient()
 
     useEffect(() => {
+        let channel: any;
+
         const setupRealtime = async () => {
             const { data: { user } } = await supabase.auth.getUser()
             if (!user) return
 
             fetchCount()
 
-            // Realtime listener for NEW notifications (badge only)
-            const channel = supabase
+            channel = supabase
                 .channel('realtime-notifications')
                 .on(
                     'postgres_changes',
@@ -63,21 +64,20 @@ export function NotificationBell({ className }: { className?: string }) {
                         table: 'notifications',
                         filter: `recipient_id=eq.${user.id}`
                     },
-                    (payload) => {
+                    (payload: { new: any }) => {
                         setCount(prev => prev + 1)
-                        // Also prepend the new notification if it's open
                         setNotifications(prev => [payload.new as Notification, ...prev])
                     }
                 )
                 .subscribe()
-
-            return () => {
-                supabase.removeChannel(channel)
-            }
         }
 
         setupRealtime()
         checkPushSubscription()
+
+        return () => {
+            if (channel) supabase.removeChannel(channel)
+        }
     }, [])
 
 
@@ -243,7 +243,7 @@ export function NotificationBell({ className }: { className?: string }) {
         <>
             <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
-                    <Button variant="ghost" size="icon" className={cn("relative text-purple-200/70 hover:text-white hover:bg-purple-500/10 rounded-full h-10 w-10", className)}>
+                    <Button variant="ghost" size="icon" className={cn("relative text-purple-200/70 hover:text-white hover:bg-purple-500/10 rounded-full h-10 w-10 transition-colors", className)}>
                         <Bell className="h-5 w-5" />
                         {count > 0 && (
                             <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-rose-500 border border-black animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.6)]" />
@@ -403,7 +403,7 @@ export function NotificationBell({ className }: { className?: string }) {
 
                                         <button
                                             onClick={(e) => handleDelete(e, notification.id)}
-                                            className="absolute top-2 right-2 p-2 text-white/40 hover:text-white hover:bg-white/20 rounded-full opacity-0 group-hover:opacity-100 transition-all cursor-pointer"
+                                            className="absolute top-2 right-2 p-2 text-white/40 hover:text-white hover:bg-white/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                                         >
                                             <X className="h-5 w-5" />
                                         </button>

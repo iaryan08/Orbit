@@ -101,7 +101,7 @@ export default function MemoriesPage() {
         };
 
         // Get current user ID
-        supabase.auth.getUser().then(({ data }) => {
+        supabase.auth.getUser().then(({ data }: { data: any }) => {
             if (data?.user) setUserId(data.user.id);
         });
 
@@ -125,7 +125,7 @@ export default function MemoriesPage() {
 
             if (error) throw error;
             // Filter out memories with no images
-            const filteredData = (data || []).filter(m => m.image_urls && m.image_urls.length > 0);
+            const filteredData = (data || []).filter((m: any) => m.image_urls && m.image_urls.length > 0);
             setMemories(filteredData);
         } catch (error) {
             console.error("Error fetching memories:", error);
@@ -347,7 +347,7 @@ export default function MemoriesPage() {
                     {memories.map((memory, index) => (
                         <Card
                             key={memory.id}
-                            className="cursor-pointer overflow-hidden transition-all hover:shadow-lg group/card relative"
+                            className="cursor-pointer overflow-hidden transition-[box-shadow] hover:shadow-lg group/card relative"
                             onClick={() => {
                                 setSelectedMemory(memory);
                                 setCurrentImageIndex(0);
@@ -372,7 +372,7 @@ export default function MemoriesPage() {
                                     )}
 
                                     {userId === memory.user_id && (
-                                        <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover/card:opacity-100 transition-all duration-300 z-20">
+                                        <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover/card:opacity-100 transition-[opacity,transform] duration-300 z-20">
                                             <Button
                                                 variant="ghost"
                                                 size="icon"

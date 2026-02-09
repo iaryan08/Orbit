@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { format } from "date-fns"
 import { Heart, Maximize2 } from "lucide-react"
@@ -11,7 +11,9 @@ import { createClient } from "@/lib/supabase/client"
 import { FullScreenImageModal } from "./full-screen-image-modal"
 import {
     getMemoryComments,
-    addMemoryComment
+    addMemoryComment,
+    updateMemoryComment,
+    deleteMemoryComment
 } from "@/lib/actions/reactions-comments"
 import { CommentsDisplay } from "./comments-display"
 import { useToast } from "@/hooks/use-toast"
@@ -65,45 +67,45 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
         getUser()
     }, [supabase])
 
+    const fetchComments = useCallback(async () => {
+        if (!memory) return
+        const commentsRes = await getMemoryComments(memory.id)
+        if (commentsRes.data) {
+            const formattedComments = commentsRes.data.map((comment: any) => {
+                let profile = comment.profiles
+                if (Array.isArray(profile)) profile = profile[0]
+                return {
+                    ...comment,
+                    profiles: profile || { display_name: 'User', avatar_url: null }
+                }
+            })
+            setComments(formattedComments as any)
+        } else if (commentsRes.error) {
+            toast({
+                title: "Could not load comments",
+                description: commentsRes.error,
+                variant: "destructive"
+            })
+        }
+    }, [memory, toast])
+
     // Load comments and handle real-time updates
     useEffect(() => {
         if (!memory || !isOpen) return
-
-        const loadData = async () => {
-            const commentsRes = await getMemoryComments(memory.id)
-            if (commentsRes.data) {
-                const formattedComments = commentsRes.data.map((comment: any) => {
-                    let profile = comment.profiles
-                    if (Array.isArray(profile)) profile = profile[0]
-                    return {
-                        ...comment,
-                        profiles: profile || { display_name: 'User', avatar_url: null }
-                    }
-                })
-                setComments(formattedComments as any)
-            } else if (commentsRes.error) {
-                toast({
-                    title: "Could not load comments",
-                    description: commentsRes.error,
-                    variant: "destructive"
-                })
-            }
-        }
-
-        loadData()
+        fetchComments()
 
         const commentsSub = supabase
             .channel(`memory-comments:${memory.id}`)
             .on('postgres_changes',
                 { event: '*', schema: 'public', table: 'memory_comments', filter: `memory_id=eq.${memory.id}` },
-                () => loadData()
+                () => fetchComments()
             )
             .subscribe()
 
         return () => {
-            commentsSub.unsubscribe()
+            if (commentsSub) commentsSub.unsubscribe()
         }
-    }, [memory, isOpen, currentUserId, supabase, toast])
+    }, [memory, isOpen, currentUserId, supabase, fetchComments])
 
     // Reset image index and full screen state when memory changes or modal closes
     useEffect(() => {
@@ -151,6 +153,40 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
         }
     }
 
+    const handleEditComment = async (commentId: string, content: string) => {
+        const result = await updateMemoryComment(commentId, content)
+        if (result.success) {
+            fetchComments()
+            toast({
+                title: "Comment updated",
+                description: "Your comment was updated successfully."
+            })
+        } else {
+            toast({
+                title: "Error",
+                description: result.error || "Failed to update comment.",
+                variant: "destructive"
+            })
+        }
+    }
+
+    const handleDeleteComment = async (commentId: string) => {
+        const result = await deleteMemoryComment(commentId)
+        if (result.success) {
+            setComments(prev => prev.filter(c => c.id !== commentId))
+            toast({
+                title: "Comment deleted",
+                description: "Your comment was removed."
+            })
+        } else {
+            toast({
+                title: "Error",
+                description: result.error || "Failed to delete comment.",
+                variant: "destructive"
+            })
+        }
+    }
+
 
 
 
@@ -158,7 +194,7 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent
-                className="p-0 overflow-hidden border-none bg-neutral-950/80 backdrop-blur-xl sm:max-w-[400px] w-[80vw] h-auto max-h-[82vh] flex flex-col transition-all duration-300 rounded-3xl shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)]"
+                className="p-0 overflow-hidden border-none bg-neutral-950/85 backdrop-blur-md sm:max-w-[400px] w-[80vw] h-auto max-h-[82vh] flex flex-col transition-[opacity,transform] duration-200 rounded-3xl shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)]"
                 onInteractOutside={(e) => {
                     if (fullScreenImage) e.preventDefault()
                 }}
@@ -174,78 +210,79 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
 
                     <div className="relative h-[300px] w-full flex-shrink-0 flex items-center justify-center overflow-hidden bg-neutral-900/50">
                         <AnimatePresence initial={false}>
-                            {memory.image_urls.map((url, index) => {
-                                // Only show current and next image for performance/clarity
-                                if (index < currentImageIndex || index > currentImageIndex + 1) return null
+                            {memory.image_urls
+                                .slice(Math.max(0, currentImageIndex - 1), currentImageIndex + 2)
+                                .map((url, sliceIdx) => {
+                                    const index = memory.image_urls.indexOf(url)
+                                    const isTop = index === currentImageIndex
 
-                                const isTop = index === currentImageIndex
-
-                                return (
-                                    <motion.div
-                                        key={`${memory?.id}-${index}`}
-                                        style={{
-                                            zIndex: memory.image_urls.length - index,
-                                            position: 'absolute'
-                                        }}
-                                        initial={{ scale: 0.9, opacity: 0, y: 30 }}
-                                        animate={{
-                                            scale: isTop ? 1 : 1,
-                                            opacity: isTop ? 1 : 0,
-                                            y: 0,
-                                            rotate: 0
-                                        }}
-                                        exit={{
-                                            x: isTop ? (Math.random() > 0.5 ? 500 : -500) : 0,
-                                            opacity: 0,
-                                            rotate: isTop ? (Math.random() > 0.5 ? 45 : -45) : 0,
-                                            transition: { duration: 0.4 }
-                                        }}
-                                        drag={isTop ? "x" : false}
-                                        dragConstraints={{ left: 0, right: 0 }}
-                                        onDragEnd={(_, info) => {
-                                            if (Math.abs(info.offset.x) > 100) {
-                                                if (currentImageIndex < memory.image_urls.length - 1) {
-                                                    setCurrentImageIndex(prev => prev + 1)
-                                                } else {
-                                                    setCurrentImageIndex(0)
+                                    return (
+                                        <motion.div
+                                            key={`${memory?.id}-${index}`}
+                                            style={{
+                                                zIndex: memory.image_urls.length - index,
+                                                position: 'absolute'
+                                            }}
+                                            initial={{ scale: 0.9, opacity: 0, y: 30 }}
+                                            animate={{
+                                                scale: isTop ? 1 : 1,
+                                                opacity: isTop ? 1 : 0,
+                                                y: 0,
+                                                rotate: 0
+                                            }}
+                                            exit={{
+                                                x: isTop ? (Math.random() > 0.5 ? 500 : -500) : 0,
+                                                opacity: 0,
+                                                rotate: isTop ? (Math.random() > 0.5 ? 45 : -45) : 0,
+                                                transition: { duration: 0.4 }
+                                            }}
+                                            drag={isTop ? "x" : false}
+                                            dragConstraints={{ left: 0, right: 0 }}
+                                            onDragEnd={(_, info) => {
+                                                if (Math.abs(info.offset.x) > 100) {
+                                                    if (currentImageIndex < memory.image_urls.length - 1) {
+                                                        setCurrentImageIndex(prev => prev + 1)
+                                                    } else {
+                                                        setCurrentImageIndex(0)
+                                                    }
                                                 }
-                                            }
-                                        }}
-                                        className="w-full h-full cursor-grab active:cursor-grabbing"
-                                    >
-                                        <div
-                                            className="relative w-full h-full bg-neutral-900 overflow-hidden shadow-2xl cursor-pointer"
-                                            onClick={() => setFullScreenImage(url)}
+                                            }}
+                                            className="w-full h-full cursor-grab active:cursor-grabbing"
                                         >
-                                            <Image
-                                                src={url || "/placeholder.svg"}
-                                                alt={`${memory.title} ${index + 1}`}
-                                                fill
-                                                className="object-cover"
-                                                draggable={false}
-                                                loading="lazy"
-                                            />
-                                            {/* Full Screen Icon - Visible on mobile, hover on desktop */}
-                                            <div className="absolute top-4 left-4 z-[60] opacity-100 sm:opacity-0 sm:group-hover:opacity-40 sm:hover:!opacity-100 transition-opacity">
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setFullScreenImage(url);
-                                                    }}
-                                                    className="w-7 h-7 flex items-center justify-center rounded-full bg-black/40 text-white/50 hover:text-white hover:bg-black/60 transition-all backdrop-blur-md"
-                                                    title="View Fullscreen"
-                                                >
-                                                    <Maximize2 className="h-3 w-3" />
-                                                </button>
-                                            </div>
+                                            <div
+                                                className="relative w-full h-full bg-neutral-900 overflow-hidden shadow-2xl cursor-pointer"
+                                                onClick={() => setFullScreenImage(url)}
+                                            >
+                                                <Image
+                                                    src={url || "/placeholder.svg"}
+                                                    alt={`${memory.title} ${index + 1}`}
+                                                    fill
+                                                    sizes="(max-width: 768px) 80vw, 400px"
+                                                    className="object-cover"
+                                                    draggable={false}
+                                                    loading="lazy"
+                                                />
+                                                {/* Full Screen Icon - Visible on mobile, hover on desktop */}
+                                                <div className="absolute top-4 left-4 z-[60] opacity-100 sm:opacity-0 sm:group-hover:opacity-40 sm:hover:!opacity-100 transition-opacity">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setFullScreenImage(url);
+                                                        }}
+                                                        className="w-7 h-7 flex items-center justify-center rounded-full bg-black/40 text-white/50 hover:text-white hover:bg-black/60 transition-all backdrop-blur-md"
+                                                        title="View Fullscreen"
+                                                    >
+                                                        <Maximize2 className="h-3 w-3" />
+                                                    </button>
+                                                </div>
 
-                                            <div className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded-full font-black uppercase tracking-[0.2em]">
-                                                {index + 1} / {memory.image_urls.length}
+                                                <div className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded-full font-black uppercase tracking-[0.2em]">
+                                                    {index + 1} / {memory.image_urls.length}
+                                                </div>
                                             </div>
-                                        </div>
-                                    </motion.div>
-                                )
-                            })}
+                                        </motion.div>
+                                    )
+                                })}
                         </AnimatePresence>
 
                         {memory.image_urls.length > 1 && (
@@ -272,13 +309,12 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
                                 </div>
                             </>
                         )}
-                        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-neutral-950 via-neutral-950/60 to-transparent z-40" />
                     </div>
 
                     {/* Unified Scrollable Content Section */}
-                    <div className="flex-1 overflow-y-auto minimal-scrollbar bg-gradient-to-b from-neutral-950/80 to-neutral-950/40">
+                    <div className="flex-1 overflow-y-auto minimal-scrollbar bg-neutral-950/50 z-20">
                         {/* Metadata Header */}
-                        <div className="px-6 pt-4 pb-0">
+                        <div className="px-6 pt-6 pb-0">
                             <div className="space-y-3">
                                 {memory.title && (
                                     <h2 className="text-2xl font-serif font-bold text-white tracking-tight leading-none">
@@ -330,6 +366,8 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
                                     comments={comments}
                                     currentUserId={currentUserId}
                                     onAddComment={handleAddComment}
+                                    onEditComment={handleEditComment}
+                                    onDeleteComment={handleDeleteComment}
                                     compact
                                 />
                             </div>

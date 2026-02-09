@@ -41,7 +41,7 @@ export function ConnectionSync({ coupleId, userId }: { coupleId: string, userId:
             .on('presence', { event: 'sync' }, handleSync)
             .on('presence', { event: 'join' }, handleSync)
             .on('presence', { event: 'leave' }, handleSync)
-            .subscribe(async (status) => {
+            .subscribe(async (status: string) => {
                 if (status === 'SUBSCRIBED') {
                     await channel.track({
                         user_id: userId,
@@ -53,7 +53,7 @@ export function ConnectionSync({ coupleId, userId }: { coupleId: string, userId:
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [coupleId, userId, isPartnerPresent])
+    }, [coupleId, userId])
 
     return (
         <AnimatePresence>

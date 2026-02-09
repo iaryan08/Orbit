@@ -102,7 +102,7 @@ export function LunaraSettings({ initialData, onBack, onSave }: LunaraSettingsPr
     }
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8 pt-8 pb-24 px-4 overflow-y-auto">
+        <div className="max-w-4xl mx-auto space-y-8 pt-8 pb-24 px-4 overflow-y-auto minimal-scrollbar">
             <div className="flex items-center justify-between gap-4">
                 <Button
                     variant="ghost"
@@ -173,7 +173,7 @@ export function LunaraSettings({ initialData, onBack, onSave }: LunaraSettingsPr
                                         key={len}
                                         onClick={() => setData({ ...data, periodLength: len })}
                                         className={cn(
-                                            "h-10 rounded-lg border transition-all text-xs font-bold",
+                                            "h-10 rounded-lg border transition-colors text-xs font-bold",
                                             data.periodLength === len
                                                 ? "bg-purple-600 border-purple-500 text-white"
                                                 : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:bg-zinc-800"
@@ -267,7 +267,7 @@ export function LunaraSettings({ initialData, onBack, onSave }: LunaraSettingsPr
                                         key={opt}
                                         onClick={() => setData({ ...data, contraception: opt.toLowerCase() })}
                                         className={cn(
-                                            "px-3 py-1.5 rounded-full border transition-all font-medium text-[10px] uppercase tracking-wider",
+                                            "px-3 py-1.5 rounded-full border transition-colors font-medium text-[10px] uppercase tracking-wider",
                                             data.contraception === opt.toLowerCase()
                                                 ? "bg-purple-600 border-purple-500 text-white"
                                                 : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:bg-zinc-800"
@@ -323,7 +323,7 @@ export function LunaraSettings({ initialData, onBack, onSave }: LunaraSettingsPr
                                         key={s}
                                         onClick={() => toggleSymptom(s)}
                                         className={cn(
-                                            "px-3 py-1.5 rounded-lg border transition-all text-[10px] font-bold uppercase tracking-tight",
+                                            "px-3 py-1.5 rounded-lg border transition-colors text-[10px] font-bold uppercase tracking-tight",
                                             data.symptoms.includes(s)
                                                 ? "bg-purple-600/20 border-purple-600 text-purple-200"
                                                 : "bg-zinc-900 border-zinc-800 text-zinc-500"
@@ -343,7 +343,7 @@ export function LunaraSettings({ initialData, onBack, onSave }: LunaraSettingsPr
                                         key={g}
                                         onClick={() => toggleGoal(g)}
                                         className={cn(
-                                            "p-2 rounded-lg border transition-all text-left flex items-center gap-2",
+                                            "p-2 rounded-lg border transition-colors text-left flex items-center gap-2",
                                             data.trackingGoals.includes(g)
                                                 ? "bg-purple-900/20 border-purple-500 text-white"
                                                 : "bg-zinc-900 border-zinc-800 text-zinc-500"

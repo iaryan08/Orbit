@@ -67,21 +67,21 @@ export function FullScreenImageModal({ src, onClose }: FullScreenImageModalProps
                         >
                             <button
                                 onClick={() => setRotate(r => r + 90)}
-                                className="p-2.5 rounded-full bg-white/5 text-white hover:bg-white/10 transition-all cursor-pointer"
+                                className="p-2.5 rounded-full bg-white/5 text-white hover:bg-white/10 transition-colors cursor-pointer"
                                 title="Rotate"
                             >
                                 <RotateCw className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={() => setScale(s => Math.min(s + 0.5, 4))}
-                                className="p-2.5 rounded-full bg-white/5 text-white hover:bg-white/10 transition-all cursor-pointer"
+                                className="p-2.5 rounded-full bg-white/5 text-white hover:bg-white/10 transition-colors cursor-pointer"
                                 title="Zoom In"
                             >
                                 <ZoomIn className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={() => setScale(s => Math.max(s - 0.5, 0.5))}
-                                className="p-2.5 rounded-full bg-white/5 text-white hover:bg-white/10 transition-all cursor-pointer"
+                                className="p-2.5 rounded-full bg-white/5 text-white hover:bg-white/10 transition-colors cursor-pointer"
                                 title="Zoom Out"
                             >
                                 <ZoomOut className="w-5 h-5" />
@@ -89,7 +89,7 @@ export function FullScreenImageModal({ src, onClose }: FullScreenImageModalProps
                             <div className="w-[8px] hidden sm:block" />
                             <button
                                 onClick={onClose}
-                                className="p-2.5 rounded-full bg-white/10 text-white hover:bg-rose-500 transition-all cursor-pointer shadow-lg"
+                                className="p-2.5 rounded-full bg-white/10 text-white hover:bg-rose-500 transition-colors cursor-pointer shadow-lg"
                                 title="Close"
                             >
                                 <X className="w-5 h-5" />

@@ -302,13 +302,13 @@ export function LunaraTabDashboard({ data }: { data: any }) {
             )}
             {/* 1. Main Cycle Widget (Hero - Day Count) */}
             <ScrollReveal className="w-full">
-                <div className="glass-card p-6 sm:p-10 flex flex-col items-center justify-center relative overflow-hidden group border-purple-500/20 bg-purple-950/20 transition-all hover:bg-purple-900/10 shadow-xl">
+                <div className="glass-card p-6 sm:p-10 flex flex-col items-center justify-center relative overflow-hidden group border-purple-500/20 bg-purple-950/20 transition-[background-color] hover:bg-purple-900/10 shadow-xl">
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-indigo-500 opacity-50" />
 
                     {profile?.gender === 'female' && (
                         <button
                             onClick={() => setShowSettings(true)}
-                            className="absolute top-4 right-4 z-10 p-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 hover:bg-purple-500/20 transition-all scale-90 sm:scale-100"
+                            className="absolute top-4 right-4 z-10 p-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 hover:bg-purple-500/20 transition-colors scale-90 sm:scale-100"
                         >
                             <Settings className="w-4 h-4" />
                         </button>
@@ -347,7 +347,7 @@ export function LunaraTabDashboard({ data }: { data: any }) {
                                 whileTap={{ scale: 0.92 }}
                                 onTapStart={triggerHaptic}
                                 disabled={isLogging}
-                                className="px-5 py-2 sm:px-6 sm:py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-200 text-[10px] sm:text-xs font-bold uppercase tracking-widest cursor-pointer hover:bg-purple-500/20 transition-all flex items-center gap-2 disabled:opacity-50 shadow-lg shadow-purple-500/5"
+                                className="px-5 py-2 sm:px-6 sm:py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-200 text-[10px] sm:text-xs font-bold uppercase tracking-widest cursor-pointer hover:bg-purple-500/20 transition-[background-color,border-color,box-shadow,padding,gap] flex items-center gap-2 disabled:opacity-50 shadow-lg shadow-purple-500/5"
                             >
                                 {isLogging && <Loader2 className="w-3 h-3 animate-spin" />}
                                 {isPeriodActive ? 'Period Ended' : 'Log Period'}
@@ -368,7 +368,7 @@ export function LunaraTabDashboard({ data }: { data: any }) {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* 1. Log Symptoms Card */}
                 <ScrollReveal delay={0.2}>
-                    <div className="glass-card p-6 bg-purple-950/20 border-purple-500/20 h-full flex flex-col items-start relative overflow-hidden group hover:bg-purple-900/10 transition-all duration-500">
+                    <div className="glass-card p-6 bg-purple-950/20 border-purple-500/20 h-full flex flex-col items-start relative overflow-hidden group hover:bg-purple-900/10 transition-colors duration-500">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="w-8 h-8 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-300">
                                 <Bell className="w-4 h-4" />
@@ -388,7 +388,7 @@ export function LunaraTabDashboard({ data }: { data: any }) {
                                             whileTap={{ scale: 0.9 }}
                                             onTapStart={triggerHaptic}
                                             className={cn(
-                                                "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border",
+                                                "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-colors border",
                                                 selectedSymptoms.includes(s)
                                                     ? "bg-purple-500/20 border-purple-400/50 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.2)]"
                                                     : "bg-white/5 border-white/5 text-white/40 hover:bg-white/10"
@@ -407,12 +407,12 @@ export function LunaraTabDashboard({ data }: { data: any }) {
                                             value={customValue}
                                             onChange={(e) => setCustomValue(e.target.value)}
                                             onKeyDown={(e) => e.key === 'Enter' && handleAddCustomSymptom()}
-                                            className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 text-xs text-white outline-none focus:border-purple-500/40 transition-all h-full"
+                                            className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 text-xs text-white outline-none focus:border-purple-500/40 transition-colors h-full"
                                             placeholder="Enter symptom..."
                                         />
                                         <button
                                             onClick={handleAddCustomSymptom}
-                                            className="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center hover:bg-purple-400 transition-all shrink-0"
+                                            className="w-10 h-10 rounded-full bg-purple-500 text-white flex items-center justify-center hover:bg-purple-400 transition-colors shrink-0"
                                         >
                                             <Plus className="w-5 h-5" />
                                         </button>
@@ -421,7 +421,7 @@ export function LunaraTabDashboard({ data }: { data: any }) {
                                     <div className="mt-auto pt-4 border-t border-white/5 w-full flex items-center justify-between">
                                         <button
                                             onClick={() => setShowCustomInput(true)}
-                                            className="text-[10px] text-white/40 font-bold uppercase tracking-widest hover:text-white/80 transition-all flex items-center gap-2"
+                                            className="text-[10px] text-white/40 font-bold uppercase tracking-widest hover:text-white/80 transition-colors flex items-center gap-2"
                                         >
                                             <Plus className="w-3.5 h-3.5" />
                                             {isSavingSymptoms ? 'Syncing...' : 'Add custom symptom'}
@@ -451,7 +451,7 @@ export function LunaraTabDashboard({ data }: { data: any }) {
 
                 {/* 2. Pregnancy Chance Card */}
                 <ScrollReveal delay={0.25}>
-                    <div className="glass-card p-6 bg-purple-950/20 border-purple-500/20 h-full flex flex-col justify-center items-center text-center shadow-lg group hover:bg-purple-900/10 transition-all duration-500">
+                    <div className="glass-card p-6 bg-purple-950/20 border-purple-500/20 h-full flex flex-col justify-center items-center text-center shadow-lg group hover:bg-purple-900/10 transition-colors duration-500">
                         <Activity className="w-6 h-6 text-rose-400 mb-4 group-hover:scale-110 transition-transform" />
                         <h3 className="text-[10px] uppercase tracking-widest font-bold text-white/60 mb-1">Pregnancy Chance</h3>
 
@@ -460,10 +460,10 @@ export function LunaraTabDashboard({ data }: { data: any }) {
                                 {chance.level}
                             </span>
                             <div className="flex gap-1.5 justify-center mt-3">
-                                <span className={cn("w-2 h-2 rounded-full transition-all duration-500 bg-white/10", chance.level === 'Low' && "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.6)]")} />
-                                <span className={cn("w-2 h-2 rounded-full transition-all duration-500 bg-white/10", chance.level === 'Medium' && "bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.6)]")} />
-                                <span className={cn("w-2 h-2 rounded-full transition-all duration-500 bg-white/10", chance.level === 'High' && "bg-rose-400 shadow-[0_0_10px_rgba(251,113,133,0.6)]")} />
-                                <span className={cn("w-2 h-2 rounded-full transition-all duration-500 bg-white/10", chance.level === 'Very High' && "bg-rose-600 shadow-[0_0_15px_rgba(225,29,72,0.8)] scale-125")} />
+                                <span className={cn("w-2 h-2 rounded-full transition-colors duration-500 bg-white/10", chance.level === 'Low' && "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.6)]")} />
+                                <span className={cn("w-2 h-2 rounded-full transition-colors duration-500 bg-white/10", chance.level === 'Medium' && "bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.6)]")} />
+                                <span className={cn("w-2 h-2 rounded-full transition-colors duration-500 bg-white/10", chance.level === 'High' && "bg-rose-400 shadow-[0_0_10px_rgba(251,113,133,0.6)]")} />
+                                <span className={cn("w-2 h-2 rounded-full transition-[colors,transform] duration-500 bg-white/10", chance.level === 'Very High' && "bg-rose-600 shadow-[0_0_15px_rgba(225,29,72,0.8)] scale-125")} />
                             </div>
                         </div>
                     </div>

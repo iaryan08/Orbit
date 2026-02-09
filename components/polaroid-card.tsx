@@ -30,8 +30,8 @@ export function PolaroidCard({ imageUrl, caption, createdAt, onDelete, isDevelop
         <div className="relative group perspective-1000">
             {/* Polaroid Frame */}
             <div
-                className={`bg-white p-3 pb-10 shadow-2xl transition-all duration-[60000ms] ease-out 
-          ${developed ? 'rotate-[-1deg] translate-y-0' : 'rotate-[2deg] translate-y-4 scale-95'}
+                className={`bg-white p-3 pb-10 shadow-2xl transition-[transform,opacity] duration-700 ease-out 
+          ${developed ? 'rotate-[-1deg] translate-y-0 opacity-100' : 'rotate-[2deg] translate-y-4 scale-95 opacity-0'}
         `}
                 style={{
                     boxShadow: '0 20px 50px rgba(0,0,0,0.5), inset 0 0 10px rgba(0,0,0,0.05)'
@@ -49,7 +49,7 @@ export function PolaroidCard({ imageUrl, caption, createdAt, onDelete, isDevelop
                         alt="Polaroid Memory"
                         fill
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className={`object-cover transition-all duration-700 ease-out group-hover/img:scale-105
+                        className={`object-cover transition-[transform,filter,opacity] duration-700 ease-out group-hover/img:scale-105
               ${developed ? 'filter-none grayscale-0 opacity-100' : 'blur-xl grayscale opacity-0'}
             `}
                     />

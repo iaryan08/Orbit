@@ -93,6 +93,46 @@ export async function getMemoryComments(memoryId: string) {
     }
 }
 
+export async function updateMemoryComment(commentId: string, content: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    try {
+        const { error } = await supabase
+            .from("memory_comments")
+            .update({ content: content.trim(), updated_at: new Date().toISOString() })
+            .eq("id", commentId)
+            .eq("user_id", user.id);
+
+        if (error) throw error;
+        revalidatePath("/memories");
+        return { success: true };
+    } catch (err: any) {
+        return { error: err.message };
+    }
+}
+
+export async function deleteMemoryComment(commentId: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    try {
+        const { error } = await supabase
+            .from("memory_comments")
+            .delete()
+            .eq("id", commentId)
+            .eq("user_id", user.id);
+
+        if (error) throw error;
+        revalidatePath("/memories");
+        return { success: true };
+    } catch (err: any) {
+        return { error: err.message };
+    }
+}
+
 // ============ POLAROID COMMENTS ============
 
 export async function addPolaroidComment(polaroidId: string, content: string) {
@@ -145,6 +185,46 @@ export async function addPolaroidComment(polaroidId: string, content: string) {
 
         revalidatePath("/dashboard");
         return { success: true, data: data?.[0] };
+    } catch (err: any) {
+        return { error: err.message };
+    }
+}
+
+export async function updatePolaroidComment(commentId: string, content: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    try {
+        const { error } = await supabase
+            .from("polaroid_comments")
+            .update({ content: content.trim(), updated_at: new Date().toISOString() })
+            .eq("id", commentId)
+            .eq("user_id", user.id);
+
+        if (error) throw error;
+        revalidatePath("/dashboard");
+        return { success: true };
+    } catch (err: any) {
+        return { error: err.message };
+    }
+}
+
+export async function deletePolaroidComment(commentId: string) {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    try {
+        const { error } = await supabase
+            .from("polaroid_comments")
+            .delete()
+            .eq("id", commentId)
+            .eq("user_id", user.id);
+
+        if (error) throw error;
+        revalidatePath("/dashboard");
+        return { success: true };
     } catch (err: any) {
         return { error: err.message };
     }

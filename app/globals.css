@@ -1,3 +1,4 @@
+/* TEST COMMENT */
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
@@ -304,7 +305,7 @@
 
   .glass-card {
     @apply shadow-2xl rounded-[3rem] overflow-hidden;
-    transition: transform 0.7s, background 0.7s, box-shadow 0.7s, opacity 0.7s;
+    transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), background 0.3s ease, box-shadow 0.3s ease;
     background: linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.1));
     box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.3);
     -webkit-backdrop-filter: blur(3px);
@@ -372,7 +373,8 @@
 
   /* Premium Buttons - High Contrast & Sweet Aesthetic */
   .btn-premium {
-    @apply relative overflow-hidden transition-all duration-500 rounded-full font-medium tracking-wide;
+    @apply relative overflow-hidden duration-500 rounded-full font-medium tracking-wide;
+    transition: background-color 500ms, box-shadow 500ms, transform 500ms;
     background: linear-gradient(to right, rgba(236, 209, 213, 0.1), rgba(212, 195, 163, 0.1));
     color: #e5e5e5;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
@@ -393,7 +395,8 @@
 
   /* Variant: Greenish (Active/Playful) */
   .btn-greenish {
-    @apply relative overflow-hidden transition-all duration-500 rounded-full font-medium;
+    @apply relative overflow-hidden duration-500 rounded-full font-medium;
+    transition: background-color 500ms, border-color 500ms, box-shadow 500ms, transform 500ms;
     border: 1px solid rgba(255, 255, 255, 0.2);
     background: linear-gradient(to right, rgba(34, 197, 94, 0.1), rgba(6, 95, 70, 0.1));
     color: #86efac;
@@ -408,7 +411,8 @@
 
   /* Variant: Rosy (Romantic) */
   .btn-rosy {
-    @apply relative overflow-hidden transition-all duration-500 rounded-full font-medium;
+    @apply relative overflow-hidden duration-500 rounded-full font-medium;
+    transition: background 500ms, border-color 500ms, box-shadow 500ms, transform 500ms;
     border: 1px solid rgba(244, 114, 182, 0.3);
     background: linear-gradient(to right, rgba(244, 114, 182, 0.1), rgba(157, 23, 77, 0.1));
     color: #f9a8d4;
@@ -548,5 +552,29 @@
     background: linear-gradient(to right, #f472b6, #e2556f, #d98b75) !important;
     border-color: transparent !important;
     box-shadow: none !important;
+  }
+
+  /* Minimal Scrollbar - Elegant & Unobtrusive */
+  .minimal-scrollbar {
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(255, 255, 255, 0.1) transparent !important;
+  }
+
+  .minimal-scrollbar::-webkit-scrollbar {
+    width: 3px !important;
+    height: 3px !important;
+  }
+
+  .minimal-scrollbar::-webkit-scrollbar-track {
+    background: transparent !important;
+  }
+
+  .minimal-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 99px !important;
+  }
+
+  .minimal-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
   }
 }

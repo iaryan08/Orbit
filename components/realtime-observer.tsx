@@ -91,6 +91,18 @@ export function RealtimeObserver({ coupleId, partnerId }: RealtimeObserverProps)
                     router.refresh();
                 }
             )
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "profiles",
+                    filter: `couple_id=eq.${coupleId}`,
+                },
+                () => {
+                    router.refresh();
+                }
+            )
             .subscribe();
 
         return () => {

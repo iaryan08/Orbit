@@ -106,7 +106,7 @@ export function PartnerMood({ partnerName, partnerAvatar, moods }: PartnerMoodPr
           {moods.length > 1 && (
             <div className="flex gap-1 items-center">
               {moods.slice(1, 4).map((m, i) => (
-                <div key={i} className="text-[10px] opacity-20 hover:opacity-100 transition-all grayscale hover:grayscale-0">
+                <div key={i} className="text-[10px] opacity-20 hover:opacity-100 transition-[opacity,filter] grayscale hover:grayscale-0">
                   {parseMood(m.mood).emoji}
                 </div>
               ))}

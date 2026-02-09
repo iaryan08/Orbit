@@ -41,7 +41,7 @@ export function QuickCreateButtons() {
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 mt-4">
                 <Button
                     variant="ghost"
-                    className="relative rounded-[20px] md:rounded-2xl w-12 h-12 md:w-auto md:h-11 p-0 md:px-5 gap-2 bg-rose-500/10 hover:bg-rose-500/20 border border-white/10 backdrop-blur-xl shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 group"
+                    className="relative rounded-[20px] md:rounded-2xl w-12 h-12 md:w-auto md:h-11 p-0 md:px-5 gap-2 bg-rose-500/10 hover:bg-rose-500/20 border border-white/10 backdrop-blur-xl shadow-lg transition-[transform,background-color,box-shadow] duration-300 hover:scale-105 active:scale-95 group"
                     onClick={() => setIsWritingLetter(true)}
                 >
                     <FileLock2 className="w-5 h-5 md:w-4 md:h-4 text-rose-100 drop-shadow-sm" strokeWidth={2} />
@@ -50,7 +50,7 @@ export function QuickCreateButtons() {
 
                 <Button
                     variant="ghost"
-                    className="relative rounded-[20px] md:rounded-2xl w-12 h-12 md:w-auto md:h-11 p-0 md:px-5 gap-2 bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-xl shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 group"
+                    className="relative rounded-[20px] md:rounded-2xl w-12 h-12 md:w-auto md:h-11 p-0 md:px-5 gap-2 bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-xl shadow-lg transition-[transform,background-color,box-shadow] duration-300 hover:scale-105 active:scale-95 group"
                     onClick={() => setIsAddingMemory(true)}
                 >
                     <ImagePlus className="w-5 h-5 md:w-4 md:h-4 text-white drop-shadow-sm" strokeWidth={2} />
@@ -59,7 +59,7 @@ export function QuickCreateButtons() {
 
                 <Button
                     variant="ghost"
-                    className="relative rounded-[20px] md:rounded-2xl w-12 h-12 md:w-auto md:h-11 p-0 md:px-5 gap-2 bg-amber-500/10 hover:bg-amber-500/20 border border-white/10 backdrop-blur-xl shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 group"
+                    className="relative rounded-[20px] md:rounded-2xl w-12 h-12 md:w-auto md:h-11 p-0 md:px-5 gap-2 bg-amber-500/10 hover:bg-amber-500/20 border border-white/10 backdrop-blur-xl shadow-lg transition-[transform,background-color,box-shadow] duration-300 hover:scale-105 active:scale-95 group"
                     onClick={() => setIsSnappingPolaroid(true)}
                 >
                     <Camera className="w-5 h-5 md:w-4 md:h-4 text-amber-100 drop-shadow-sm" strokeWidth={2} />
@@ -68,11 +68,11 @@ export function QuickCreateButtons() {
 
                 <Button
                     variant="ghost"
-                    className="relative rounded-[20px] md:rounded-2xl w-12 h-12 md:w-auto md:h-11 p-0 md:px-5 gap-2 bg-purple-500/10 hover:bg-purple-500/20 border border-white/10 backdrop-blur-xl shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 group"
+                    className="relative rounded-[20px] md:rounded-2xl w-12 h-12 md:w-auto md:h-11 p-0 md:px-5 gap-2 bg-purple-500/10 hover:bg-purple-500/20 border border-white/10 backdrop-blur-xl shadow-lg transition-[transform,background-color,box-shadow] duration-300 hover:scale-105 active:scale-95 group"
                     onClick={handleSendSpark}
                     disabled={isSendingSpark}
                 >
-                    <Sparkles className={`w-5 h-5 md:w-4 md:h-4 text-purple-200 drop-shadow-sm transition-all ${isSendingSpark ? 'animate-spin' : ''}`} strokeWidth={2} />
+                    <Sparkles className={`w-5 h-5 md:w-4 md:h-4 text-purple-200 drop-shadow-sm transition-transform ${isSendingSpark ? 'animate-spin' : ''}`} strokeWidth={2} />
                     <span className="hidden md:inline font-bold text-purple-50 text-sm tracking-tight">
                         {isSendingSpark ? 'Sending...' : 'Send Spark'}
                     </span>

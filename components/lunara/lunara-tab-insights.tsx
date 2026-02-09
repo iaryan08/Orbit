@@ -188,7 +188,7 @@ export function LunaraTabInsights({ coupleId }: { coupleId: string }) {
             {/* Reading Drawer */}
             <Drawer open={!!selectedInsight} onOpenChange={(open) => !open && setSelectedInsight(null)}>
                 <DrawerContent className="bg-zinc-950 border-white/10 text-white h-[85vh]">
-                    <div className="relative h-full overflow-y-auto">
+                    <div className="relative h-full overflow-y-auto minimal-scrollbar">
                         {/* Close Button Mobile */}
                         <div className="absolute top-4 right-4 z-50">
                             <DrawerClose asChild>

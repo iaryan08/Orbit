@@ -30,7 +30,7 @@ export function LunaraToggle() {
                         />
                         <span
                             className={cn(
-                                "text-[10px] uppercase tracking-[0.2em] font-bold transition-all duration-500 selection:bg-rose-500/40 selection:text-white",
+                                "text-[10px] uppercase tracking-[0.2em] font-bold transition-[color,transform] duration-500 selection:bg-rose-500/40 selection:text-white",
                                 mode === 'moon'
                                     ? "text-rose-100 drop-shadow-[0_0_12px_rgba(251,113,133,0.6)] scale-110"
                                     : "text-white/20 hover:text-white/40"
@@ -45,7 +45,7 @@ export function LunaraToggle() {
             <button
                 onClick={toggleMode}
                 className={cn(
-                    "relative flex items-center h-7 w-14 sm:h-8 sm:w-16 rounded-full p-1 cursor-pointer transition-all duration-500",
+                    "relative flex items-center h-7 w-14 sm:h-8 sm:w-16 rounded-full p-1 cursor-pointer transition-[background-color,border-color,box-shadow] duration-500",
                     mode === 'moon'
                         ? "bg-rose-950/40 border-rose-500/30 shadow-[0_0_20px_rgba(251,113,133,0.15)]"
                         : "bg-purple-950/40 border-purple-500/30 shadow-[0_0_20px_rgba(168,85,247,0.15)]",
@@ -120,7 +120,7 @@ export function LunaraToggle() {
                         />
                         <span
                             className={cn(
-                                "text-[10px] uppercase tracking-[0.2em] font-bold transition-all duration-500 selection:bg-purple-500/40 selection:text-white",
+                                "text-[10px] uppercase tracking-[0.2em] font-bold transition-[color,transform] duration-500 selection:bg-purple-500/40 selection:text-white",
                                 mode === 'lunara'
                                     ? "text-purple-100 drop-shadow-[0_0_12px_rgba(168,85,247,0.6)] scale-110"
                                     : "text-white/20 hover:text-white/40"

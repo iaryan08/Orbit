@@ -118,7 +118,7 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
 
             {/* Daytime/Nighttime Overlay Gradient (Subtle) */}
             <div
-                className="absolute inset-0 transition-all duration-[3000ms] ease-in-out"
+                className="absolute inset-0 transition-[background] duration-[3000ms] ease-in-out"
                 style={{ background: theme.overlay }}
             />
 

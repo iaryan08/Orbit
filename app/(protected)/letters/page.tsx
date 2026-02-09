@@ -123,7 +123,7 @@ export default function LettersPage() {
             }
 
             // Get unique sender IDs
-            const senderIds = Array.from(new Set(lettersData.map(l => l.sender_id)));
+            const senderIds = Array.from(new Set(lettersData.map((l: any) => l.sender_id)));
 
             // Fetch profiles for senders
             const { data: profilesData, error: profilesError } = await supabase
@@ -134,9 +134,9 @@ export default function LettersPage() {
             if (profilesError) throw profilesError;
 
             // Create a map of id -> display_name
-            const profileMap = new Map(profilesData?.map(p => [p.id, p.display_name]) || []);
+            const profileMap = new Map(profilesData?.map((p: any) => [p.id, p.display_name]) || []);
 
-            const formattedLetters = lettersData.map(letter => ({
+            const formattedLetters = lettersData.map((letter: any) => ({
                 ...letter,
                 sender_name: profileMap.get(letter.sender_id) || "Your Love",
             }));
@@ -308,7 +308,7 @@ export default function LettersPage() {
                         return (
                             <Card
                                 key={letter.id}
-                                className={`cursor-pointer transition-all hover:translate-y-[-4px] card-border-premium group min-h-[240px] flex flex-col justify-between !py-8 !px-6 ${!letter.is_read ? "ring-2 ring-rose-500/30 bg-rose-500/5 shadow-[0_0_20px_rgba(244,63,94,0.1)]" : "bg-black/20"}`}
+                                className={`cursor-pointer transition-[transform,background-color,ring-color,shadow] hover:translate-y-[-4px] card-border-premium group min-h-[240px] flex flex-col justify-between !py-8 !px-6 ${!letter.is_read ? "ring-2 ring-rose-500/30 bg-rose-500/5 shadow-[0_0_20px_rgba(244,63,94,0.1)]" : "bg-black/20"}`}
                                 onClick={() => {
                                     setSelectedLetter(letter);
                                     if (!letter.is_read) markAsRead(letter.id);

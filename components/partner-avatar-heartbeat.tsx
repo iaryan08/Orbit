@@ -33,7 +33,7 @@ export function PartnerAvatarHeartbeat({ partnerProfile, coupleId, className }: 
         channelRef.current = channel
 
         channel
-            .on('broadcast', { event: 'vibrate' }, (payload) => {
+            .on('broadcast', { event: 'vibrate' }, (payload: any) => {
                 // Trigger Visual
                 setIsReceiving(true)
 
@@ -142,10 +142,9 @@ export function PartnerAvatarHeartbeat({ partnerProfile, coupleId, className }: 
                 )}
             </AnimatePresence>
 
-            {/* Avatar Container */}
             <motion.div
                 className={cn(
-                    "relative z-10 w-10 h-10 md:w-12 md:h-12 rounded-full border-2 flex items-center justify-center overflow-hidden shadow-xl transition-all duration-500 cursor-pointer select-none",
+                    "relative z-10 w-10 h-10 md:w-12 md:h-12 rounded-full border-2 flex items-center justify-center overflow-hidden shadow-xl transition-[border-color,ring,transform,box-shadow] duration-500 cursor-pointer select-none",
                     isActive
                         ? "border-rose-400 ring-4 ring-rose-500/50 scale-110 shadow-[0_0_25px_rgba(244,63,94,0.6)]"
                         : "border-background ring-2 ring-white/10 bg-secondary/20"
@@ -190,6 +189,6 @@ export function PartnerAvatarHeartbeat({ partnerProfile, coupleId, className }: 
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>
+        </div >
     )
 }

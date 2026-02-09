@@ -132,7 +132,7 @@ export function MilestoneCard({
 
     return (
         <Card className={cn(
-            "border-rose-900/30 transition-all duration-150 overflow-hidden shadow-none group relative",
+            "border-rose-900/30 transition-[background-color,border-color,box-shadow,ring-color] duration-150 overflow-hidden shadow-none group relative",
             isOpen ? "bg-rose-950/20 ring-1 ring-rose-500/50" : "bg-black/20 hover:bg-rose-900/10",
             isCompleted && !isOpen && "border-emerald-500/30 bg-emerald-500/5"
         )}>
@@ -170,7 +170,7 @@ export function MilestoneCard({
                 </div>
 
                 <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                    <div className={cn("w-1.5 h-1.5 rounded-full transition-all duration-1000",
+                    <div className={cn("w-1.5 h-1.5 rounded-full transition-[background-color,box-shadow] duration-1000",
                         isCompleted ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" :
                             myAnswer ? "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]" :
                                 "bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"
@@ -217,7 +217,7 @@ export function MilestoneCard({
                                         <div className="space-y-3">
                                             <label className="text-[10px] uppercase tracking-widest text-rose-200/40 font-bold">{getPartnerDateLabel()}</label>
                                             <div className={cn(
-                                                "w-full h-14 flex items-center gap-4 px-4 rounded-2xl transition-all duration-700",
+                                                "w-full h-14 flex items-center gap-4 px-4 rounded-2xl transition-[background-color,color,border-color] duration-700",
                                                 partnerDate ? "bg-rose-900/10 text-rose-100" : "bg-black/10 border-dashed border-white/5 text-white/20"
                                             )}>
                                                 <CalendarIcon className={cn("h-4 w-4", partnerDate ? "text-rose-400" : "text-white/10")} />
@@ -291,7 +291,7 @@ export function MilestoneCard({
                                         <div className="w-5 h-[1px] bg-rose-500/20" />
                                     </div>
                                     <div className={cn(
-                                        "p-4 rounded-2xl border min-h-[160px] relative overflow-hidden flex items-center transition-all duration-1000",
+                                        "p-4 rounded-2xl border min-h-[160px] relative overflow-hidden flex items-center transition-[background-color,border-color,color] duration-1000",
                                         partnerAnswer ? "bg-rose-900/5 border-rose-500/10 text-rose-100/80 italic leading-relaxed" : "bg-black/10 border-white/5 border-dashed justify-center"
                                     )}>
                                         {partnerAnswer ? (

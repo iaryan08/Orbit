@@ -188,7 +188,7 @@ export function DashboardHeader({
                 <NotificationBell />
               </motion.div>
               <div className={cn(
-                "bg-white/10 transition-all duration-300",
+                "bg-white/10 transition-colors duration-300",
                 "md:w-6 md:h-px md:my-2 mx-0",
                 "w-px h-6 mx-2"
               )} />
@@ -211,7 +211,7 @@ export function DashboardHeader({
                             onTapStart={triggerHaptic}
                             transition={{ type: "spring", stiffness: 450, damping: 15 }}
                             className={cn(
-                              "p-3 rounded-full flex items-center justify-center relative group transition-all duration-300",
+                              "p-3 rounded-full flex items-center justify-center relative group transition-[color,background-color] duration-300",
                               isActive ? "text-white" : "text-white/40 group-hover:text-white"
                             )}
                           >
@@ -256,7 +256,7 @@ export function DashboardHeader({
                             whileTap={{ scale: 0.88, y: 2, filter: "brightness(1.3)" }}
                             onTapStart={triggerHaptic}
                             transition={{ type: "spring", stiffness: 450, damping: 15 }}
-                            className={cn("p-3 rounded-full flex items-center justify-center relative group transition-all duration-300", isActive ? "text-purple-200" : "text-purple-300/40 group-hover:text-purple-200")}
+                            className={cn("p-3 rounded-full flex items-center justify-center relative group transition-[color,background-color] duration-300", isActive ? "text-purple-200" : "text-purple-300/40 group-hover:text-purple-200")}
                           >
                             <AnimatePresence>
                               {(isActive || isHovered) && (
@@ -275,7 +275,7 @@ export function DashboardHeader({
                 })
               )}
               <div className={cn(
-                "bg-white/10 transition-all duration-300",
+                "bg-white/10 transition-colors duration-300",
                 "md:w-6 md:h-px md:my-2 mx-0",
                 "w-px h-6 mx-2"
               )} />
@@ -345,7 +345,7 @@ export function DashboardHeader({
                             onTapStart={triggerHaptic}
                             transition={{ type: "spring", stiffness: 400, damping: 17 }}
                             className={cn(
-                              "p-3 rounded-full flex items-center justify-center relative group transition-all duration-300",
+                              "p-3 rounded-full flex items-center justify-center relative group transition-[color,background-color] duration-300",
                               isActive ? "text-white" : "text-white/40 group-hover:text-white"
                             )}
                           >
@@ -390,7 +390,7 @@ export function DashboardHeader({
                             whileTap={{ scale: 0.88, y: 2, filter: "brightness(1.3)" }}
                             onTapStart={triggerHaptic}
                             transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                            className={cn("p-3 rounded-full flex items-center justify-center relative group transition-all duration-300", isActive ? "text-purple-200" : "text-purple-300/40 group-hover:text-purple-200")}
+                            className={cn("p-3 rounded-full flex items-center justify-center relative group transition-[color,background-color] duration-300", isActive ? "text-purple-200" : "text-purple-300/40 group-hover:text-purple-200")}
                           >
                             <AnimatePresence>
                               {(isActive || isHovered) && (
@@ -458,7 +458,7 @@ export function DashboardHeader({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-12 w-12 rounded-full p-0 border-2 border-white/10 shadow-lg transition-all overflow-hidden focus-visible:ring-0">
+            <Button variant="ghost" className="relative h-12 w-12 rounded-full p-0 border-2 border-white/10 shadow-lg transition-[border-color,box-shadow] overflow-hidden focus-visible:ring-0">
               <motion.div
                 whileHover={{ scale: 0.95 }}
                 whileTap={{ scale: 0.85, y: 2 }}

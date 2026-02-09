@@ -49,7 +49,7 @@ export function StackedPolaroids({ userPolaroid, partnerPolaroid, partnerName, o
 
     if (!hasAny) {
         return (
-            <div className="flex flex-col items-center justify-center p-6 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-sm group hover:bg-white/10 transition-all duration-500 h-[260px] w-[220px] mx-auto overflow-hidden">
+            <div className="flex flex-col items-center justify-center p-6 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-sm group hover:bg-white/10 transition-colors duration-500 h-[260px] w-[220px] mx-auto overflow-hidden">
                 <div className="relative mb-3">
                     <Camera className="w-10 h-10 text-white/20 group-hover:scale-110 transition-transform duration-500" />
                     <Heart className="w-5 h-5 text-rose-500/40 absolute -bottom-1 -right-1 animate-pulse" />
@@ -127,7 +127,7 @@ export function StackedPolaroids({ userPolaroid, partnerPolaroid, partnerName, o
                         <div
                             key={item.id}
                             className={cn(
-                                "w-1.5 h-1.5 rounded-full transition-all duration-300",
+                                "w-1.5 h-1.5 rounded-full transition-[width,background-color] duration-300",
                                 idx === activeIndex ? "bg-rose-400 w-3" : "bg-white/20"
                             )}
                         />
@@ -195,7 +195,7 @@ function PolaroidItem({
                             fill
                             sizes="220px"
                             className={cn(
-                                "object-cover transition-all duration-[2000ms] ease-out",
+                                "object-cover transition-[filter,opacity] duration-[2000ms] ease-out",
                                 developed ? "filter-none opacity-100" : "blur-xl opacity-20 grayscale"
                             )}
                             draggable={false}

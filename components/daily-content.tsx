@@ -115,7 +115,7 @@ export function DailyContent() {
                 size="sm"
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex-1 text-[9px] md:text-[10px] uppercase tracking-wider font-bold transition-all duration-300 relative z-10 h-9 md:h-10 px-2 md:px-4",
+                  "flex-1 text-[9px] md:text-[10px] uppercase tracking-wider font-bold transition-colors duration-300 relative z-10 h-9 md:h-10 px-2 md:px-4",
                   isActive ? "text-white" : "text-white/40 hover:text-white"
                 )}
               >

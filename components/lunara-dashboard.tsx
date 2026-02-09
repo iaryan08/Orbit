@@ -268,7 +268,7 @@ export function LunaraDashboard({ initialData }: { initialData: any }) {
                             <Button
                                 variant="ghost"
                                 onClick={() => setShowSettings(true)}
-                                className="hidden md:flex group relative items-center gap-2 px-6 py-6 rounded-2xl bg-purple-950/20 border border-purple-500/20 text-purple-200 hover:text-white hover:bg-purple-900/40 transition-all shadow-xl"
+                                className="hidden md:flex group relative items-center gap-2 px-6 py-6 rounded-2xl bg-purple-950/20 border border-purple-500/20 text-purple-200 hover:text-white hover:bg-purple-900/40 transition-colors shadow-xl"
                             >
                                 <Settings className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500 text-purple-400" />
                                 <div className="text-left">
@@ -318,7 +318,7 @@ export function LunaraDashboard({ initialData }: { initialData: any }) {
                         {profile?.gender === 'female' && (
                             <button
                                 onClick={() => setShowSettings(true)}
-                                className="md:hidden absolute top-4 right-4 z-10 p-2 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-300 hover:bg-purple-500/30 transition-all"
+                                className="md:hidden absolute top-4 right-4 z-10 p-2 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-300 hover:bg-purple-500/30 transition-colors"
                             >
                                 <Settings className="w-4 h-4" />
                             </button>
@@ -355,7 +355,7 @@ export function LunaraDashboard({ initialData }: { initialData: any }) {
                                 <button
                                     onClick={handleLogPeriod}
                                     disabled={isLogging}
-                                    className="px-6 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-200 text-xs font-bold uppercase tracking-widest cursor-pointer hover:bg-purple-500/20 transition-all flex items-center gap-2 disabled:opacity-50"
+                                    className="px-6 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-200 text-xs font-bold uppercase tracking-widest cursor-pointer hover:bg-purple-500/20 transition-colors flex items-center gap-2 disabled:opacity-50"
                                 >
                                     {isLogging && <Loader2 className="w-3 h-3 animate-spin" />}
                                     Log Period
@@ -363,7 +363,7 @@ export function LunaraDashboard({ initialData }: { initialData: any }) {
                             ) : (
                                 <div
                                     onClick={() => setShowSupportModal(true)}
-                                    className="px-6 py-2 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-200 text-xs font-bold uppercase tracking-widest cursor-pointer hover:bg-rose-500/20 transition-all shadow-lg active:scale-95 duration-200"
+                                    className="px-6 py-2 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-200 text-xs font-bold uppercase tracking-widest cursor-pointer hover:bg-rose-500/20 transition-colors shadow-lg active:scale-95 duration-200"
                                 >
                                     How to Support
                                 </div>
@@ -439,7 +439,7 @@ export function LunaraDashboard({ initialData }: { initialData: any }) {
                                                         // Revert optimistic update? Optional, but safer to leave for now as it might succeed next time.
                                                     }
                                                 }}
-                                                className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-tight transition-all active:scale-95 ${isShared
+                                                className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-tight transition-colors active:scale-95 ${isShared
                                                     ? 'bg-purple-500/30 border-2 border-purple-400 text-purple-200 shadow-[0_0_8px_rgba(168,85,247,0.4)]'
                                                     : 'bg-purple-500/5 border border-purple-500/20 text-purple-300/50'
                                                     }`}
@@ -484,7 +484,7 @@ export function LunaraDashboard({ initialData }: { initialData: any }) {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {supportLogs.length > 0 ? supportLogs.map((log: any) => (
-                            <div key={log.id} className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all group">
+                            <div key={log.id} className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group">
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="text-[10px] text-rose-400 uppercase font-bold tracking-tighter">
                                         {log.category || 'Support'}

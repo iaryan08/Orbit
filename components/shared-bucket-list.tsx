@@ -155,20 +155,20 @@ export function SharedBucketList({ initialItems = [] }: { initialItems: any[] })
                         placeholder="Add a new dream..."
                         value={newItemTitle}
                         onChange={(e) => setNewItemTitle(e.target.value)}
-                        className="w-full bg-rose-500/5 border border-white/5 rounded-2xl px-4 py-3 pl-11 text-sm text-white focus:outline-none focus:bg-rose-500/10 focus:border-rose-500/30 transition-all placeholder:text-rose-100/20"
+                        className="w-full bg-rose-500/5 border border-white/5 rounded-2xl px-4 py-3 pl-11 text-sm text-white focus:outline-none focus:bg-rose-500/10 focus:border-rose-500/30 transition-[background-color,border-color] placeholder:text-rose-100/20"
                     />
                     <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-rose-400/30 group-focus-within/input:text-rose-400 transition-colors" />
                     <button
                         type="submit"
                         disabled={!newItemTitle.trim() || isAdding}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-xl bg-rose-500/20 text-rose-200 opacity-0 group-focus-within/input:opacity-100 hover:bg-rose-500 hover:text-white transition-all disabled:opacity-0"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-xl bg-rose-500/20 text-rose-200 opacity-0 group-focus-within/input:opacity-100 hover:bg-rose-500 hover:text-white transition-[opacity,background-color,color] disabled:opacity-0"
                     >
                         <Plus className="w-4 h-4" />
                     </button>
                 </form>
 
                 {/* List */}
-                <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-rose-500/20 scrollbar-track-transparent">
+                <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-2 minimal-scrollbar">
                     <AnimatePresence initial={false} mode="popLayout">
                         {sortedItems.length === 0 ? (
                             <motion.div
@@ -187,7 +187,7 @@ export function SharedBucketList({ initialItems = [] }: { initialItems: any[] })
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
                                     className={cn(
-                                        "group flex items-center gap-3 p-3.5 rounded-2xl border transition-all duration-300",
+                                        "group flex items-center gap-3 p-3.5 rounded-2xl border transition-[background-color,border-color,opacity,shadow] duration-300",
                                         item.is_completed
                                             ? "bg-rose-500/5 border-rose-500/10 opacity-60"
                                             : "glass-card border-white/5 hover:border-rose-500/20 shadow-sm"
@@ -196,7 +196,7 @@ export function SharedBucketList({ initialItems = [] }: { initialItems: any[] })
                                     <button
                                         onClick={() => handleToggle(item.id, item.is_completed)}
                                         className={cn(
-                                            "w-6 h-6 rounded-full border flex items-center justify-center transition-all duration-300 flex-shrink-0",
+                                            "w-6 h-6 rounded-full border flex items-center justify-center transition-[background-color,border-color,box-shadow,color] duration-300 flex-shrink-0",
                                             item.is_completed
                                                 ? "bg-gradient-to-br from-rose-500 to-pink-600 border-rose-400 text-white shadow-[0_0_15px_rgba(244,63,94,0.4)]"
                                                 : "border-white/10 text-transparent hover:border-rose-400/50"
@@ -206,7 +206,7 @@ export function SharedBucketList({ initialItems = [] }: { initialItems: any[] })
                                     </button>
 
                                     <span className={cn(
-                                        "flex-1 text-sm font-medium transition-all duration-300",
+                                        "flex-1 text-sm font-medium transition-[color,text-decoration-color] duration-300",
                                         item.is_completed
                                             ? "text-rose-100/40 line-through decoration-rose-500/40 decoration-2"
                                             : "text-rose-50/90"
@@ -220,7 +220,7 @@ export function SharedBucketList({ initialItems = [] }: { initialItems: any[] })
 
                                     <button
                                         onClick={() => handleDelete(item.id)}
-                                        className="opacity-0 group-hover:opacity-100 p-2 rounded-xl text-rose-100/10 hover:text-red-400 hover:bg-red-500/10 transition-all ml-1"
+                                        className="opacity-0 group-hover:opacity-100 p-2 rounded-xl text-rose-100/10 hover:text-red-400 hover:bg-red-500/10 transition-[opacity,color,background-color] ml-1"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
