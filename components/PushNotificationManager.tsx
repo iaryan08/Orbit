@@ -3,87 +3,121 @@
 import { useState, useEffect } from 'react';
 import { subscribeUserToPush, requestNotificationPermission } from '@/lib/push';
 import { Button } from '@/components/ui/button';
-import { Bell, BellOff, X, Sparkles, ShieldCheck } from 'lucide-react';
+import { Bell, MapPin, X, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-
 import { createClient } from '@/lib/supabase/client';
 
 export default function PushNotificationManager() {
     const [isSupported, setIsSupported] = useState(false);
     const [subscription, setSubscription] = useState<PushSubscription | null>(null);
-    const [permission, setPermission] = useState<NotificationPermission>('default');
+    const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default');
+    const [locationPermission, setLocationPermission] = useState<PermissionState>('prompt');
     const [isVisible, setIsVisible] = useState(false);
     const [dismissed, setDismissed] = useState(false);
     const [hasUser, setHasUser] = useState(false);
     const supabase = createClient();
 
+    // Check user auth
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const checkUser = async () => {
-                const { data: { user } } = await supabase.auth.getUser();
-                setHasUser(!!user);
-            };
-            checkUser();
-
-            const isPushSupported = 'serviceWorker' in navigator && 'PushManager' in window;
-            setIsSupported(isPushSupported);
-            setPermission(Notification.permission);
-
-            if (isPushSupported) {
-                checkSubscription();
-            }
-
-            // Check if user has already denied or dismissed the prompt permanently
-            const isDismissed = localStorage.getItem('push-prompt-dismissed');
-            if (isDismissed) setDismissed(true);
-        }
+        if (typeof window === 'undefined') return;
+        (async () => {
+            const { data } = await supabase.auth.getUser();
+            setHasUser(!!data.user);
+        })();
     }, []);
 
+    // Check push support + subscription + notification permission
     useEffect(() => {
-        // Show popup ONLY if:
-        // 1. Push is supported
-        // 2. User is logged in
-        // 3. Notifications are NOT enabled (permission !== 'granted' OR no subscription)
-        // 4. Not dismissed in this session
-        if (isSupported && hasUser) {
-            const isEnabled = permission === 'granted' && subscription;
-
-            if (!isEnabled && !dismissed) {
-                const timer = setTimeout(() => setIsVisible(true), 3000);
-                return () => clearTimeout(timer);
-            }
+        if (typeof window === 'undefined') return;
+        const isPushSupported = 'serviceWorker' in navigator && 'PushManager' in window;
+        setIsSupported(isPushSupported);
+        if ('Notification' in window) {
+            setNotifPermission(Notification.permission);
         }
-    }, [isSupported, hasUser, permission, subscription, dismissed]);
+        if (isPushSupported) checkSubscription();
+
+        const isDismissed = localStorage.getItem('push-prompt-dismissed');
+        if (isDismissed) setDismissed(true);
+    }, []);
+
+    // Listen to location permission changes
+    useEffect(() => {
+        if (typeof window === 'undefined' || !navigator.permissions?.query) return;
+        let result: PermissionStatus;
+        navigator.permissions.query({ name: 'geolocation' as PermissionName }).then((r) => {
+            result = r;
+            setLocationPermission(r.state);
+            r.onchange = () => setLocationPermission(r.state);
+        }).catch(() => { });
+        return () => {
+            if (result) result.onchange = null;
+        };
+    }, []);
+
+    // 3 seconds after page load: check if EITHER permission is missing → show card
+    useEffect(() => {
+        if (!hasUser) return;
+        if (dismissed) return;
+
+        const timer = setTimeout(() => {
+            // notifOk: permission granted (subscription is bonus — don't block on it)
+            const notifOk = notifPermission === 'granted';
+            const locationOk = locationPermission === 'granted';
+            if (!notifOk || !locationOk) {
+                setIsVisible(true);
+            }
+        }, 3000);
+        return () => clearTimeout(timer);
+    }, [hasUser, notifPermission, locationPermission, dismissed]);
 
     async function checkSubscription() {
         try {
             const registration = await navigator.serviceWorker.ready;
             const sub = await registration.pushManager.getSubscription();
             setSubscription(sub);
-        } catch (e) {
-            console.error('Error checking sub:', e);
-        }
+        } catch (e) { }
     }
 
-    async function handleSubscribe() {
+    async function handleEnableNotifications() {
         try {
             const result = await requestNotificationPermission();
-            setPermission(result);
+            setNotifPermission(result);
             localStorage.setItem('notification-permission', result);
-
             if (result === 'granted') {
                 const sub = await subscribeUserToPush();
                 setSubscription(sub);
                 await saveSubscription(sub);
-                toast.success('Notifications enabled for this device!');
-                setIsVisible(false);
+                toast.success('Notifications enabled!');
+                checkIfShouldClose(result, locationPermission);
             } else {
                 toast.error('Permission denied. Please enable in browser settings.');
             }
-        } catch (error) {
-            console.error('Failed to subscribe:', error);
+        } catch {
             toast.error('Failed to enable notifications');
+        }
+    }
+
+    async function handleEnableLocation() {
+        if (!navigator.geolocation) return;
+        navigator.geolocation.getCurrentPosition(
+            () => {
+                setLocationPermission('granted');
+                toast.success('Location enabled!');
+                checkIfShouldClose(notifPermission, 'granted');
+            },
+            () => {
+                toast.error('Location denied. Please enable in browser settings.');
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    }
+
+    function checkIfShouldClose(nPerm: NotificationPermission, lPerm: PermissionState) {
+        const notifOk = nPerm === 'granted';
+        const locationOk = lPerm === 'granted';
+        if (notifOk && locationOk) {
+            setIsVisible(false);
         }
     }
 
@@ -99,68 +133,97 @@ export default function PushNotificationManager() {
     const handleDismiss = () => {
         setIsVisible(false);
         setDismissed(true);
-        // Remember this choice permanently
         localStorage.setItem('push-prompt-dismissed', 'true');
-        sessionStorage.setItem('push-prompt-dismissed', 'true');
     };
+
+    const notifOk = notifPermission === 'granted';
+    const locationOk = locationPermission === 'granted';
 
     return (
         <AnimatePresence>
             {isVisible && (
-                <>
-                    {/* Blur Background Overlay */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[59]"
-                        onClick={handleDismiss}
-                    />
+                <motion.div
+                    initial={{ x: 120, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: 120, opacity: 0 }}
+                    transition={{ type: 'spring', damping: 22, stiffness: 260 }}
+                    className="fixed top-20 right-4 md:top-24 md:right-5 z-[60] w-[calc(100vw-32px)] max-w-[340px]"
+                >
+                    <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-black/60 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
+                        {/* Accent bar */}
+                        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-amber-400 via-rose-500 to-purple-500" />
 
-                    {/* Notification Prompt */}
-                    <motion.div
-                        initial={{ y: 100, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: 100, opacity: 0 }}
-                        className="fixed top-24 left-6 right-6 md:top-auto md:bottom-10 md:left-auto md:right-10 md:w-96 z-[60]"
-                    >
-                        <div className="glass-card-vibrant p-5 border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden group">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-purple-600" />
+                        {/* Close */}
+                        <button
+                            onClick={handleDismiss}
+                            className="absolute top-3 right-3 p-1 text-white/30 hover:text-white/70 rounded-full hover:bg-white/10 transition-all"
+                        >
+                            <X className="w-3.5 h-3.5" />
+                        </button>
 
-                            <button
-                                onClick={handleDismiss}
-                                className="absolute top-3 right-3 text-white/40 hover:text-white transition-colors z-10"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
-
-                            <div className="flex gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400/20 to-rose-500/20 flex items-center justify-center shrink-0 border border-white/10">
-                                    <Bell className="w-6 h-6 text-amber-300 animate-bounce-slow" />
+                        <div className="p-4 pr-8">
+                            {/* Header */}
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-amber-400/20 to-rose-500/20 border border-white/10 flex items-center justify-center shrink-0">
+                                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                                 </div>
-                                <div className="space-y-1 pr-6">
-                                    <h3 className="text-sm font-bold text-white flex items-center gap-2 tracking-tight">
-                                        Don't miss a heartbeat
-                                        <Sparkles className="w-3 h-3 text-amber-400" />
-                                    </h3>
-                                    <p className="text-[11px] text-white/60 leading-relaxed">
-                                        Enable notifications on this device to get real-time love notes and updates from your partner.
-                                    </p>
-                                </div>
+                                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-white/80">
+                                    Permissions Needed
+                                </p>
                             </div>
 
-                            <div className="mt-5">
-                                <Button
-                                    onClick={handleSubscribe}
-                                    className="w-full btn-rosy h-10 text-[11px] font-black uppercase tracking-widest"
+                            <div className="space-y-2.5">
+                                {/* Notifications row */}
+                                {!notifOk && (
+                                    <div className="flex items-center justify-between gap-3 py-2 px-3 rounded-xl bg-white/5 border border-white/8">
+                                        <div className="flex items-center gap-2.5 min-w-0">
+                                            <Bell className="w-3.5 h-3.5 text-rose-300 shrink-0" />
+                                            <div className="min-w-0">
+                                                <p className="text-[11px] font-semibold text-white/80 leading-tight">Notifications</p>
+                                                <p className="text-[9px] text-white/35 leading-tight mt-0.5 truncate">Stay in sync with your partner</p>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            onClick={handleEnableNotifications}
+                                            size="sm"
+                                            className="h-6 px-2.5 text-[9px] font-black uppercase tracking-wider shrink-0 bg-rose-500/20 hover:bg-rose-500/40 text-rose-200 border border-rose-500/30 hover:border-rose-400/50"
+                                        >
+                                            Enable
+                                        </Button>
+                                    </div>
+                                )}
+
+                                {/* Location row */}
+                                {!locationOk && (
+                                    <div className="flex items-center justify-between gap-3 py-2 px-3 rounded-xl bg-white/5 border border-white/8">
+                                        <div className="flex items-center gap-2.5 min-w-0">
+                                            <MapPin className="w-3.5 h-3.5 text-indigo-300 shrink-0" />
+                                            <div className="min-w-0">
+                                                <p className="text-[11px] font-semibold text-white/80 leading-tight">Location</p>
+                                                <p className="text-[9px] text-white/35 leading-tight mt-0.5 truncate">Distance & local weather</p>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            onClick={handleEnableLocation}
+                                            size="sm"
+                                            className="h-6 px-2.5 text-[9px] font-black uppercase tracking-wider shrink-0 bg-indigo-500/20 hover:bg-indigo-500/40 text-indigo-200 border border-indigo-500/30 hover:border-indigo-400/50"
+                                        >
+                                            Enable
+                                        </Button>
+                                    </div>
+                                )}
+
+                                {/* Dismiss link */}
+                                <button
+                                    onClick={handleDismiss}
+                                    className="w-full text-center text-[9px] text-white/20 hover:text-white/40 transition-colors uppercase tracking-widest pt-0.5"
                                 >
-                                    <ShieldCheck className="w-3.5 h-3.5 mr-2" />
-                                    Enable Now
-                                </Button>
+                                    Maybe later
+                                </button>
                             </div>
                         </div>
-                    </motion.div>
-                </>
+                    </div>
+                </motion.div>
             )}
         </AnimatePresence>
     );

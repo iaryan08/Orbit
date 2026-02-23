@@ -54,12 +54,12 @@ export function StackedPolaroids({ userPolaroid, partnerPolaroid, partnerName, o
                     <Camera className="w-10 h-10 text-white/20 group-hover:scale-110 transition-transform duration-500" />
                     <Heart className="w-5 h-5 text-rose-500/40 absolute -bottom-1 -right-1 animate-pulse" />
                 </div>
-                <h3 className="text-[11px] font-bold text-white/60 uppercase tracking-widest mb-1">No Poster</h3>
-                <p className="text-[9px] text-white/30 text-center max-w-[130px] italic">
-                    Share a special moment.
+                <h3 className="font-serif italic text-lg text-white/60 tracking-wide mb-1">No Polaroids</h3>
+                <p className="font-pinyon text-xl text-white/30 text-center max-w-[130px] leading-none mb-2">
+                    Share a moment.
                 </p>
-                <div className="mt-4 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[8px] font-black uppercase tracking-widest text-white/40">
-                    Please Upload
+                <div className="mt-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[9px] font-bold uppercase tracking-[0.2em] text-white/40">
+                    Upload Photo
                 </div>
             </div>
         );
@@ -121,8 +121,8 @@ export function StackedPolaroids({ userPolaroid, partnerPolaroid, partnerName, o
                     })}
                 </AnimatePresence>
 
-                {/* Pagination Dots */}
-                <div className="absolute -bottom-6 left-0 right-0 flex justify-center gap-1.5">
+                {/* Pagination Dots - hidden but swipe still works */}
+                <div className="hidden absolute -bottom-6 left-0 right-0 flex justify-center gap-1.5">
                     {items.map((item, idx) => (
                         <div
                             key={item.id}
@@ -228,15 +228,15 @@ function PolaroidItem({
             <div className="mt-2.5 px-0.5 min-h-[35px]">
                 {data ? (
                     <>
-                        <p className="font-pinyon text-sm text-gray-800 leading-tight line-clamp-1">
-                            {data.caption || "A moment shared..."}
+                        <p className="font-pinyon text-[22px] text-gray-800 leading-tight line-clamp-1 h-6">
+                            {data.caption || "A moment shared"}
                         </p>
-                        <p className="text-[8px] text-gray-400 font-sans uppercase tracking-widest mt-0.5">
+                        <p className="font-serif italic text-[10px] text-gray-400 mt-1">
                             {formatDistanceToNow(new Date(data.created_at))} ago
                         </p>
                     </>
                 ) : (
-                    <p className="font-pinyon text-sm text-gray-300 leading-tight">
+                    <p className="font-pinyon text-[22px] text-gray-300 leading-tight">
                         Waiting...
                     </p>
                 )}

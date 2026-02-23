@@ -58,8 +58,9 @@ export function DashboardHeader({
   partnerName,
   daysTogetherCount,
   coupleId,
+  partnerId,
   unreadCounts: initialUnreadCounts = { memories: 0, letters: 0 }
-}: DashboardHeaderProps) {
+}: DashboardHeaderProps & { partnerId?: string }) {
   const pathname = usePathname()
   const router = useRouter()
   const [scrolled, setScrolled] = useState(false)
@@ -144,6 +145,26 @@ export function DashboardHeader({
     }
   }, [])
 
+  // Real-time online detection for partner
+  const [partnerOnline, setPartnerOnline] = useState(false);
+  useEffect(() => {
+    if (!coupleId || !partnerId) return;
+
+    const channel = supabase.channel(`online-${coupleId}`, {
+      config: { presence: { key: (supabase as any).auth?.user?.id } }
+    });
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const onlineIds = Object.values(state).flat().map((p: any) => p.user_id);
+        setPartnerOnline(onlineIds.includes(partnerId));
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [coupleId, partnerId, supabase]);
+
   if (!mounted) {
     return null
   }
@@ -160,6 +181,9 @@ export function DashboardHeader({
 
   return (
     <>
+      {/* 0. Header Background Overlay - Ensures visibility against any photo */}
+      <div className="fixed top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/60 via-black/20 to-transparent z-[40] pointer-events-none" />
+
       {/* 1. Logo (Top Left Floating) */}
       <motion.div
         className={cn(
@@ -501,8 +525,8 @@ export function DashboardHeader({
 
         {partnerName && daysTogetherCount !== undefined && mode === 'moon' && (
           <div className="hidden lg:flex flex-col items-end mr-2 text-white/90 drop-shadow-sm">
-            <span className="text-xs font-light uppercase tracking-widest opacity-80">Together</span>
-            <span className="text-sm font-semibold">{daysTogetherCount} Days</span>
+            <span className="text-[10px] uppercase tracking-[0.2em] font-bold opacity-80 mb-0.5">Together</span>
+            <span className="text-sm font-bold">{daysTogetherCount} Days</span>
           </div>
         )}
 
@@ -521,6 +545,10 @@ export function DashboardHeader({
                     {userName?.charAt(0) || 'U'}
                   </AvatarFallback>
                 </Avatar>
+                {/* Global Partner Online Indicator */}
+                {partnerOnline && (
+                  <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-black rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)] z-20" />
+                )}
               </motion.div>
             </Button>
           </DropdownMenuTrigger>
@@ -530,7 +558,7 @@ export function DashboardHeader({
                 <p className="font-medium text-lg">{userName}</p>
                 {partnerName && (
                   <p className="text-xs text-white/60 flex items-center gap-1">
-                    <Heart className="w-3 h-3 text-primary" fill="currentColor" />
+                    <Heart className="w-3 h-3 text-rose-400" fill="currentColor" />
                     with {partnerName}
                   </p>
                 )}

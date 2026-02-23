@@ -131,7 +131,7 @@ export function SharedBucketList({ initialItems = [] }: { initialItems: any[] })
     const displayItems = showAll ? sortedItems : sortedItems.slice(0, 15)
 
     return (
-        <Card className="glass-card border-none overflow-hidden relative group">
+        <Card className="glass-card canvas-card-border overflow-hidden relative group">
             <div className="absolute inset-0 bg-gradient-to-br from-rose-500/10 via-transparent to-amber-500/10 pointer-events-none" />
             <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-rose-500/20 to-transparent" />
 

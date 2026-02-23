@@ -2,22 +2,23 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { getTodayIST } from '@/lib/utils'
+import { getDashboardPolaroids } from '@/lib/actions/polaroids'
+import { getDoodle } from '@/lib/actions/doodles'
+import { cache } from 'react'
 
 /**
- * CONSOLIDATED DATA FETCHERS v2
- * High-performance, streaming-compatible server actions for the Orbit Dashboard.
+ * CONSOLIDATED DATA FETCHERS v3
+ * High-performance, streaming-compatible server actions.
+ * Optimized to eliminate layout shifts by fetching all core UI data in a single parallel batch.
  */
 
-export async function getDashboardData() {
-    return await getCoreDashboardData()
-}
-
-export async function getCoreDashboardData() {
+// Memoize core data fetching to prevent double-hits in the same request life-cycle
+export const getCoreDashboardData = cache(async () => {
     try {
-        console.log('[Orbit-Dashboard] Fetching core data (v2.1)...')
+        console.log('[Orbit-Dashboard] Fetching core data (v3)...')
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return { error: 'Not authenticated' }
+        if (!user) return { success: false, error: 'Not authenticated' }
 
         const selectFields = 'id, partner_id, couple_id, gender, display_name, avatar_url, city, timezone, latitude, longitude, location_source, updated_at'
 
@@ -30,7 +31,7 @@ export async function getCoreDashboardData() {
 
         if (pError || !profile) {
             console.error('[getCoreDashboardData] User profile error:', pError)
-            return { error: 'Profile not found' }
+            return { success: false, error: 'Profile not found' }
         }
 
         let partnerId = profile.partner_id
@@ -52,7 +53,20 @@ export async function getCoreDashboardData() {
         const rolling24hStart = new Date(Date.now() - 24 * 60 * 60 * 1000)
 
         // 3. Parallel fetching of all related dashboard data
-        const [pProfileRes, coupleRes, pMoodsRes, uMoodsRes, countsRes, userCycleRes, partnerCycleRes, cycleLogsRes, supportLogsRes] = await Promise.all([
+        // Fetching everything in one batch ensures No Layout Shifts (no "popping" components)
+        const [
+            pProfileRes,
+            coupleRes,
+            pMoodsRes,
+            uMoodsRes,
+            countsRes,
+            userCycleRes,
+            partnerCycleRes,
+            cycleLogsRes,
+            supportLogsRes,
+            polaroids,
+            doodle
+        ] = await Promise.all([
             partnerId ? supabase.from('profiles').select(selectFields).eq('id', partnerId).single() : Promise.resolve({ data: null, error: null }),
             coupleId ? supabase.from('couples').select('id, user1_id, user2_id, anniversary_date, paired_at, couple_code').eq('id', coupleId).single() : Promise.resolve({ data: null, error: null }),
             partnerId ? supabase.from('moods').select('id, created_at, emoji, mood_text, mood:emoji, note:mood_text').eq('user_id', partnerId).gte('created_at', rolling24hStart.toISOString()).order('created_at', { ascending: false }) : Promise.resolve({ data: [], error: null }),
@@ -64,7 +78,9 @@ export async function getCoreDashboardData() {
             supabase.from('cycle_profiles').select('*').eq('user_id', user.id).maybeSingle(),
             partnerId ? supabase.from('cycle_profiles').select('*').eq('user_id', partnerId).maybeSingle() : Promise.resolve({ data: null, error: null }),
             coupleId ? supabase.from('cycle_logs').select('*').eq('couple_id', coupleId).limit(30) : Promise.resolve({ data: [], error: null }),
-            coupleId ? supabase.from('support_logs').select('*').eq('couple_id', coupleId).limit(30) : Promise.resolve({ data: [], error: null })
+            coupleId ? supabase.from('support_logs').select('*').eq('couple_id', coupleId).limit(30) : Promise.resolve({ data: [], error: null }),
+            getDashboardPolaroids(coupleId ?? undefined),
+            getDoodle(coupleId ?? undefined)
         ])
 
         const memoriesCount = (countsRes as any)[0]?.count || 0
@@ -94,13 +110,19 @@ export async function getCoreDashboardData() {
                 partnerCycle: partnerCycleRes?.data,
                 cycleLogs: normalizedCycleLogs,
                 supportLogs: normalizedSupportLogs,
-                currentDateIST: getTodayIST()
+                currentDateIST: getTodayIST(),
+                polaroids,
+                doodle
             }
         }
     } catch (e: any) {
         console.error('[getCoreDashboardData] Critical Exception:', e)
-        return { error: e.message }
+        return { success: false, error: e.message }
     }
+})
+
+export async function getDashboardData() {
+    return await getCoreDashboardData()
 }
 
 export async function fetchBucketListData(coupleId: string) {

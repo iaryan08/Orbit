@@ -1,9 +1,8 @@
 import {
     getCoreDashboardData
 } from '@/lib/actions/consolidated'
-import { PartnerOnlineDot } from '@/components/partner-online-dot'
-import { getDashboardPolaroids, deletePolaroid } from '@/lib/actions/polaroids'
-import { getDoodle, saveDoodle } from '@/lib/actions/doodles'
+import { deletePolaroid } from '@/lib/actions/polaroids'
+import { saveDoodle } from '@/lib/actions/doodles'
 import { DashboardShell } from '@/components/dashboard-shell'
 import { ScrollReveal } from '@/components/scroll-reveal'
 import { MoodCheckIn } from '@/components/mood-check-in'
@@ -16,19 +15,11 @@ import {
     DashboardSkeleton
 } from '@/components/dashboard-wrappers'
 import { Suspense } from 'react'
-import nextDynamic from 'next/dynamic'
+import { StackedPolaroids } from '@/components/stacked-polaroids'
+import { SharedDoodle } from '@/components/shared-doodle'
+import { DistanceTimeWidget } from '@/components/distance-time-widget'
 import { Sparkles, Flame, Heart, Image as ImageIcon, PenLine } from 'lucide-react'
 
-// Dynamic imports for heavy content components to reduce initial JS payload
-const StackedPolaroids = nextDynamic(() => import('@/components/stacked-polaroids').then(mod => mod.StackedPolaroids), {
-    loading: () => <DashboardSkeleton className="h-[400px]" />
-})
-const SharedDoodle = nextDynamic(() => import('@/components/shared-doodle').then(mod => mod.SharedDoodle), {
-    loading: () => <DashboardSkeleton className="h-[400px] lg:h-[340px]" />
-})
-const DistanceTimeWidget = nextDynamic(() => import('@/components/distance-time-widget').then(mod => mod.DistanceTimeWidget), {
-    loading: () => <DashboardSkeleton className="h-48" />
-})
 export default async function DashboardPage() {
     return <AsyncDashboardContent />
 }
@@ -36,7 +27,8 @@ export default async function DashboardPage() {
 export const dynamic = 'force-dynamic'
 
 async function AsyncDashboardContent() {
-    // 1. Fetch Core Data (Fast Path for First Paint)
+    // 1. Fetch ALL Core Data (consolidated into one parallel batch)
+    // This eliminates layout shift/flicker by having everything ready before first paint.
     const result = await getCoreDashboardData()
     if (!result.success || !result.data) return null
 
@@ -47,7 +39,9 @@ async function AsyncDashboardContent() {
         userTodayMoods,
         partnerTodayMoods,
         memoriesCount,
-        lettersCount
+        lettersCount,
+        polaroids,
+        doodle
     } = result.data
 
     const coupleId = couple?.id
@@ -63,37 +57,35 @@ async function AsyncDashboardContent() {
 
     return (
         <DashboardShell lunaraData={result.data}>
-            <div className="max-w-7xl mx-auto space-y-6 md:space-y-12 pt-16 md:pt-24 pb-12 px-6 md:px-8">
+            <div className="max-w-7xl mx-auto space-y-6 md:space-y-12 pt-16 md:pt-24 pb-28 md:pb-12 px-6 md:px-8">
                 {/* Refined Welcome Header */}
-                <ScrollReveal className="space-y-2 md:space-y-4 text-center lg:text-left">
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-amber-200/90 text-[10px] uppercase tracking-[0.3em] font-bold backdrop-blur-md text-glow-gold">
-                        <Sparkles className="w-3 h-3 text-amber-400/80" />
-                        Moonbetweenus
+                <ScrollReveal className="space-y-1 md:space-y-2 text-center lg:text-left">
+                    <div className="inline-flex items-center gap-2 md:gap-3 px-3 md:px-5 py-1 md:py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md shadow-[0_0_20px_rgba(251,191,36,0.1)] group hover:bg-white/10 hover:border-white/20 transition-all duration-500">
+                        <Sparkles className="w-3 md:w-4 h-3 md:h-4 text-amber-400/80 animate-pulse-slow" />
+                        <span className="text-amber-200/90 text-[10px] uppercase tracking-[0.3em] font-bold text-glow-gold">
+                            MOONBETWEENUS
+                        </span>
                     </div>
-                    <h1 className="hidden md:block text-3xl md:text-7xl font-romantic text-rose-50 leading-[1.1] tracking-wide">
-                        Always Together
-                        <br />
-                        <span className="bg-gradient-to-r from-amber-200 via-rose-300 to-orange-300 bg-clip-text text-transparent drop-shadow-sm">
+                    <h1 className="hidden md:block text-3xl md:text-7xl space-y-2 md:space-y-0 text-rose-50 leading-tight tracking-tight">
+                        <span className="font-serif italic font-light opacity-90 block md:inline">Always Together </span>
+                        <span className="font-pinyon text-5xl md:text-9xl bg-gradient-to-r from-amber-200 via-rose-300 to-orange-300 bg-clip-text text-transparent drop-shadow-sm lowercase md:-ml-4">
                             Forever
                         </span>
                     </h1>
-                    <div className="flex flex-col md:flex-row items-center md:items-center gap-3 md:gap-4 pt-4 md:pt-6 justify-center lg:justify-start">
+                    <div className="flex flex-col md:flex-row items-center md:items-center gap-3 md:gap-4 pt-2 md:pt-4 justify-center lg:justify-start">
                         <PartnerAvatarHeartbeat
                             uProfile={profile}
                             partnerProfile={partnerProfile}
                             coupleId={coupleId || ""}
                         />
                         <div className="flex flex-col items-center md:items-start justify-center">
-                            <p className="text-rose-100/70 uppercase text-[10px] md:text-xs tracking-[0.2em] whitespace-nowrap flex items-center">
+                            <p className="text-rose-100/60 text-[10px] md:text-[12px] tracking-[0.1em] font-medium whitespace-nowrap">
                                 {hasPartner ? (
-                                    <>Connected with{' '}<span className="text-rose-300 font-bold ml-1">{partnerProfile?.display_name || 'Partner'}</span>
-                                        {coupleId && partnerProfile?.id && (
-                                            <PartnerOnlineDot
-                                                coupleId={coupleId}
-                                                userId={profile?.id || ''}
-                                                partnerId={partnerProfile.id}
-                                            />
-                                        )}
+                                    <>
+                                        <span className="font-serif italic mr-1 text-[11px] md:text-[13px]">Connected with</span>
+                                        <span className="font-pinyon text-[18px] md:text-[24px] text-rose-300/90 lowercase leading-none">
+                                            {partnerProfile?.display_name}
+                                        </span>
                                     </>
                                 ) : (
                                     "Waiting for partner"
@@ -174,12 +166,15 @@ async function AsyncDashboardContent() {
                         </ScrollReveal>
 
                         <ScrollReveal className="lg:col-span-1" delay={0.2}>
-                            <Suspense fallback={<DashboardSkeleton className="h-[400px]" />}>
-                                <PolaroidsSection
-                                    coupleId={coupleId}
-                                    partnerName={partnerProfile?.display_name || 'Partner'}
-                                />
-                            </Suspense>
+                            <StackedPolaroids
+                                userPolaroid={polaroids?.userPolaroid || null}
+                                partnerPolaroid={polaroids?.partnerPolaroid || null}
+                                partnerName={partnerProfile?.display_name || 'Partner'}
+                                onDelete={async (id: string) => {
+                                    'use server'
+                                    await deletePolaroid(id)
+                                }}
+                            />
                         </ScrollReveal>
 
                         <ScrollReveal className="lg:col-span-1 h-full" delay={0.25}>
@@ -191,9 +186,13 @@ async function AsyncDashboardContent() {
                         {/* Middle Row: Content & Creativity */}
                         <ScrollReveal className="lg:col-span-2" delay={0.3}>
                             <div className="h-[400px] lg:h-[340px]">
-                                <Suspense fallback={<DashboardSkeleton className="h-[400px] lg:h-[340px]" />}>
-                                    <DoodleSection coupleId={coupleId} />
-                                </Suspense>
+                                <SharedDoodle
+                                    savedPath={doodle?.path_data}
+                                    onSave={async (path) => {
+                                        'use server'
+                                        await saveDoodle(path)
+                                    }}
+                                />
                             </div>
                         </ScrollReveal>
 
@@ -214,35 +213,5 @@ async function AsyncDashboardContent() {
                 </div>
             </div>
         </DashboardShell>
-    )
-}
-
-async function PolaroidsSection({ coupleId, partnerName }: { coupleId?: string | null, partnerName: string }) {
-    const { userPolaroid, partnerPolaroid } = await getDashboardPolaroids(coupleId ?? undefined)
-
-    return (
-        <StackedPolaroids
-            userPolaroid={userPolaroid}
-            partnerPolaroid={partnerPolaroid}
-            partnerName={partnerName}
-            onDelete={async (id: string) => {
-                'use server'
-                await deletePolaroid(id)
-            }}
-        />
-    )
-}
-
-async function DoodleSection({ coupleId }: { coupleId?: string | null }) {
-    const doodle = await getDoodle(coupleId ?? undefined)
-
-    return (
-        <SharedDoodle
-            savedPath={doodle?.path_data}
-            onSave={async (path) => {
-                'use server'
-                await saveDoodle(path)
-            }}
-        />
     )
 }

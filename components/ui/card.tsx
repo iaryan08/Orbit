@@ -15,7 +15,7 @@ function Card({ className, glassy = true, ...props }: CardProps) {
         glassy
           ? 'glass-card shadow-sm overflow-hidden transform-gpu'
           : 'bg-transparent border-none shadow-none',
-        'flex flex-col gap-8 rounded-[40px] py-10 px-2 text-white',
+        'flex flex-col gap-8 rounded-2xl py-10 px-2 text-white',
         className,
       )}
       {...props}

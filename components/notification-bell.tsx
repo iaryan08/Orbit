@@ -301,7 +301,7 @@ export function NotificationBell({ className }: { className?: string }) {
                     {/* System Alerts: Location & Notifications */}
                     <div className="flex flex-col">
                         {/* Location Prompt */}
-                        {locationPermission !== 'granted' && (
+                        {!checkingPush && locationPermission !== 'granted' && (
                             <div className={cn(
                                 "p-4 border-b transition-colors",
                                 locationPermission === 'denied' ? "bg-rose-500/10 border-rose-500/20" : "bg-amber-500/10 border-amber-500/20"
@@ -327,6 +327,9 @@ export function NotificationBell({ className }: { className?: string }) {
                                                         (error) => {
                                                             if (error.code === error.PERMISSION_DENIED) {
                                                                 setLocationPermission('denied')
+                                                            } else {
+                                                                // Permission was granted, but device couldn't find location
+                                                                setLocationPermission('granted')
                                                             }
                                                         }
                                                     )

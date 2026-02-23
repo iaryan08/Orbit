@@ -212,7 +212,7 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
     }
 
     return (
-        <Card className="glass-card overflow-hidden border-primary/10 h-full group relative">
+        <Card className="glass-card canvas-card-border overflow-hidden h-full group relative">
             <CardHeader className="pb-2 relative z-10">
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-xl font-serif text-white flex items-center gap-2">

@@ -5,7 +5,7 @@ import { fetchUnreadCounts } from '@/lib/actions/auth'
 import { AppModeProvider } from '@/components/app-mode-context'
 import { AmbientTopLoader } from '@/components/ambient-top-loader'
 import { DeferredLocationTracker } from '@/components/deferred-location-tracker'
-import { DeferredDashboardHeader } from '@/components/deferred-dashboard-header'
+import { DashboardHeader } from '@/components/dashboard-header'
 import { Suspense } from 'react'
 
 
@@ -36,9 +36,6 @@ export default async function ProtectedLayout({
             <AmbientTopLoader />
             <DeferredLocationTracker />
             <div className="relative min-h-screen">
-                {/* Top Viewport Fade Overlay */}
-                <div className="fixed top-0 left-0 right-0 h-32 bg-gradient-to-b from-background via-background/60 to-transparent z-[30] pointer-events-none" />
-
                 <Suspense fallback={<div className="h-20" />}>
                     <HeaderWrapper userId={user.id} email={email} />
                 </Suspense>
@@ -63,6 +60,7 @@ async function HeaderWrapper({ userId, email }: { userId: string, email?: string
 
     let partnerProfile = null
     let daysTogetherCount = 0
+    let unreadCounts = { memories: 0, letters: 0 }
 
     if (profile?.couple_id) {
         const { data: couple } = await supabase
@@ -73,12 +71,13 @@ async function HeaderWrapper({ userId, email }: { userId: string, email?: string
 
         if (couple) {
             const partnerId = couple.user1_id === userId ? couple.user2_id : couple.user1_id
-            const [partnerRes, unreadCounts] = await Promise.all([
-                partnerId ? supabase.from('profiles').select('display_name, avatar_url').eq('id', partnerId).single() : Promise.resolve({ data: null }),
+            const [partnerRes, counts] = await Promise.all([
+                partnerId ? supabase.from('profiles').select('id, display_name, avatar_url').eq('id', partnerId).single() : Promise.resolve({ data: null }),
                 fetchUnreadCounts()
             ]);
 
             partnerProfile = partnerRes.data
+            unreadCounts = counts
             const startDateStr = couple.anniversary_date || couple.paired_at
             if (startDateStr) {
                 const startDate = new Date(startDateStr)
@@ -89,12 +88,14 @@ async function HeaderWrapper({ userId, email }: { userId: string, email?: string
     }
 
     return (
-        <DeferredDashboardHeader
+        <DashboardHeader
             userName={profile?.display_name || email?.split('@')[0] || 'User'}
             userAvatar={profile?.avatar_url}
             partnerName={partnerProfile?.display_name}
             daysTogetherCount={daysTogetherCount}
             coupleId={profile?.couple_id}
+            partnerId={partnerProfile?.id}
+            unreadCounts={unreadCounts}
         />
     )
 }

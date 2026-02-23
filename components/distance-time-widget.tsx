@@ -135,7 +135,7 @@ export function DistanceTimeWidget({ uProfile, partnerProfile }: DistanceWidgetP
 
             <div className="relative z-10 flex flex-col h-full">
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-white/80 font-serif font-medium flex items-center gap-2 text-sm italic opacity-60">
+                    <h3 className="text-white/80 font-serif font-medium flex items-center gap-2 text-base italic opacity-80">
                         <Navigation className="w-3.5 h-3.5 text-rose-300" />
                         Connection
                     </h3>
@@ -186,8 +186,8 @@ export function DistanceTimeWidget({ uProfile, partnerProfile }: DistanceWidgetP
                                 </div>
                                 <span className="hidden md:inline opacity-30 text-[10px] shrink-0 -mt-0.5">{uProfile?.timezone}</span>
                                 {hasUserLoc && (
-                                    <span className="text-[9px] opacity-40 uppercase tracking-tighter">
-                                        Seen {formatRelativeTime(uProfile.updated_at, currentTime)}
+                                    <span className="text-[9px] text-emerald-400/60 whitespace-nowrap font-medium tracking-tight">
+                                        · {formatRelativeTime(uProfile.updated_at, currentTime)}
                                     </span>
                                 )}
                             </div>
@@ -227,8 +227,8 @@ export function DistanceTimeWidget({ uProfile, partnerProfile }: DistanceWidgetP
                                 </div>
                                 <span className="hidden md:inline opacity-30 text-[10px] shrink-0 -mt-0.5 text-right">{partnerProfile?.timezone}</span>
                                 {hasPartnerLoc && (
-                                    <span className="text-[9px] opacity-40 uppercase tracking-tighter text-right">
-                                        Seen {formatRelativeTime(partnerProfile.updated_at, currentTime)}
+                                    <span className="text-[9px] text-emerald-400/60 whitespace-nowrap font-medium tracking-tight text-right">
+                                        {formatRelativeTime(partnerProfile.updated_at, currentTime)} ·
                                     </span>
                                 )}
                             </div>

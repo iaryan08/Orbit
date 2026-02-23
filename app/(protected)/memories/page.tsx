@@ -307,7 +307,7 @@ export default function MemoriesPage() {
     const opacity = useTransform(scrollY, [0, 50], [1, 0]);
 
     return (
-        <div className="container mx-auto px-4 py-8 space-y-6 pt-14">
+        <div className="container mx-auto px-4 py-8 space-y-6 pt-14 pb-28 md:pb-8">
             <div className="flex items-center justify-between z-10">
                 <div className="flex items-center gap-3">
                     <Camera className="h-6 w-6 text-amber-200 drop-shadow-[0_0_10px_rgba(253,243,165,0.8)]" />
@@ -365,7 +365,7 @@ export default function MemoriesPage() {
                         {memories.map((memory, index) => (
                             <Card
                                 key={memory.id}
-                                className="cursor-pointer overflow-hidden transition-[box-shadow] hover:shadow-lg group/card relative"
+                                className="cursor-pointer overflow-hidden transition-[box-shadow] hover:shadow-lg group/card relative canvas-card-border"
                                 onClick={() => {
                                     setSelectedMemory(memory);
                                     setCurrentImageIndex(0);

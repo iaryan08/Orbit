@@ -21,7 +21,7 @@ export function DashboardHeroEnhancements({
     userLatitude?: number | null
 }) {
     return (
-        <div className="space-y-3 md:space-y-4">
+        <div className="space-y-2">
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
                 {hasPartner && partnerProfile && (
                     <WeatherBadge

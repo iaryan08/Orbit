@@ -111,11 +111,11 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
             </div>
 
             <div className="flex flex-col min-w-0">
-              <p className="text-sm font-bold text-white tracking-widest uppercase whitespace-normal break-words leading-none mb-1.5 opacity-90 group-hover:text-rose-100 transition-colors">
+              <p className="font-pinyon text-2xl text-rose-100/90 leading-none mb-1 group-hover:scale-105 origin-left transition-transform">
                 {moodLabel}
               </p>
               <div className="flex items-center gap-2">
-                <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] leading-none shrink-0">Your Vibe</span>
+                <span className="font-serif italic text-[11px] text-white/40 leading-none shrink-0">Your Vibe</span>
                 {noteToShow && (
                   <>
                     <div className="w-1 h-1 rounded-full bg-white/10 shrink-0" />
@@ -158,8 +158,8 @@ export function MoodCheckIn({ hasPartner, userMoods = [] }: MoodCheckInProps) {
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="space-y-1">
-          <CardTitle className="text-lg text-white">How are you feeling?</CardTitle>
-          <CardDescription className="text-white/70">Share your mood with your partner</CardDescription>
+          <CardTitle className="font-serif italic text-xl text-white">How are you feeling?</CardTitle>
+          <CardDescription className="text-[10px] uppercase tracking-widest text-white/40 font-bold">Share your mood with your partner</CardDescription>
         </div>
         <Button
           variant="ghost"

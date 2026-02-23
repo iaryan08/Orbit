@@ -40,7 +40,7 @@ interface LoveLetter {
     unlock_date: string | null;
     unlock_type?: string;
     is_read: boolean;
-    read_at?: string; // Added field
+    read_at?: string;
     created_at: string;
     sender_name?: string;
 }
@@ -107,7 +107,6 @@ export default function LettersPage() {
                 return;
             }
 
-            // Update the query to include letters where sender_id is current user OR (unlock_date is null or passed)
             const { data: lettersData, error: lettersError } = await supabase
                 .from("love_letters")
                 .select('*')
@@ -122,10 +121,8 @@ export default function LettersPage() {
                 return;
             }
 
-            // Get unique sender IDs
             const senderIds = Array.from(new Set(lettersData.map((l: any) => l.sender_id)));
 
-            // Fetch profiles for senders
             const { data: profilesData, error: profilesError } = await supabase
                 .from("profiles")
                 .select("id, display_name")
@@ -133,7 +130,6 @@ export default function LettersPage() {
 
             if (profilesError) throw profilesError;
 
-            // Create a map of id -> display_name
             const profileMap = new Map(profilesData?.map((p: any) => [p.id, p.display_name]) || []);
 
             const formattedLetters = lettersData.map((letter: any) => ({
@@ -246,7 +242,7 @@ export default function LettersPage() {
     const opacity = useTransform(scrollY, [0, 50], [1, 0]);
 
     return (
-        <div className="container mx-auto px-4 py-8 space-y-6 pt-14">
+        <div className="container mx-auto px-4 py-8 space-y-6 pt-14 pb-28 md:pb-8">
             <div className="flex items-center justify-between z-10">
                 <div className="flex items-center gap-3">
                     <Mail className="h-6 w-6 text-amber-200 drop-shadow-[0_0_10px_rgba(253,243,165,0.8)]" />
@@ -308,7 +304,7 @@ export default function LettersPage() {
                         return (
                             <Card
                                 key={letter.id}
-                                className={`cursor-pointer transition-[transform,background-color,ring-color,shadow] hover:translate-y-[-4px] card-border-premium group min-h-[240px] flex flex-col justify-between !py-8 !px-6 ${!letter.is_read ? "ring-2 ring-rose-500/30 bg-rose-500/5 shadow-[0_0_20px_rgba(244,63,94,0.1)]" : "bg-black/20"}`}
+                                className={`cursor-pointer transition-[transform,background-color,ring-color,shadow] hover:translate-y-[-4px] card-border-premium canvas-card-border group min-h-[240px] flex flex-col justify-between !py-8 !px-6 ${!letter.is_read ? "ring-2 ring-rose-500/30 bg-rose-500/5 shadow-[0_0_20px_rgba(244,63,94,0.1)]" : "bg-black/20"}`}
                                 onClick={() => {
                                     setSelectedLetter(letter);
                                     if (!letter.is_read) markAsRead(letter.id);

@@ -45,7 +45,7 @@ export function WhisperCard({ letter, onOpen }: WhisperCardProps) {
                 animate={{ opacity: 1, scale: 1 }}
                 whileHover={{ scale: 1.02, rotate: 1 }}
                 onClick={handleReveal}
-                className="relative overflow-hidden rounded-3xl aspect-[4/5] cursor-pointer group"
+                className="relative overflow-hidden rounded-3xl aspect-[4/5] cursor-pointer group canvas-card-border"
             >
                 {/* Background Blur & Noise */}
                 <div className="absolute inset-0 bg-black/80 backdrop-blur-2xl z-0" />
