@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { optimizeImage } from "@/lib/image-optimization";
+import { setCustomWallpaper, clearCustomWallpaper } from "@/lib/idb";
 import {
   Select,
   SelectContent,
@@ -42,12 +43,14 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingWallpaper, setUploadingWallpaper] = useState(false);
   const [copied, setCopied] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [gender, setGender] = useState("");
   const [coupleName, setCoupleName] = useState("");
   const [anniversaryDate, setAnniversaryDate] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const wallpaperInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const router = useRouter();
   const supabase = createClient();
@@ -150,6 +153,79 @@ export default function SettingsPage() {
     }
   };
 
+  const fileToBase64 = (file: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
+  const handleWallpaperSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0 || !profile) return;
+    const file = event.target.files[0];
+
+    setUploadingWallpaper(true);
+    try {
+      // Create a high-quality WebP of size meant for mobile/desktop background
+      const optimizedFile = await optimizeImage(file, 1080, 1920, 0.85);
+
+      // Save Base64 to Local IDB for 0-latency instant load
+      const base64Str = await fileToBase64(optimizedFile);
+      await setCustomWallpaper(base64Str);
+
+      // Upload in background to sync to other devices
+      const filePath = `${profile.id}-wallpaper.webp`;
+      await supabase.storage.from("avatars").upload(filePath, optimizedFile, { upsert: true });
+
+      // Clear the deletion lock so stale-revalidate can run again in the future
+      localStorage.removeItem('orbit_deleted_wallpaper');
+
+      toast({
+        title: "Atmosphere Updated",
+        description: "Your custom wallpaper is active everywhere.",
+        variant: "success",
+      });
+
+      // Reload to apply immediately
+      window.location.reload();
+    } catch (error: any) {
+      console.error("Wallpaper error:", error);
+      toast({
+        title: "Upload failed",
+        description: "Could not set custom wallpaper.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingWallpaper(false);
+    }
+  };
+
+  const resetAtmosphere = async () => {
+    setUploadingWallpaper(true);
+    try {
+      if (profile) {
+        await supabase.storage.from("avatars").remove([`${profile.id}-wallpaper.webp`]);
+      }
+      await clearCustomWallpaper();
+
+      // Lock out the background sync so Supabase CDN caching doesn't resurrect it
+      localStorage.setItem('orbit_deleted_wallpaper', 'true');
+
+      toast({
+        title: "Atmosphere Reset",
+        description: "Restored to default Orbit themes.",
+        variant: "success",
+      });
+      window.location.reload();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setUploadingWallpaper(false);
+    }
+  };
+
   const saveProfile = async () => {
     if (!profile) return;
     setSaving(true);
@@ -244,7 +320,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Profile Settings */}
-      <Card>
+      <Card className="bg-neutral-950/40 backdrop-blur-md border-white/5 shadow-2xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
@@ -300,23 +376,60 @@ export default function SettingsPage() {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="Your name"
-                className="border border-white/10"
+                className="border border-white/10 bg-white/5 text-white focus-visible:ring-rose-500/50"
               />
             </div>
             <div>
               <Label htmlFor="gender" className="text-white/80 font-bold uppercase tracking-widest text-[10px] mb-2 block">Gender</Label>
               <Select value={gender} onValueChange={setGender}>
-                <SelectTrigger className="w-full border border-white/10 text-white">
+                <SelectTrigger className="w-full border border-white/10 bg-white/5 text-white focus:ring-rose-500/50">
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
-                <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                <SelectContent className="bg-neutral-900 border-white/10 text-white">
                   <SelectItem value="male">Male</SelectItem>
                   <SelectItem value="female">Female</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={saveProfile} disabled={saving} className="w-full sm:w-auto">
+            <Button onClick={saveProfile} disabled={saving} className="w-full sm:w-auto bg-white text-black hover:bg-neutral-200">
               {saving ? "Saving..." : "Save Profile"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Atmosphere Customizer */}
+      <Card className="bg-neutral-950/40 backdrop-blur-md border-white/5 shadow-2xl">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-rose-300">
+            <Camera className="h-5 w-5" />
+            Atmosphere Customizer
+          </CardTitle>
+          <CardDescription className="text-white/60">Set a custom full-screen wallpaper. We will securely sync and beautifully compress it.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Input
+            ref={wallpaperInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleWallpaperSelect}
+          />
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button
+              onClick={() => wallpaperInputRef.current?.click()}
+              disabled={uploadingWallpaper}
+              className="w-full sm:w-auto bg-gradient-to-r from-rose-900 to-pink-900 border border-rose-500/30 text-white"
+            >
+              {uploadingWallpaper ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Customizing...</> : "Upload Custom Photo"}
+            </Button>
+            <Button
+              onClick={resetAtmosphere}
+              disabled={uploadingWallpaper}
+              variant="outline"
+              className="w-full sm:w-auto border-white/10 bg-transparent text-white hover:bg-white/10"
+            >
+              Reset to Default Themes
             </Button>
           </div>
         </CardContent>
@@ -324,13 +437,13 @@ export default function SettingsPage() {
 
       {/* Couple Settings */}
       {couple && (
-        <Card>
+        <Card className="bg-neutral-950/40 backdrop-blur-md border-white/5 shadow-2xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Heart className="h-5 w-5 text-primary" />
+            <CardTitle className="flex items-center gap-2 text-rose-300">
+              <Heart className="h-5 w-5" />
               Couple Settings
             </CardTitle>
-            <CardDescription>Customize your love space</CardDescription>
+            <CardDescription className="text-white/60">Customize your love space</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -340,7 +453,7 @@ export default function SettingsPage() {
                 value={coupleName}
                 onChange={(e) => setCoupleName(e.target.value)}
                 placeholder="e.g., Jack & Jill"
-                className="border border-white/10"
+                className="border border-white/10 bg-white/5 text-white focus-visible:ring-rose-500/50"
               />
             </div>
             <div>
@@ -354,14 +467,14 @@ export default function SettingsPage() {
                 value={anniversaryDate}
                 onChange={(e) => setAnniversaryDate(e.target.value)}
                 max={new Date().toISOString().split('T')[0]}
-                className="border border-white/10"
+                className="border border-white/10 bg-white/5 text-white focus-visible:ring-rose-500/50 [color-scheme:dark]"
               />
             </div>
             <div>
-              <Label>Pair Code</Label>
+              <Label className="text-white/80 font-bold uppercase tracking-widest text-[10px] mb-2 block">Pair Code</Label>
               <div className="flex gap-2">
-                <Input value={couple.couple_code} readOnly className="font-mono border border-white/10" />
-                <Button variant="outline" size="icon" onClick={copyPairCode}>
+                <Input value={couple.couple_code} readOnly className="font-mono border border-white/10 bg-white/5 text-rose-200" />
+                <Button variant="outline" size="icon" onClick={copyPairCode} className="border-white/10 hover:bg-white/10 text-white">
                   {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </Button>
               </div>
@@ -369,7 +482,7 @@ export default function SettingsPage() {
                 Share this code with your partner to connect
               </p>
             </div>
-            <Button onClick={saveCoupleSettings} disabled={saving} className="w-full sm:w-auto">
+            <Button onClick={saveCoupleSettings} disabled={saving} className="w-full sm:w-auto bg-white text-black hover:bg-neutral-200">
               {saving ? "Saving..." : "Save Couple Settings"}
             </Button>
           </CardContent>
@@ -377,9 +490,9 @@ export default function SettingsPage() {
       )}
 
       {/* Sign Out */}
-      <Card className="border-destructive/10 border border-white/10">
+      <Card className="border-destructive/20 bg-destructive/5 backdrop-blur-md">
         <CardContent className="pt-6">
-          <Button variant="outline" className="w-full gap-2 bg-transparent border border-white/10" onClick={handleSignOut}>
+          <Button variant="outline" className="w-full gap-2 border-destructive/30 text-destructive hover:bg-destructive/10 bg-transparent" onClick={handleSignOut}>
             <LogOut className="h-4 w-4 text-destructive" />
             Sign Out
           </Button>

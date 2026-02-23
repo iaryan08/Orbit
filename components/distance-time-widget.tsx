@@ -56,22 +56,31 @@ export function DistanceTimeWidget({ uProfile, partnerProfile }: DistanceWidgetP
     }, [])
 
     useEffect(() => {
-        if (typeof navigator === 'undefined' || !navigator.permissions || !navigator.permissions.query) return
-
+        if (typeof window === 'undefined') return
         let cancelled = false
-        navigator.permissions.query({ name: 'geolocation' as PermissionName }).then((result) => {
-            if (cancelled || result.state !== 'granted') return
 
-            const run = () => handleUpdateLocation()
-            const idle = (window as any).requestIdleCallback as ((cb: () => void, opts?: { timeout: number }) => number) | undefined
-            if (idle) {
-                idle(run, { timeout: 6000 })
+        const run = async () => {
+            if (cancelled) return
+            if (navigator.permissions && navigator.geolocation) {
+                try {
+                    const result = await navigator.permissions.query({ name: 'geolocation' as PermissionName })
+                    if (cancelled) return
+                    if (result.state === 'granted') {
+                        handleUpdateLocation()
+                    } else {
+                        // Silently update via IP
+                        await updateLocation({})
+                    }
+                } catch (e) {
+                    if (!cancelled) await updateLocation({})
+                }
             } else {
-                window.setTimeout(run, 3000)
+                await updateLocation({})
             }
-        }).catch(() => {
-            // Permission API unsupported
-        })
+        }
+
+        // Fetch location instantly on mount! No more artificial delays or requestIdleCallback.
+        run()
 
         return () => {
             cancelled = true
@@ -126,9 +135,9 @@ export function DistanceTimeWidget({ uProfile, partnerProfile }: DistanceWidgetP
 
     return (
         <div className="glass-card p-5 relative overflow-hidden group h-full flex flex-col justify-between">
-            <div className="absolute inset-0 opacity-20 pointer-events-none">
-                <div className="absolute right-0 bottom-0 text-white/5 transform translate-x-1/3 translate-y-1/3">
-                    <Globe className="w-32 h-32" />
+            <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute -right-12 -bottom-16 text-white/[0.04] transform -rotate-12 transition-transform duration-700 group-hover:rotate-0">
+                    <Globe className="w-64 h-64" strokeWidth={0.5} />
                 </div>
             </div>
 
@@ -173,60 +182,60 @@ export function DistanceTimeWidget({ uProfile, partnerProfile }: DistanceWidgetP
                 </div>
 
                 <div className="flex-1 flex flex-col justify-center">
-                    <div className="flex items-center justify-between gap-4">
-                        <div className="text-left relative z-10">
+                    <div className="flex items-start justify-between w-full">
+                        <div className="text-left relative z-10 w-[35%] flex flex-col">
                             <div className="text-2xl font-bold text-white leading-none">
                                 {formatTime(uProfile?.timezone || 'UTC')}
                             </div>
                             <div className="text-xs text-white/40 font-medium mt-1 flex flex-col gap-0.5">
-                                <div className="flex items-center gap-1">
-                                    <span className="leading-tight">{uProfile?.city || 'Your Time'}</span>
+                                <div className="flex items-center justify-start gap-1 w-full">
+                                    <span className="leading-tight truncate max-w-full">{uProfile?.city || 'Your Time'}</span>
                                     {uProfile?.location_source === 'ip' && <span className="text-[10px] text-rose-400 font-bold shrink-0">(IP)</span>}
                                 </div>
-                                <span className="hidden md:inline opacity-30 text-[10px] shrink-0 -mt-0.5">{uProfile?.timezone}</span>
+                                <span className="hidden md:inline opacity-30 text-[10px] shrink-0 truncate max-w-full">{uProfile?.timezone}</span>
                                 {hasUserLoc && (
-                                    <span className="text-[9px] text-emerald-400/60 whitespace-nowrap font-medium tracking-tight">
+                                    <span className="text-[9px] text-emerald-400/60 tracking-tight truncate max-w-full font-medium mt-0.5">
                                         · {formatRelativeTime(uProfile.updated_at, currentTime)}
                                     </span>
                                 )}
                             </div>
                         </div>
 
-                        <div className="flex-1 flex flex-col items-center justify-center relative h-full min-h-[40px]">
+                        <div className="w-[30%] flex flex-col items-center justify-center relative h-full min-h-[40px] px-1">
                             {hasUserLoc && hasPartnerLoc ? (
                                 areClose ? (
-                                    <span className="text-xs font-bold text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/20 animate-pulse">
+                                    <span className="text-xs font-bold text-emerald-400 bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/20 animate-pulse text-center">
                                         Together
                                     </span>
                                 ) : (
                                     <>
-                                        <div className="w-full h-px bg-indigo-500/20 relative">
+                                        <div className="w-full h-px bg-indigo-500/20 relative w-full">
                                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent w-full h-full" />
                                         </div>
-                                        <span className="text-xs font-bold text-indigo-200 bg-indigo-950/40 px-4 py-0.5 rounded-full -mt-2.5 z-10 border border-indigo-500/30 whitespace-nowrap">
+                                        <span className="text-[11px] md:text-xs font-bold text-indigo-200 bg-indigo-950/40 px-2 md:px-4 py-0.5 rounded-full -mt-2.5 z-10 border border-indigo-500/30 whitespace-nowrap">
                                             {distance} km
                                         </span>
                                     </>
                                 )
                             ) : (
-                                <span className="text-[10px] text-white/20 italic text-center">
-                                    {!hasUserLoc ? "Update your location" : "Waiting for partner"}
+                                <span className="text-[10px] text-white/20 italic text-center max-w-full leading-tight">
+                                    {!hasUserLoc ? "Update location" : "Waiting"}
                                 </span>
                             )}
                         </div>
 
-                        <div className="text-right flex flex-col items-end">
+                        <div className="w-[35%] text-right flex flex-col items-end">
                             <div className="text-2xl font-bold text-white/90 leading-none">
                                 {partnerProfile?.timezone ? formatTime(partnerProfile.timezone) : '--:--'}
                             </div>
-                            <div className="text-xs text-white/40 font-medium mt-1 flex flex-col items-end gap-0.5">
-                                <div className="flex items-center gap-1 flex-row-reverse">
-                                    <span className="leading-tight text-right">{partnerProfile?.city || (partnerProfile?.display_name || 'Partner')}</span>
+                            <div className="text-xs text-white/40 font-medium mt-1 flex flex-col items-end gap-0.5 w-full text-right">
+                                <div className="flex items-center justify-end gap-1 w-full text-right max-w-full">
                                     {partnerProfile?.location_source === 'ip' && <span className="text-[10px] text-rose-400 font-bold shrink-0">(IP)</span>}
+                                    <span className="leading-tight truncate text-right">{partnerProfile?.city || (partnerProfile?.display_name || 'Partner')}</span>
                                 </div>
-                                <span className="hidden md:inline opacity-30 text-[10px] shrink-0 -mt-0.5 text-right">{partnerProfile?.timezone}</span>
+                                <span className="hidden md:inline opacity-30 text-[10px] shrink-0 truncate max-w-full text-right">{partnerProfile?.timezone}</span>
                                 {hasPartnerLoc && (
-                                    <span className="text-[9px] text-emerald-400/60 whitespace-nowrap font-medium tracking-tight text-right">
+                                    <span className="text-[9px] text-emerald-400/60 tracking-tight truncate max-w-full font-medium text-right mt-0.5">
                                         {formatRelativeTime(partnerProfile.updated_at, currentTime)} ·
                                     </span>
                                 )}

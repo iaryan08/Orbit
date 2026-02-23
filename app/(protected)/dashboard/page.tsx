@@ -23,6 +23,8 @@ import { MoodCheckIn } from '@/components/mood-check-in'
 import { PartnerMood } from '@/components/partner-mood'
 import { PartnerNamePresence } from '@/components/partner-name-presence'
 
+import { IntimacyAlert } from '@/components/intimacy-alert'
+
 export default async function DashboardPage() {
     return <AsyncDashboardContent />
 }
@@ -53,17 +55,14 @@ async function AsyncDashboardContent() {
     const daysTogether = startDate
         ? Math.floor((new Date().getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))
         : 0
-    const today = result.data.currentDateIST
-    const pId = partnerProfile?.id
-    const pLog = result.data.cycleLogs?.find((l: any) => l.user_id === pId && l.log_date === today)
-    const showIntimacyAlert = pLog?.sex_drive === 'very_high'
+
 
     return (
         <DashboardShell lunaraData={result.data}>
             <div className="max-w-7xl mx-auto space-y-6 md:space-y-12 pt-16 md:pt-24 pb-28 md:pb-12 px-6 md:px-8">
                 {/* Refined Welcome Header */}
                 <ScrollReveal className="space-y-1 md:space-y-2 text-center lg:text-left">
-                    <div className="inline-flex items-center gap-2 md:gap-3 px-3 md:px-5 py-1 md:py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md shadow-[0_0_20px_rgba(251,191,36,0.1)] group hover:bg-white/10 hover:border-white/20 transition-all duration-500">
+                    <div className="inline-flex items-center gap-2 md:gap-3 px-3 md:px-5 py-1 md:py-1.5 rounded-full bg-black/20 border border-white/10 shadow-[0_0_20px_rgba(251,191,36,0.1)] group hover:bg-black/30 hover:border-white/20 transition-all duration-500">
                         <Sparkles className="w-3 md:w-4 h-3 md:h-4 text-amber-400/80 animate-pulse-slow" />
                         <span className="text-amber-200/90 text-[10px] uppercase tracking-[0.3em] font-bold text-glow-gold">
                             MOONBETWEENUS
@@ -127,20 +126,7 @@ async function AsyncDashboardContent() {
                         </div>
                     </div>
 
-                    {showIntimacyAlert && (
-                        <div className="lg:col-span-4 glass-card p-4 bg-gradient-to-r from-orange-600/30 to-red-600/30 border-orange-500/50 flex items-center justify-between relative overflow-hidden">
-                            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-red-600/10" />
-                            <div className="flex items-center gap-5 relative z-10 w-full md:justify-start">
-                                <Flame className="w-6 h-6 text-orange-500" fill="currentColor" />
-                                <div>
-                                    <h3 className="text-base font-bold text-white leading-tight">Intense Passion Alert</h3>
-                                    <p className="text-xs text-orange-100/90 font-medium">
-                                        {partnerProfile?.display_name || 'Partner'} is feeling a burning desire for you right now.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    <IntimacyAlert lunaraData={result.data} partnerProfile={partnerProfile} />
 
                     {/* Secondary Widgets Grid */}
                     <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-2 auto-rows-min">

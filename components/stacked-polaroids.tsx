@@ -194,6 +194,7 @@ function PolaroidItem({
                             alt="Memory"
                             fill
                             sizes="220px"
+                            priority
                             className={cn(
                                 "object-cover transition-[filter,opacity] duration-[2000ms] ease-out",
                                 developed ? "filter-none opacity-100" : "blur-xl opacity-20 grayscale"

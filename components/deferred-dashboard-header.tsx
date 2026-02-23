@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 
 const DashboardHeader = dynamic(
     () => import('@/components/dashboard-header').then(mod => mod.DashboardHeader),
-    { ssr: false, loading: () => <div className="h-20" /> }
+    { ssr: false, loading: () => null }
 )
 
 interface DeferredDashboardHeaderProps {
@@ -13,6 +13,11 @@ interface DeferredDashboardHeaderProps {
     partnerName?: string | null
     daysTogetherCount?: number
     coupleId?: string | null
+    partnerId?: string
+    unreadCounts?: {
+        memories: number
+        letters: number
+    }
 }
 
 /**

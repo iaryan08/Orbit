@@ -304,7 +304,7 @@ export function SharedDoodle({ onSave, savedPath, isReadOnly = false }: SharedDo
                         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-black/30 backdrop-blur-xl px-3 py-1.5 rounded-full border border-white/10 shadow-lg animate-in slide-in-from-bottom-4 zoom-in-95 z-10">
                             {/* Colors */}
                             <div className="flex items-center gap-1.5 mr-1">
-                                {['#fb7185', '#fcd34d', '#4ade80', '#60a5fa', '#ffffff'].map(c => (
+                                {['#fb7185', '#fcd34d', '#4ade80', '#60a5fa', '#ffffff', '#000000'].map(c => (
                                     <button
                                         key={c}
                                         className={cn(

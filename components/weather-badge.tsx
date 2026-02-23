@@ -44,7 +44,7 @@ export function WeatherBadge({ lat, lon, city }: WeatherBadgeProps) {
     }
 
     return (
-        <div className="flex items-center gap-1.5 px-1 py-0.5 group bg-black/10 rounded-full border border-white/5 backdrop-blur-sm">
+        <div className="flex items-center gap-1.5 px-1 py-0.5 group">
             <span className="text-[10px] md:text-[11px] text-rose-100/60 uppercase tracking-[0.15em] font-bold pl-2 max-w-[120px] md:max-w-[200px] truncate">
                 {city || 'Location'}
             </span>

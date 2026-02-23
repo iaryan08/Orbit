@@ -1,13 +1,12 @@
 import React from "react"
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { fetchUnreadCounts } from '@/lib/actions/auth'
 import { AppModeProvider } from '@/components/app-mode-context'
 import { AmbientTopLoader } from '@/components/ambient-top-loader'
 import { DeferredLocationTracker } from '@/components/deferred-location-tracker'
-import { DashboardHeader } from '@/components/dashboard-header'
+import { DeferredDashboardHeader } from '@/components/deferred-dashboard-header'
 import { Suspense } from 'react'
-import { ConnectionSync } from '@/components/connection-sync'
+import { DeferredConnectionSync } from '@/components/deferred-connection-sync'
 
 export default async function ProtectedLayout({
     children,
@@ -35,10 +34,10 @@ export default async function ProtectedLayout({
         <AppModeProvider initialProfile={profile} initialCoupleId={profile?.couple_id}>
             <AmbientTopLoader />
             <DeferredLocationTracker />
-            {profile?.couple_id && <ConnectionSync coupleId={profile.couple_id} userId={user.id} />}
+            {profile?.couple_id && <DeferredConnectionSync coupleId={profile.couple_id} userId={user.id} />}
             <div className="relative min-h-screen">
-                <Suspense fallback={<div className="h-20" />}>
-                    <HeaderWrapper userId={user.id} email={email} />
+                <Suspense fallback={null}>
+                    <HeaderWrapper userId={user.id} email={email} profile={profile} />
                 </Suspense>
 
                 <main className="container mx-auto px-4 py-6 pt-14 md:pt-32 relative z-10">
@@ -49,19 +48,19 @@ export default async function ProtectedLayout({
     )
 }
 
-async function HeaderWrapper({ userId, email }: { userId: string, email?: string }) {
+async function HeaderWrapper({
+    userId,
+    email,
+    profile
+}: {
+    userId: string
+    email?: string
+    profile: { id: string; couple_id: string | null; display_name: string | null; avatar_url: string | null } | null
+}) {
     const supabase = await createClient()
-
-    // Fetch profile and couple info parallelly in a non-blocking stream
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('id, couple_id, display_name, avatar_url')
-        .eq('id', userId)
-        .single()
 
     let partnerProfile = null
     let daysTogetherCount = 0
-    let unreadCounts = { memories: 0, letters: 0 }
 
     if (profile?.couple_id) {
         const { data: couple } = await supabase
@@ -72,13 +71,11 @@ async function HeaderWrapper({ userId, email }: { userId: string, email?: string
 
         if (couple) {
             const partnerId = couple.user1_id === userId ? couple.user2_id : couple.user1_id
-            const [partnerRes, counts] = await Promise.all([
-                partnerId ? supabase.from('profiles').select('id, display_name, avatar_url').eq('id', partnerId).single() : Promise.resolve({ data: null }),
-                fetchUnreadCounts()
+            const [partnerRes] = await Promise.all([
+                partnerId ? supabase.from('profiles').select('id, display_name, avatar_url').eq('id', partnerId).single() : Promise.resolve({ data: null })
             ]);
 
             partnerProfile = partnerRes.data
-            unreadCounts = counts
             const startDateStr = couple.anniversary_date || couple.paired_at
             if (startDateStr) {
                 const startDate = new Date(startDateStr)
@@ -89,14 +86,14 @@ async function HeaderWrapper({ userId, email }: { userId: string, email?: string
     }
 
     return (
-        <DashboardHeader
+        <DeferredDashboardHeader
             userName={profile?.display_name || email?.split('@')[0] || 'User'}
             userAvatar={profile?.avatar_url}
             partnerName={partnerProfile?.display_name}
             daysTogetherCount={daysTogetherCount}
             coupleId={profile?.couple_id}
             partnerId={partnerProfile?.id}
-            unreadCounts={unreadCounts}
+            unreadCounts={{ memories: 0, letters: 0 }}
         />
     )
 }

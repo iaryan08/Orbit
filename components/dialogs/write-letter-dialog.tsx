@@ -202,7 +202,7 @@ export function WriteLetterDialog({ open, onOpenChange, editingLetter, onSuccess
                             value={newLetter.content}
                             onChange={(e) => setNewLetter(prev => ({ ...prev, content: e.target.value }))}
                             rows={8}
-                            className={`resize-none text-white placeholder:text-white/30 leading-relaxed p-4 ${isOneTime ? 'bg-rose-950/10 border-rose-500/20 focus:border-rose-500/50' : ''}`}
+                            className={`resize-none text-white placeholder:text-white/30 leading-relaxed p-4 max-h-64 overflow-y-auto minimal-scrollbar ${isOneTime ? 'bg-rose-950/10 border-rose-500/20 focus:border-rose-500/50' : ''}`}
                         />
                     </div>
 

@@ -77,8 +77,8 @@ export const getCoreDashboardData = cache(async () => {
             ]) : Promise.resolve([{ count: 0 }, { count: 0 }]),
             supabase.from('cycle_profiles').select('*').eq('user_id', user.id).maybeSingle(),
             partnerId ? supabase.from('cycle_profiles').select('*').eq('user_id', partnerId).maybeSingle() : Promise.resolve({ data: null, error: null }),
-            coupleId ? supabase.from('cycle_logs').select('*').eq('couple_id', coupleId).limit(30) : Promise.resolve({ data: [], error: null }),
-            coupleId ? supabase.from('support_logs').select('*').eq('couple_id', coupleId).limit(30) : Promise.resolve({ data: [], error: null }),
+            coupleId ? supabase.from('cycle_logs').select('*').eq('couple_id', coupleId).order('log_date', { ascending: false }).limit(30) : Promise.resolve({ data: [], error: null }),
+            coupleId ? supabase.from('support_logs').select('*').eq('couple_id', coupleId).order('log_date', { ascending: false }).limit(30) : Promise.resolve({ data: [], error: null }),
             getDashboardPolaroids(coupleId ?? undefined),
             getDoodle(coupleId ?? undefined)
         ])

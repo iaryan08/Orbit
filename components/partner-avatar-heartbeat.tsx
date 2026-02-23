@@ -5,6 +5,7 @@ import { Heart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCoupleChannel } from '@/hooks/use-couple-channel'
 import { sendHeartbeat as triggerHeartbeatPush } from '@/lib/actions/notifications'
+import Image from 'next/image'
 
 interface PartnerAvatarProps {
     partnerProfile: any
@@ -86,7 +87,7 @@ export function PartnerAvatarHeartbeat({ partnerProfile, uProfile, coupleId, cla
             {uProfile && (
                 <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-background bg-primary/20 flex items-center justify-center ring-2 ring-white/10 overflow-hidden shadow-xl relative z-0">
                     {uProfile.avatar_url
-                        ? <img src={uProfile.avatar_url} className="w-full h-full object-cover" alt="You" />
+                        ? <Image src={uProfile.avatar_url} width={48} height={48} className="w-full h-full object-cover" alt="You" priority />
                         : <div className="w-full h-full flex items-center justify-center bg-rose-500/20 text-rose-200 font-bold text-xs">{uProfile.display_name?.charAt(0) || 'U'}</div>
                     }
                 </div>
@@ -113,7 +114,7 @@ export function PartnerAvatarHeartbeat({ partnerProfile, uProfile, coupleId, cla
                     )}
                 >
                     {partnerProfile?.avatar_url
-                        ? <img src={partnerProfile.avatar_url} className="w-full h-full object-cover pointer-events-none" alt="Partner" />
+                        ? <Image src={partnerProfile.avatar_url} width={48} height={48} className="w-full h-full object-cover pointer-events-none" alt="Partner" priority />
                         : <div className="w-full h-full flex items-center justify-center bg-cyan-500/20 text-cyan-200 font-bold text-xs pointer-events-none">{partnerProfile?.display_name?.charAt(0) || 'P'}</div>
                     }
                     {isActive && (

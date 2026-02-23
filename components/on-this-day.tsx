@@ -5,7 +5,6 @@ import { Calendar, Heart, MapPin, Sparkles, Flame } from "lucide-react"
 import { format } from "date-fns"
 import Image from "next/image"
 import { useState, useCallback, useRef } from "react"
-import { motion, AnimatePresence } from "framer-motion"
 import { MemoryDetailDialog } from "./memory-detail-dialog"
 
 interface Memory {
@@ -152,10 +151,37 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
     const items = [...normalizedMilestones, ...normalizedMemories]
 
     const [currentIndex, setCurrentIndex] = useState(0)
-    const [direction, setDirection] = useState(0)
     const [selectedMemory, setSelectedMemory] = useState<any | null>(null)
     const [isDetailOpen, setIsDetailOpen] = useState(false)
     const isDraggingRef = useRef(false)
+
+    const [touchStart, setTouchStart] = useState<number | null>(null)
+    const [touchEnd, setTouchEnd] = useState<number | null>(null)
+
+    const onTouchStart = (e: React.TouchEvent) => {
+        setTouchEnd(null)
+        setTouchStart(e.targetTouches[0].clientX)
+        isDraggingRef.current = false
+    }
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        const currentX = e.targetTouches[0].clientX
+        setTouchEnd(currentX)
+        if (touchStart && Math.abs(touchStart - currentX) > 10) {
+            isDraggingRef.current = true
+        }
+    }
+
+    const onTouchEndEvent = () => {
+        setTimeout(() => { isDraggingRef.current = false }, 50)
+        if (!touchStart || !touchEnd) return
+        const distance = touchStart - touchEnd
+        if (distance > 50) {
+            nextItem()
+        } else if (distance < -50) {
+            prevItem()
+        }
+    }
 
     // Handle empty items with specialized view
     if (items.length === 0) return null;
@@ -171,11 +197,9 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
     }) : null
 
     const nextItem = () => {
-        setDirection(1)
         setCurrentIndex(prev => (prev === items.length - 1 ? 0 : prev + 1))
     }
     const prevItem = () => {
-        setDirection(-1)
         setCurrentIndex(prev => (prev === 0 ? items.length - 1 : prev - 1))
     }
 
@@ -186,143 +210,104 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
         }
     }, [currentItem])
 
-    const variants = {
-        enter: (direction: number) => ({
-            x: direction > 0 ? 300 : -300,
-            opacity: 0,
-            scale: 0.9
-        }),
-        center: {
-            zIndex: 1,
-            x: 0,
-            opacity: 1,
-            scale: 1,
-            transition: {
-                x: { type: "spring" as const, stiffness: 300, damping: 30 },
-                opacity: { duration: 0.2 }
-            }
-        },
-        exit: (direction: number) => ({
-            zIndex: 0,
-            x: direction < 0 ? 300 : -300,
-            opacity: 0,
-            scale: 0.9,
-            transition: { duration: 0.2 }
-        })
-    }
-
     return (
         <Card className="glass-card overflow-hidden h-[380px] relative group border-white/5 shadow-2xl">
-            {/* Sliding Layer */}
-            <AnimatePresence initial={false} custom={direction}>
-                <motion.div
-                    key={currentItem.id}
-                    custom={direction}
-                    variants={variants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    drag="x"
-                    dragConstraints={{ left: 0, right: 0 }}
-                    dragElastic={0.2}
-                    onDragStart={() => { isDraggingRef.current = true }}
-                    onDragEnd={(e, { offset, velocity }) => {
-                        setTimeout(() => { isDraggingRef.current = false }, 150)
-                        const swipe = offset.x
-                        if (swipe < -50) nextItem()
-                        else if (swipe > 50) prevItem()
-                    }}
-                    className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing"
-                >
-                    {currentItem.type === 'memory' ? (
-                        // MEMORY CARD VIEW
-                        <div
-                            className="w-full h-full relative cursor-pointer group/item pointer-events-auto"
-                            onClick={handleItemClick}
-                        >
-                            <Image
-                                src={currentItem.image_urls[0] || "/placeholder.svg"}
-                                alt={currentItem.title}
-                                fill
-                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                className="object-cover transition-transform duration-700 group-hover/item:scale-110"
-                                draggable={false}
-                            />
-                            {/* Gradients to ensure text readability */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-black/60 group-hover/item:bg-black/60 transition-[background-color] duration-500" />
+            {/* Sliding Layer (Lightweight fast swap) */}
+            <div
+                className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing touch-pan-y"
+                onTouchStart={items.length > 1 ? onTouchStart : undefined}
+                onTouchMove={items.length > 1 ? onTouchMove : undefined}
+                onTouchEnd={items.length > 1 ? onTouchEndEvent : undefined}
+            >
+                {currentItem.type === 'memory' ? (
+                    // MEMORY CARD VIEW
+                    <div
+                        className="w-full h-full relative cursor-pointer group/item pointer-events-auto"
+                        onClick={handleItemClick}
+                    >
+                        <Image
+                            src={currentItem.image_urls[0] || "/placeholder.svg"}
+                            alt={currentItem.title}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-cover transition-transform duration-700 group-hover/item:scale-110"
+                            draggable={false}
+                            priority={currentIndex === 0}
+                        />
+                        {/* Gradients to ensure text readability */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-black/60 group-hover/item:bg-black/60 transition-[background-color] duration-500" />
 
-                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/item:opacity-100 transition-opacity">
-                                <div className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-bold uppercase tracking-widest">
-                                    View Story
-                                </div>
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/item:opacity-100 transition-opacity">
+                            <div className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-bold uppercase tracking-widest">
+                                View Story
+                            </div>
+                        </div>
+
+                        <div className="absolute bottom-6 left-14 right-14 pointer-events-none">
+                            <h3 className="text-xl font-bold text-white leading-tight drop-shadow-md">{currentItem.title}</h3>
+                            <div className="flex items-center gap-3 mt-1.5 text-[10px] uppercase tracking-[0.2em] font-bold text-white/70">
+                                <span>{currentItem.memory_date ? format(new Date(currentItem.memory_date + "T12:00:00"), "yyyy") : ""}</span>
+                                {currentItem.location && (
+                                    <span className="flex items-center gap-1 text-white/50">
+                                        <MapPin className="h-3 w-3" />
+                                        {currentItem.location}
+                                    </span>
+                                )}
+                            </div>
+                            {currentItem.description && (
+                                <p className="text-xs text-white/80 mt-2.5 line-clamp-2 italic drop-shadow-sm">
+                                    "{currentItem.description}"
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    // MILESTONE CARD VIEW
+                    <div className={`w-full h-full relative flex flex-col items-center justify-center px-14 py-8 text-center bg-gradient-to-br ${config?.gradient}`}>
+                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 pointer-events-none" />
+
+                        <div className="relative z-10 space-y-3 select-none mt-4 max-w-[280px]">
+                            <div className={`w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto border border-white/10 shadow-lg backdrop-blur-sm ${config?.color} text-xl`}>
+                                {config?.emoji}
                             </div>
 
-                            <div className="absolute bottom-6 left-14 right-14 pointer-events-none">
-                                <h3 className="text-xl font-bold text-white leading-tight drop-shadow-md">{currentItem.title}</h3>
-                                <div className="flex items-center gap-3 mt-1.5 text-[10px] uppercase tracking-[0.2em] font-bold text-white/70">
-                                    <span>{currentItem.memory_date ? format(new Date(currentItem.memory_date + "T12:00:00"), "yyyy") : ""}</span>
-                                    {currentItem.location && (
-                                        <span className="flex items-center gap-1 text-white/50">
-                                            <MapPin className="h-3 w-3" />
-                                            {currentItem.location}
-                                        </span>
-                                    )}
-                                </div>
-                                {currentItem.description && (
-                                    <p className="text-xs text-white/80 mt-2.5 line-clamp-2 italic drop-shadow-sm">
-                                        "{currentItem.description}"
+                            <div className="space-y-1.5 pt-1">
+                                <h3 className={`text-xl md:text-2xl font-serif font-bold text-white leading-tight ${config?.color} drop-shadow-sm`}>
+                                    {config?.label}
+                                </h3>
+                                <p className="text-white/60 text-[9px] font-bold uppercase tracking-[0.2em] leading-relaxed">
+                                    {config?.text}
+                                </p>
+                                {/* Personalized date context for dual-date milestones */}
+                                {currentItem.isOwnDate !== undefined && (
+                                    <p className="text-xs text-amber-200/80 font-medium mt-2">
+                                        {currentItem.category === 'first_kiss' && (
+                                            currentItem.isOwnDate ? `You kissed ${partnerName}` : `${partnerName} kissed you`
+                                        )}
+                                        {currentItem.category === 'first_surprise' && (
+                                            currentItem.isOwnDate ? "You received this surprise" : `You surprised ${partnerName}`
+                                        )}
+                                        {currentItem.category === 'first_memory' && (
+                                            currentItem.isOwnDate ? "✨ Your special memory" : `✨ ${partnerName}'s special memory`
+                                        )}
                                     </p>
                                 )}
                             </div>
-                        </div>
-                    ) : (
-                        // MILESTONE CARD VIEW
-                        <div className={`w-full h-full relative flex flex-col items-center justify-center px-14 py-8 text-center bg-gradient-to-br ${config?.gradient}`}>
-                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 pointer-events-none" />
 
-                            <div className="relative z-10 space-y-3 select-none mt-4 max-w-[280px]">
-                                <div className={`w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto border border-white/10 shadow-lg backdrop-blur-sm ${config?.color} text-xl`}>
-                                    {config?.emoji}
-                                </div>
+                            <div className="pt-2 flex flex-col items-center gap-2">
+                                <span className="px-3 py-1 rounded-full bg-black/40 border border-white/10 text-[10px] uppercase font-bold text-amber-200/90 tracking-widest backdrop-blur-md">
+                                    {format(new Date(currentItem.milestone_date + "T12:00:00"), "MMMM do, yyyy")}
+                                </span>
+                            </div>
 
-                                <div className="space-y-1.5 pt-1">
-                                    <h3 className={`text-xl md:text-2xl font-serif font-bold text-white leading-tight ${config?.color} drop-shadow-sm`}>
-                                        {config?.label}
-                                    </h3>
-                                    <p className="text-white/60 text-[9px] font-bold uppercase tracking-[0.2em] leading-relaxed">
-                                        {config?.text}
-                                    </p>
-                                    {/* Personalized date context for dual-date milestones */}
-                                    {currentItem.isOwnDate !== undefined && (
-                                        <p className="text-xs text-amber-200/80 font-medium mt-2">
-                                            {currentItem.category === 'first_kiss' && (
-                                                currentItem.isOwnDate ? `You kissed ${partnerName}` : `${partnerName} kissed you`
-                                            )}
-                                            {currentItem.category === 'first_surprise' && (
-                                                currentItem.isOwnDate ? "You received this surprise" : `You surprised ${partnerName}`
-                                            )}
-                                            {currentItem.category === 'first_memory' && (
-                                                currentItem.isOwnDate ? "✨ Your special memory" : `✨ ${partnerName}'s special memory`
-                                            )}
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div className="pt-2 flex flex-col items-center gap-2">
-                                    <span className="px-3 py-1 rounded-full bg-black/40 border border-white/10 text-[10px] uppercase font-bold text-amber-200/90 tracking-widest backdrop-blur-md">
-                                        {format(new Date(currentItem.milestone_date + "T12:00:00"), "MMMM do, yyyy")}
-                                    </span>
-                                </div>
-
-                                <div className="pointer-events-auto pt-2">
-                                    <LinkButton href="/intimacy" label="Relive This Memory" />
-                                </div>
+                            <div className="pointer-events-auto pt-2">
+                                <LinkButton href="/intimacy" label="Relive This Memory" />
                             </div>
                         </div>
-                    )}
-                </motion.div>
-            </AnimatePresence>
+                    </div>
+                )}
+            </div>
 
             {/* Static Header Layered Over Content */}
             <CardHeader className="absolute top-0 left-0 right-0 z-20 pb-2 pt-3 md:pt-5 px-5 pointer-events-none border-none">
@@ -358,6 +343,7 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
                     </div>
                 </>
             )}
+
             <MemoryDetailDialog
                 isOpen={isDetailOpen}
                 memory={selectedMemory}

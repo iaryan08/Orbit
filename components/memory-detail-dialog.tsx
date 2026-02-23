@@ -57,6 +57,10 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
     const { toast } = useToast()
     const isDraggingRef = useRef(false)
 
+    // Touch logic for lightweight swipe
+    const [touchStart, setTouchStart] = useState<number | null>(null)
+    const [touchEnd, setTouchEnd] = useState<number | null>(null)
+
     const supabase = createClient()
 
     // Get current user
@@ -113,6 +117,34 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
         setCurrentImageIndex(0)
         setFullScreenImage(null)
     }, [memory?.id, isOpen])
+
+    const onTouchStart = (e: React.TouchEvent) => {
+        setTouchEnd(null)
+        setTouchStart(e.targetTouches[0].clientX)
+        isDraggingRef.current = false
+    }
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        const currentX = e.targetTouches[0].clientX
+        setTouchEnd(currentX)
+        if (touchStart && Math.abs(touchStart - currentX) > 10) {
+            isDraggingRef.current = true
+        }
+    }
+
+    const onTouchEndEvent = () => {
+        setTimeout(() => { isDraggingRef.current = false }, 50)
+        if (!touchStart || !touchEnd || !memory) return
+        const distance = touchStart - touchEnd
+
+        if (distance > 50) {
+            // Swipe Left (Next)
+            setCurrentImageIndex(prev => prev < memory.image_urls.length - 1 ? prev + 1 : 0)
+        } else if (distance < -50) {
+            // Swipe Right (Prev)
+            setCurrentImageIndex(prev => prev > 0 ? prev - 1 : memory.image_urls.length - 1)
+        }
+    }
 
     if (!memory) return null
 
@@ -195,7 +227,8 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent
-                className="p-0 overflow-hidden border-none bg-neutral-950/85 backdrop-blur-md sm:max-w-[400px] w-[80vw] h-auto max-h-[82vh] flex flex-col transition-[opacity,transform] duration-200 rounded-3xl shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)]"
+                className="p-0 overflow-hidden border-none bg-neutral-950/85 backdrop-blur-md sm:max-w-[400px] w-[80vw] h-auto max-h-[82vh] flex flex-col transition-[opacity,transform] duration-200 rounded-3xl shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] outline-none focus:outline-none focus-visible:outline-none"
+                onOpenAutoFocus={(e) => e.preventDefault()}
                 onInteractOutside={(e) => {
                     if (fullScreenImage) e.preventDefault()
                 }}
@@ -210,93 +243,30 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
                 <div className="relative w-full flex flex-col group min-h-0">
 
                     <div className="relative h-[300px] w-full flex-shrink-0 flex items-center justify-center overflow-hidden bg-neutral-900/50">
-                        <AnimatePresence initial={false}>
-                            {memory.image_urls
-                                .slice(Math.max(0, currentImageIndex - 1), currentImageIndex + 2)
-                                .map((url, sliceIdx) => {
-                                    const index = memory.image_urls.indexOf(url)
-                                    const isTop = index === currentImageIndex
-
-                                    return (
-                                        <motion.div
-                                            key={`${memory?.id}-${index}`}
-                                            style={{
-                                                zIndex: isTop ? 50 : memory.image_urls.length - index,
-                                                position: 'absolute',
-                                                pointerEvents: isTop ? 'auto' : 'none'
-                                            }}
-                                            initial={{ scale: 0.9, opacity: 0, y: 30 }}
-                                            animate={{
-                                                scale: isTop ? 1 : 1,
-                                                opacity: isTop ? 1 : 0,
-                                                y: 0,
-                                                rotate: 0
-                                            }}
-                                            exit={{
-                                                x: isTop ? (Math.random() > 0.5 ? 500 : -500) : 0,
-                                                opacity: 0,
-                                                rotate: isTop ? (Math.random() > 0.5 ? 45 : -45) : 0,
-                                                transition: { duration: 0.4 }
-                                            }}
-                                            drag={isTop ? "x" : false}
-                                            dragConstraints={{ left: 0, right: 0 }}
-                                            onDragStart={() => {
-                                                isDraggingRef.current = true
-                                            }}
-                                            onDragEnd={(_, info) => {
-                                                setTimeout(() => {
-                                                    isDraggingRef.current = false
-                                                }, 150) // Small delay to prevent click firing immediately after drag
-
-                                                const swipeThreshold = 100
-                                                const { offset, velocity } = info
-
-                                                // Swipe Left (Next)
-                                                if (offset.x < -swipeThreshold || velocity.x < -500) {
-                                                    if (currentImageIndex < memory.image_urls.length - 1) {
-                                                        setCurrentImageIndex(prev => prev + 1)
-                                                    } else {
-                                                        setCurrentImageIndex(0)
-                                                    }
-                                                }
-                                                // Swipe Right (Previous)
-                                                else if (offset.x > swipeThreshold || velocity.x > 500) {
-                                                    if (currentImageIndex > 0) {
-                                                        setCurrentImageIndex(prev => prev - 1)
-                                                    } else {
-                                                        setCurrentImageIndex(memory.image_urls.length - 1)
-                                                    }
-                                                }
-                                            }}
-                                            className="w-full h-full cursor-grab active:cursor-grabbing touch-pan-y"
-                                        >
-                                            <div
-                                                className="relative w-full h-full bg-neutral-900 overflow-hidden shadow-2xl cursor-pointer"
-                                                onClick={() => {
-                                                    if (!isDraggingRef.current) {
-                                                        setFullScreenImage(url)
-                                                    }
-                                                }}
-                                            >
-                                                <Image
-                                                    src={url || "/placeholder.svg"}
-                                                    alt={`${memory.title} ${index + 1}`}
-                                                    fill
-                                                    sizes="(max-width: 768px) 80vw, 400px"
-                                                    className="object-cover pointer-events-none"
-                                                    draggable={false}
-                                                    loading="lazy"
-                                                />
-
-
-                                                <div className="absolute bottom-4 right-4 bg-black/40 backdrop-blur-md text-white text-[10px] px-2 py-1 rounded-full font-black uppercase tracking-[0.2em]">
-                                                    {index + 1} / {memory.image_urls.length}
-                                                </div>
-                                            </div>
-                                        </motion.div>
-                                    )
-                                })}
-                        </AnimatePresence>
+                        {/* Static Single Image View instead of heavy mapping & AnimatePresence */}
+                        <div
+                            className="absolute inset-0 w-full h-full cursor-pointer touch-pan-y"
+                            onClick={() => {
+                                if (!isDraggingRef.current) {
+                                    setFullScreenImage(memory.image_urls[currentImageIndex])
+                                }
+                            }}
+                            onTouchStart={memory.image_urls.length > 1 ? onTouchStart : undefined}
+                            onTouchMove={memory.image_urls.length > 1 ? onTouchMove : undefined}
+                            onTouchEnd={memory.image_urls.length > 1 ? onTouchEndEvent : undefined}
+                        >
+                            <img
+                                src={memory.image_urls[currentImageIndex] || "/placeholder.svg"}
+                                alt={`${memory.title} ${currentImageIndex + 1}`}
+                                className="object-cover w-full h-full pointer-events-none"
+                                draggable={false}
+                            />
+                            {memory.image_urls.length > 1 && (
+                                <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md text-white text-[10px] px-3 py-1.5 rounded-full font-black uppercase tracking-[0.2em] shadow-lg pointer-events-none">
+                                    {currentImageIndex + 1} / {memory.image_urls.length}
+                                </div>
+                            )}
+                        </div>
 
                         {memory.image_urls.length > 1 && (
                             <>
@@ -390,6 +360,9 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
             </DialogContent>
             <FullScreenImageModal
                 src={fullScreenImage}
+                images={memory.image_urls}
+                currentIndex={currentImageIndex}
+                onIndexChange={(idx) => setCurrentImageIndex(idx)}
                 onClose={() => setFullScreenImage(null)}
             />
         </Dialog>

@@ -12,6 +12,7 @@ import { logPeriodStart, logPeriodEnd, logSymptoms } from '@/lib/actions/auth'
 import { useToast } from '@/hooks/use-toast'
 import { useRouter } from 'next/navigation'
 import { CycleCalendar } from './cycle-calendar'
+import { IntimacyAlert } from '@/components/intimacy-alert'
 
 
 export function LunaraTabDashboard({ data }: { data: any }) {
@@ -27,6 +28,9 @@ export function LunaraTabDashboard({ data }: { data: any }) {
     const partnerId = profile.partner_id
     const partnerLog = cycleLogs?.find((l: any) => l.user_id === partnerId && l.log_date === (currentDateIST || getTodayIST()))
     const partnerLibido = partnerLog?.sex_drive
+    const partnerName = profile?.gender === 'female'
+        ? (data.partnerProfile?.first_name || data.partnerProfile?.display_name || 'He')
+        : (data.partnerProfile?.first_name || data.partnerProfile?.display_name || 'She')
 
     // Find the LATEST log for the person being tracked (within 24h rolling window)
     const trackedUserId = profile.gender === 'female' ? profile.id : profile.partner_id
@@ -275,31 +279,8 @@ export function LunaraTabDashboard({ data }: { data: any }) {
 
     return (
         <div className="space-y-8 pb-20">
-            {/* Libido Alert (Only if High) - High Priority */}
-            {partnerLibido === 'very_high' && (
-                <ScrollReveal className="w-full" delay={0}>
-                    <div className="glass-card p-6 bg-gradient-to-r from-orange-600/30 to-red-600/30 border-orange-500/50 flex items-center justify-between relative overflow-hidden group shadow-[0_0_30px_rgba(234,88,12,0.2)]">
-                        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-red-600/10 animate-pulse" />
-                        {/* Fire particles effect overlay */}
-                        <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay" />
-
-                        <div className="relative z-10 flex w-full items-center gap-6 justify-center md:justify-start text-center md:text-left">
-                            <div className="relative shrink-0">
-                                <div className="absolute inset-0 bg-orange-500/40 blur-xl rounded-full animate-pulse" />
-                                <div className="p-3 rounded-full bg-orange-500/20 border border-orange-500/50 shadow-[0_0_20px_rgba(249,115,22,0.6)] relative z-10">
-                                    <Flame className="w-8 h-8 text-orange-500 drop-shadow-[0_0_10px_rgba(255,165,0,0.8)] animate-pulse" fill="currentColor" />
-                                </div>
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-white mb-1 drop-shadow-md">Intense Passion Alert</h3>
-                                <p className="text-white/90 italic font-medium text-sm">
-                                    {profile?.gender === 'female' ? "He's feeling a burning desire for you right now." : "She's feeling a burning desire for you right now."}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </ScrollReveal>
-            )}
+            {/* Libido Alert (Shared Component) */}
+            <IntimacyAlert lunaraData={data} partnerProfile={data.partnerProfile} />
             {/* 1. Main Cycle Widget (Hero - Day Count) */}
             <ScrollReveal className="w-full">
                 <div className="glass-card p-6 sm:p-10 flex flex-col items-center justify-center relative overflow-hidden group border-purple-500/20 bg-purple-950/20 transition-[background-color] hover:bg-purple-900/10 shadow-xl">

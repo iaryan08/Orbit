@@ -87,20 +87,20 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24">
+      <section className="py-12 md:py-24">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center space-y-10 glass-card p-16 rounded-[4rem] border-white/10 bg-black/30 relative overflow-hidden group">
-            <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/20 blur-[100px] rounded-full group-hover:bg-primary/30 transition-all duration-1000" />
-            <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-secondary/10 blur-[100px] rounded-full group-hover:bg-secondary/20 transition-all duration-1000" />
+          <div className="max-w-4xl mx-auto text-center space-y-6 md:space-y-10 glass-card p-8 md:p-16 rounded-[2rem] md:rounded-[4rem] border-white/10 bg-black/30 relative overflow-hidden group">
+            <div className="absolute -top-24 -right-24 w-48 h-48 md:w-64 md:h-64 bg-primary/20 blur-[100px] rounded-full group-hover:bg-primary/30 transition-all duration-1000" />
+            <div className="absolute -bottom-24 -left-24 w-48 h-48 md:w-64 md:h-64 bg-secondary/10 blur-[100px] rounded-full group-hover:bg-secondary/20 transition-all duration-1000" />
 
-            <Heart className="w-24 h-24 text-primary mx-auto filter drop-shadow-[0_0_25px_rgba(244,114,182,0.4)] animate-heart-bounce" fill="currentColor" />
-            <h2 className="text-4xl md:text-6xl font-serif font-bold text-rose-50 leading-[1] text-glow-white">
+            <Heart className="w-16 h-16 md:w-24 md:h-24 text-primary mx-auto filter drop-shadow animate-heart-bounce" fill="currentColor" />
+            <h2 className="text-3xl md:text-6xl font-serif font-bold text-rose-50 leading-[1.1] text-glow-white">
               Start Your Love Story Today
             </h2>
-            <p className="text-rose-100/70 text-xl max-w-xl mx-auto leading-relaxed font-light">
+            <p className="text-rose-100/70 text-lg md:text-xl max-w-xl mx-auto leading-relaxed font-light">
               Create your private couple's space in seconds. It's free, secure, and made with love.
             </p>
-            <Button size="lg" variant="premium" className="text-xl px-16 py-10 rounded-full shadow-[0_0_40px_rgba(244,114,182,0.3)] hover:shadow-[0_0_60px_rgba(244,114,182,0.5)] transition-all transform hover:scale-105" asChild>
+            <Button size="lg" variant="premium" className="text-lg md:text-xl px-8 py-6 md:px-16 md:py-10 rounded-full shadow hover:shadow-md transition-all transform hover:scale-105" asChild>
               <Link href="/auth/sign-up">
                 Create Your Space
               </Link>

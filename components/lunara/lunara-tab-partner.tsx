@@ -105,7 +105,7 @@ export function LunaraTabPartner({ data }: { data: any }) {
     }
 
     return (
-        <div className="space-y-8 max-w-4xl mx-auto px-4">
+        <div className="relative z-10 isolate space-y-8 max-w-4xl mx-auto px-4">
             {/* Header: Personalized based on Role */}
             <ScrollReveal>
                 <div className="flex flex-col gap-2">

@@ -267,7 +267,7 @@ export function AddMemoryDialog({ open, onOpenChange, editingMemory, onSuccess, 
                     <div>
                         <Label className="text-purple-200 font-medium tracking-wide uppercase text-xs">Photos <span className="text-rose-400">*</span></Label>
                         <div className="mt-2 space-y-2">
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-4 sm:grid-cols-5 gap-3 max-h-40 overflow-y-auto minimal-scrollbar p-2 -mx-2">
                                 {/* Existing Images */}
                                 {existingImages.map((url, index) => (
                                     <div key={`existing-${index}`} className="relative aspect-square">
@@ -275,13 +275,14 @@ export function AddMemoryDialog({ open, onOpenChange, editingMemory, onSuccess, 
                                             src={url || "/placeholder.svg"}
                                             alt={`Existing ${index + 1}`}
                                             fill
+                                            sizes="100px"
                                             className="object-cover rounded-lg"
                                         />
                                         <button
                                             onClick={() => removeExistingImage(index)}
-                                            className="absolute -top-2 -right-2 bg-white/20 text-white rounded-full p-2 hover:bg-white/40 transition-all cursor-pointer"
+                                            className="absolute -top-2 -right-2 bg-white/20 text-white rounded-full p-1 hover:bg-rose-500/80 transition-all cursor-pointer shadow-md"
                                         >
-                                            <X className="h-5 w-5" />
+                                            <X className="h-3.5 w-3.5" />
                                         </button>
                                     </div>
                                 ))}
@@ -293,13 +294,14 @@ export function AddMemoryDialog({ open, onOpenChange, editingMemory, onSuccess, 
                                             src={url || "/placeholder.svg"}
                                             alt={`Preview ${index + 1}`}
                                             fill
+                                            sizes="100px"
                                             className="object-cover rounded-lg"
                                         />
                                         <button
                                             onClick={() => removeFile(index)}
-                                            className="absolute -top-2 -right-2 bg-white/20 text-white rounded-full p-2 hover:bg-white/40 transition-all cursor-pointer"
+                                            className="absolute -top-2 -right-2 bg-white/20 text-white rounded-full p-1 hover:bg-rose-500/80 transition-all cursor-pointer shadow-md"
                                         >
-                                            <X className="h-5 w-5" />
+                                            <X className="h-3.5 w-3.5" />
                                         </button>
                                     </div>
                                 ))}

@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, LayoutDashboard, Heart, BookOpen } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { getDashboardData } from '@/lib/actions/consolidated'
@@ -114,19 +113,11 @@ export function LunaraLayout({ initialData }: { initialData?: any }) {
                         </button>
                     </div>
                 ) : (
-                    <AnimatePresence mode="wait" initial={false}>
-                        <motion.div
-                            key={activeTab}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.3 }}
-                        >
-                            {activeTab === 'dashboard' && <LunaraTabDashboard data={data} />}
-                            {activeTab === 'partner' && <LunaraTabPartner data={data} />}
-                            {activeTab === 'insights' && <LunaraTabInsights coupleId={data.profile.couple_id} />}
-                        </motion.div>
-                    </AnimatePresence>
+                    <div className="relative z-10 isolate">
+                        {activeTab === 'dashboard' && <LunaraTabDashboard data={data} />}
+                        {activeTab === 'partner' && <LunaraTabPartner data={data} />}
+                        {activeTab === 'insights' && <LunaraTabInsights coupleId={data.profile.couple_id} />}
+                    </div>
                 )}
             </div>
         </div>

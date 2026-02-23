@@ -90,5 +90,14 @@ export function DailyContentWrapper() {
 }
 
 export function DashboardSkeleton({ className }: { className?: string }) {
-    return <div className={`rounded-3xl bg-white/5 animate-pulse ${className}`} />
+    return (
+        <div className={`rounded-3xl bg-white/5 animate-pulse overflow-hidden relative ${className}`}>
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/[0.02]" />
+            <div className="p-6 space-y-4">
+                <div className="h-4 w-1/3 bg-white/10 rounded-full" />
+                <div className="h-8 w-2/3 bg-white/10 rounded-full" />
+                <div className="h-32 w-full bg-white/5 rounded-2xl" />
+            </div>
+        </div>
+    )
 }

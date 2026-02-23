@@ -110,18 +110,19 @@ export function NotificationBell({ className }: { className?: string }) {
             if ('serviceWorker' in navigator && 'PushManager' in window) {
                 setIsPushSupported(true)
                 try {
-                    const registration = await navigator.serviceWorker.ready
-                    const sub = await registration.pushManager.getSubscription()
-                    setPushSubscription(sub)
-                    if (sub) {
-                        await syncSubscription(sub)
+                    const registration = await navigator.serviceWorker.getRegistration()
+                    if (registration) {
+                        const sub = await registration.pushManager.getSubscription()
+                        setPushSubscription(sub)
+                        if (sub) {
+                            syncSubscription(sub) // Non-blocking sync
+                        }
                     }
                 } catch (e) {
                     console.error('Error checking push sub:', e)
                 }
             }
         }
-        setCheckingPush(false)
 
         // Basic check for Incognito
         if ('storage' in navigator && 'estimate' in navigator.storage) {
@@ -129,7 +130,7 @@ export function NotificationBell({ className }: { className?: string }) {
             if (quota && quota < 120000000) setIsIncognito(true);
         }
 
-        // Check Location Permission
+        // Check Location Permission BEFORE releasing checkingPush
         if ('permissions' in navigator) {
             try {
                 const status = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
@@ -139,13 +140,16 @@ export function NotificationBell({ className }: { className?: string }) {
                 console.warn("Geolocation permission check failed:", e);
             }
         }
+
+        setCheckingPush(false)
     }
 
     useEffect(() => {
         if (!checkingPush && !hasPromptedInitial) {
             const needsPrompt = (isPushSupported && permission !== 'granted') || locationPermission !== 'granted';
+            const hasDismissed = typeof window !== 'undefined' ? localStorage.getItem('orbit:permissions_prompt_dismissed') : null;
 
-            if (needsPrompt && !isIncognito) {
+            if (needsPrompt && !isIncognito && !hasDismissed) {
                 setPermissionsDialogOpen(true);
             }
             setHasPromptedInitial(true);
@@ -520,7 +524,10 @@ export function NotificationBell({ className }: { className?: string }) {
                     </div>
 
                     <DialogFooter className="flex gap-2 sm:gap-0 mt-2">
-                        <Button variant="ghost" onClick={() => setPermissionsDialogOpen(false)} className="text-white/40 hover:text-white">
+                        <Button variant="ghost" onClick={() => {
+                            if (typeof window !== 'undefined') localStorage.setItem('orbit:permissions_prompt_dismissed', 'true');
+                            setPermissionsDialogOpen(false);
+                        }} className="text-white/40 hover:text-white">
                             Maybe Later
                         </Button>
                         <Button onClick={handleAllowPermissions} className="bg-gradient-to-r from-amber-500/80 to-rose-500/80 hover:from-amber-500 hover:to-rose-500 text-white border-0 shadow-lg shadow-rose-500/20">
