@@ -70,6 +70,7 @@ export default function PushNotificationManager() {
         try {
             const result = await requestNotificationPermission();
             setPermission(result);
+            localStorage.setItem('notification-permission', result);
 
             if (result === 'granted') {
                 const sub = await subscribeUserToPush();

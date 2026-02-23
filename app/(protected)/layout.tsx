@@ -2,11 +2,11 @@ import React from "react"
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { DashboardHeader } from '@/components/dashboard-header'
-import { RealtimeObserver } from '@/components/realtime-observer'
 import { fetchUnreadCounts } from '@/lib/actions/auth'
 import { AppModeProvider } from '@/components/app-mode-context'
 import { AmbientTopLoader } from '@/components/ambient-top-loader'
 import { LocationTracker } from '@/components/location-tracker'
+import { Suspense } from 'react'
 
 
 export default async function ProtectedLayout({
@@ -14,47 +14,72 @@ export default async function ProtectedLayout({
 }: {
     children: React.ReactNode
 }) {
+    // 1. Initial Identity context (Fast Pass)
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-        redirect('/auth/login')
+        redirect('/')
     }
 
-    // Initial profile fetch
+    // Fetch core identity for context hydration - minimal selection for speed
     const { data: profile } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, couple_id, display_name, avatar_url')
         .eq('id', user.id)
         .single()
 
-    let couple = null
+    const email = user.email
+
+    return (
+        <AppModeProvider initialProfile={profile} initialCoupleId={profile?.couple_id}>
+            <AmbientTopLoader />
+            <LocationTracker />
+            <div className="relative min-h-screen">
+                {/* Top Viewport Fade Overlay */}
+                <div className="fixed top-0 left-0 right-0 h-32 bg-gradient-to-b from-background via-background/60 to-transparent z-[30] pointer-events-none" />
+
+                <Suspense fallback={<div className="h-20" />}>
+                    <HeaderWrapper userId={user.id} email={email} />
+                </Suspense>
+
+                <main className="container mx-auto px-4 py-6 pt-14 md:pt-32 relative z-10">
+                    {children}
+                </main>
+            </div>
+        </AppModeProvider>
+    )
+}
+
+async function HeaderWrapper({ userId, email }: { userId: string, email?: string }) {
+    const supabase = await createClient()
+
+    // Fetch profile and couple info parallelly in a non-blocking stream
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('id, couple_id, display_name, avatar_url')
+        .eq('id', userId)
+        .single()
+
     let partnerProfile = null
     let daysTogetherCount = 0
 
     if (profile?.couple_id) {
-        // Parallel fetch couple and partner info
-        const { data: coupleData } = await supabase
+        const { data: couple } = await supabase
             .from('couples')
             .select('*')
             .eq('id', profile.couple_id)
             .single()
 
-        couple = coupleData
-
         if (couple) {
-            const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id
-
-            const [partnerRes, daysRes, unreadCounts] = await Promise.all([
-                partnerId ? supabase.from('profiles').select('*').eq('id', partnerId).single() : Promise.resolve({ data: null }),
-                Promise.resolve(couple.paired_at),
+            const partnerId = couple.user1_id === userId ? couple.user2_id : couple.user1_id
+            const [partnerRes, unreadCounts] = await Promise.all([
+                partnerId ? supabase.from('profiles').select('display_name, avatar_url').eq('id', partnerId).single() : Promise.resolve({ data: null }),
                 fetchUnreadCounts()
             ]);
 
-            partnerProfile = partnerRes.data;
-
-            // Calculate days together
-            const startDateStr = couple.anniversary_date || couple.paired_at;
+            partnerProfile = partnerRes.data
+            const startDateStr = couple.anniversary_date || couple.paired_at
             if (startDateStr) {
                 const startDate = new Date(startDateStr)
                 const today = new Date()
@@ -64,28 +89,12 @@ export default async function ProtectedLayout({
     }
 
     return (
-        <AppModeProvider initialProfile={profile} initialCoupleId={profile?.couple_id}>
-            <AmbientTopLoader />
-            <LocationTracker />
-            <div className="min-h-screen bg-transparent pb-10 md:pb-0">
-                {/* Top Viewport Fade Overlay */}
-                <div className="fixed top-0 left-0 right-0 h-32 bg-gradient-to-b from-background via-background/60 to-transparent z-[30] pointer-events-none" />
-
-                <RealtimeObserver
-                    coupleId={profile?.couple_id || null}
-                    partnerId={couple ? (couple.user1_id === user.id ? couple.user2_id : couple.user1_id) : null}
-                />
-                <DashboardHeader
-                    userName={profile?.display_name || user.email?.split('@')[0] || 'User'}
-                    userAvatar={profile?.avatar_url}
-                    partnerName={partnerProfile?.display_name}
-                    daysTogetherCount={daysTogetherCount}
-                    unreadCounts={couple ? await fetchUnreadCounts() : undefined}
-                />
-                <main className="container mx-auto px-4 py-6 pt-14 md:pt-32 relative z-10">
-                    {children}
-                </main>
-            </div>
-        </AppModeProvider>
+        <DashboardHeader
+            userName={profile?.display_name || email?.split('@')[0] || 'User'}
+            userAvatar={profile?.avatar_url}
+            partnerName={partnerProfile?.display_name}
+            daysTogetherCount={daysTogetherCount}
+            coupleId={profile?.couple_id}
+        />
     )
 }

@@ -1,12 +1,17 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+'use client'
+
+import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { MOOD_EMOJIS, MOOD_COLORS, type MoodType } from '@/lib/constants'
-import { cn } from '@/lib/utils'
-import { Heart, Clock } from 'lucide-react'
+import { MOOD_EMOJIS, type MoodType } from '@/lib/constants'
+import { Clock } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
 interface PartnerMoodProps {
   partnerName: string
   partnerAvatar?: string | null
+  coupleId?: string | null
   moods: Array<{
     mood: MoodType
     note: string | null
@@ -14,7 +19,35 @@ interface PartnerMoodProps {
   }>
 }
 
-export function PartnerMood({ partnerName, partnerAvatar, moods }: PartnerMoodProps) {
+export function PartnerMood({ partnerName, partnerAvatar, moods, coupleId }: PartnerMoodProps) {
+  const router = useRouter()
+  const supabase = createClient()
+
+  useEffect(() => {
+    if (!coupleId) return
+
+    const channel = supabase
+      .channel(`partner-mood-${coupleId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'moods',
+          filter: `couple_id=eq.${coupleId}`
+        },
+        () => {
+          console.log('[PartnerMood] Mood updated, refreshing locally...')
+          router.refresh()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [coupleId, router, supabase])
+
   const formatTime = (timeString: string) => {
     const date = new Date(timeString)
     // Manually add 5:30 for Vercel/Server environments if they are in UTC

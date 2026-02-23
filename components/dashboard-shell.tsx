@@ -24,25 +24,13 @@ export function DashboardShell({ children, lunaraData }: { children: React.React
         getUserId()
     }, [supabase.auth])
 
+    // Aggressive global refresh removed to prevent performance-killing render loops. 
+    // Real-time updates are now handled surgically by specific widgets (e.g. PartnerMood).
     useEffect(() => {
         if (!coupleId) return
 
-        const channel = supabase
-            .channel('dashboard-realtime-sync')
-            .on(
-                'postgres_changes',
-                { event: '*', schema: 'public', filter: `couple_id=eq.${coupleId}` },
-                () => {
-                    console.log('Realtime update received in Shell, refreshing...')
-                    router.refresh()
-                }
-            )
-            .subscribe()
-
-        return () => {
-            supabase.removeChannel(channel)
-        }
-    }, [router, coupleId, supabase])
+        console.log('[DashboardShell] Global realtime listener deactivated for performance.')
+    }, [coupleId])
 
     return (
         <>

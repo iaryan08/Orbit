@@ -106,19 +106,28 @@ export function LunaraLayout({ initialData }: { initialData?: any }) {
 
             {/* Tab Content */}
             <div className="min-h-[500px]">
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={activeTab}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        {activeTab === 'dashboard' && <LunaraTabDashboard data={data} />}
-                        {activeTab === 'partner' && <LunaraTabPartner data={data} />}
-                        {activeTab === 'insights' && <LunaraTabInsights coupleId={data.profile.couple_id} />}
-                    </motion.div>
-                </AnimatePresence>
+                {!data ? (
+                    <div className="flex flex-col items-center justify-center h-full py-20 text-center space-y-4">
+                        <p className="text-white/40 text-sm">Failed to load Lunara data. Please try refreshing.</p>
+                        <button onClick={() => window.location.reload()} className="text-[10px] uppercase tracking-widest font-black text-purple-400 hover:text-purple-300">
+                            Reload Orbit
+                        </button>
+                    </div>
+                ) : (
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeTab}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            {activeTab === 'dashboard' && <LunaraTabDashboard data={data} />}
+                            {activeTab === 'partner' && <LunaraTabPartner data={data} />}
+                            {activeTab === 'insights' && <LunaraTabInsights coupleId={data.profile.couple_id} />}
+                        </motion.div>
+                    </AnimatePresence>
+                )}
             </div>
         </div>
     )

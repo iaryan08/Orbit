@@ -110,23 +110,40 @@ export default function MemoriesPage() {
             cleanup.then(fn => fn && fn());
         };
     }, [coupleId]);
-    const fetchMemories = async () => {
+    const [hasMore, setHasMore] = useState(true);
+    const [page, setPage] = useState(0);
+    const ITEMS_PER_PAGE = 12;
+
+    const fetchMemories = async (isLoadMore = false) => {
         try {
             if (!coupleId) {
                 setLoading(false);
                 return;
             }
 
+            const start = isLoadMore ? (page + 1) * ITEMS_PER_PAGE : 0;
+            const end = start + ITEMS_PER_PAGE - 1;
+
             const { data, error } = await supabase
                 .from("memories")
                 .select("*")
                 .eq("couple_id", coupleId)
-                .order("memory_date", { ascending: false });
+                .order("memory_date", { ascending: false })
+                .range(start, end);
 
             if (error) throw error;
-            // Filter out memories with no images
+
             const filteredData = (data || []).filter((m: any) => m.image_urls && m.image_urls.length > 0);
-            setMemories(filteredData);
+
+            if (isLoadMore) {
+                setMemories(prev => [...prev, ...filteredData]);
+                setPage(prev => prev + 1);
+            } else {
+                setMemories(filteredData);
+                setPage(0);
+            }
+
+            setHasMore(data.length === ITEMS_PER_PAGE);
         } catch (error) {
             console.error("Error fetching memories:", error);
         } finally {
@@ -343,106 +360,119 @@ export default function MemoriesPage() {
                     </CardContent>
                 </Card>
             ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {memories.map((memory, index) => (
-                        <Card
-                            key={memory.id}
-                            className="cursor-pointer overflow-hidden transition-[box-shadow] hover:shadow-lg group/card relative"
-                            onClick={() => {
-                                setSelectedMemory(memory);
-                                setCurrentImageIndex(0);
-                            }}
-                        >
-                            {memory.image_urls && memory.image_urls.length > 0 ? (
-                                <div className="relative aspect-video overflow-hidden">
-                                    <Image
-                                        src={memory.image_urls[0] || "/placeholder.svg"}
-                                        alt={memory.title}
-                                        fill
-                                        className="object-cover transition-transform duration-700 group-hover/card:scale-105"
-                                        priority={index < 4}
-                                        loading={index < 4 ? undefined : "lazy"}
-                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                    />
+                <>
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {memories.map((memory, index) => (
+                            <Card
+                                key={memory.id}
+                                className="cursor-pointer overflow-hidden transition-[box-shadow] hover:shadow-lg group/card relative"
+                                onClick={() => {
+                                    setSelectedMemory(memory);
+                                    setCurrentImageIndex(0);
+                                }}
+                            >
+                                {memory.image_urls && memory.image_urls.length > 0 ? (
+                                    <div className="relative aspect-video overflow-hidden">
+                                        <Image
+                                            src={memory.image_urls[0] || "/placeholder.svg"}
+                                            alt={memory.title}
+                                            fill
+                                            className="object-cover transition-transform duration-700 group-hover/card:scale-105"
+                                            priority={index < 4}
+                                            loading={index < 4 ? undefined : "lazy"}
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                        />
 
-                                    {memory.image_urls.length > 1 && (
-                                        <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] text-white/90 font-bold">
-                                            +{memory.image_urls.length - 1} more
-                                        </div>
-                                    )}
+                                        {memory.image_urls.length > 1 && (
+                                            <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] text-white/90 font-bold">
+                                                +{memory.image_urls.length - 1} more
+                                            </div>
+                                        )}
 
-                                    {userId === memory.user_id && (
-                                        <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover/card:opacity-100 transition-[opacity,transform] duration-300 z-20">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8 bg-black/40 text-white/70 hover:text-white hover:bg-black/60 rounded-full backdrop-blur-md"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setEditingMemory(memory);
-                                                    setNewMemory({
-                                                        title: memory.title,
-                                                        description: memory.description || "",
-                                                        location: memory.location || "",
-                                                        memory_date: memory.memory_date,
-                                                    });
-                                                    setExistingImages(memory.image_urls || []);
-                                                    setPreviewUrls([]);
-                                                    setSelectedFiles([]);
-                                                    setIsAdding(true);
-                                                }}
-                                            >
-                                                <Edit2 className="h-3.5 w-3.5" />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8 bg-black/40 text-red-400/70 hover:text-red-400 hover:bg-black/60 rounded-full border border-white/10 backdrop-blur-md"
-                                                onClick={async (e) => {
-                                                    e.stopPropagation();
-                                                    if (!confirm("Are you sure you want to delete this memory?")) return;
-                                                    await deleteMemory(memory.id);
-                                                    fetchMemories();
-                                                    router.refresh();
-                                                    await refreshDashboard();
-                                                    toast({ title: "Memory deleted" });
-                                                }}
-                                            >
-                                                <Trash2 className="h-3.5 w-3.5" />
-                                            </Button>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="aspect-video bg-neutral-900 flex items-center justify-center">
-                                    <ImageIcon className="h-10 w-10 text-neutral-700" />
-                                </div>
-                            )}
-                            <CardHeader className="px-4 py-0">
-                                <CardTitle className="text-base font-serif font-bold text-white tracking-tight line-clamp-1">{memory.title}</CardTitle>
-                            </CardHeader>
-                            <CardContent className="px-4 pb-4 pt-0">
-                                {memory.description && (
-                                    <p className="text-xs text-rose-100/40 line-clamp-2 mb-3 leading-relaxed italic">
-                                        "{memory.description}"
-                                    </p>
+                                        {userId === memory.user_id && (
+                                            <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover/card:opacity-100 transition-[opacity,transform] duration-300 z-20">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 bg-black/40 text-white/70 hover:text-white hover:bg-black/60 rounded-full backdrop-blur-md"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setEditingMemory(memory);
+                                                        setNewMemory({
+                                                            title: memory.title,
+                                                            description: memory.description || "",
+                                                            location: memory.location || "",
+                                                            memory_date: memory.memory_date,
+                                                        });
+                                                        setExistingImages(memory.image_urls || []);
+                                                        setPreviewUrls([]);
+                                                        setSelectedFiles([]);
+                                                        setIsAdding(true);
+                                                    }}
+                                                >
+                                                    <Edit2 className="h-3.5 w-3.5" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 bg-black/40 text-red-400/70 hover:text-red-400 hover:bg-black/60 rounded-full border border-white/10 backdrop-blur-md"
+                                                    onClick={async (e) => {
+                                                        e.stopPropagation();
+                                                        if (!confirm("Are you sure you want to delete this memory?")) return;
+                                                        await deleteMemory(memory.id);
+                                                        fetchMemories();
+                                                        router.refresh();
+                                                        await refreshDashboard();
+                                                        toast({ title: "Memory deleted" });
+                                                    }}
+                                                >
+                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="aspect-video bg-neutral-900 flex items-center justify-center">
+                                        <ImageIcon className="h-10 w-10 text-neutral-700" />
+                                    </div>
                                 )}
-                                <div className="flex items-center gap-4 text-[10px] uppercase tracking-[0.2em] font-bold text-rose-200/20">
-                                    <span className="flex items-center gap-1.5">
-                                        <Calendar className="h-3 w-3" />
-                                        {format(new Date(memory.memory_date), "MMM d, yyyy")}
-                                    </span>
-                                    {memory.location && (
-                                        <span className="flex items-center gap-1.5">
-                                            <MapPin className="h-3 w-3" />
-                                            <span className="truncate max-w-[100px]">{memory.location}</span>
-                                        </span>
+                                <CardHeader className="px-4 py-0">
+                                    <CardTitle className="text-base font-serif font-bold text-white tracking-tight line-clamp-1">{memory.title}</CardTitle>
+                                </CardHeader>
+                                <CardContent className="px-4 pb-4 pt-0">
+                                    {memory.description && (
+                                        <p className="text-xs text-rose-100/40 line-clamp-2 mb-3 leading-relaxed italic">
+                                            "{memory.description}"
+                                        </p>
                                     )}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+                                    <div className="flex items-center gap-4 text-[10px] uppercase tracking-[0.2em] font-bold text-rose-200/20">
+                                        <span className="flex items-center gap-1.5">
+                                            <Calendar className="h-3 w-3" />
+                                            {format(new Date(memory.memory_date), "MMM d, yyyy")}
+                                        </span>
+                                        {memory.location && (
+                                            <span className="flex items-center gap-1.5">
+                                                <MapPin className="h-3 w-3" />
+                                                <span className="truncate max-w-[100px]">{memory.location}</span>
+                                            </span>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                    {hasMore && (
+                        <div className="flex justify-center pt-8">
+                            <Button
+                                onClick={() => fetchMemories(true)}
+                                variant="ghost"
+                                className="text-[10px] font-bold uppercase tracking-widest text-rose-200/40 hover:text-rose-200 hover:bg-white/5"
+                            >
+                                Load More Precious Moments
+                            </Button>
+                        </div>
+                    )}
+                </>
             )}
 
             <MemoryDetailDialog

@@ -2,26 +2,30 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { getAtmosphereTheme, isDaytime, getLunarPhase } from "@/lib/utils";
+import { getAtmosphereTheme, isDaytime, getLunarPhase, cn } from "@/lib/utils";
+import { useBatteryOptimization } from "@/hooks/use-battery-optimization";
 
 interface RomanticBackgroundProps {
     initialImage?: string;
 }
 
 export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
+    const { isVisible } = useBatteryOptimization();
     const [elements, setElements] = useState<{ id: string | number; type: "star" | "heart"; style: React.CSSProperties }[]>([]);
-    const [bgImage, setBgImage] = useState<string | null>(null);
+    const [bgImage, setBgImage] = useState<string | null>(initialImage || `/images/1.jpg`);
     const [theme, setTheme] = useState(getAtmosphereTheme());
     const [mounted, setMounted] = useState(false);
+    const [ready, setReady] = useState(false); // New: Delayed ready state
     const [isDay, setIsDay] = useState(false); // Local state for immediate access
     const [moonRotation, setMoonRotation] = useState(0);
 
     useEffect(() => {
         setMounted(true);
         setMoonRotation(getLunarPhase() * 360);
-        // Randomly select background image 1-4 on mount
-        const randomId = Math.floor(Math.random() * 4) + 1;
-        setBgImage(`/images/${randomId}.jpg`);
+
+        // Defer heavy decorations to prioritize first paint
+        const timer = setTimeout(() => setReady(true), 1000);
+        return () => clearTimeout(timer);
     }, []);
 
     useEffect(() => {
@@ -82,8 +86,8 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
         return () => clearInterval(interval);
     }, [isDay]);
 
-    if (!mounted) return null;
-
+    // We must NOT return null entirely, otherwise the background image won't SSR and LCP will be awful.
+    // Instead we just conditionally render the client-side elements.
     return (
         <div className="fixed top-0 left-0 w-full h-[100lvh] z-0 overflow-hidden pointer-events-none bg-neutral-950">
             {/* Background Image Layer - Reduced Opacity for Readability */}
@@ -96,10 +100,9 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
                                 alt="Background"
                                 fill
                                 priority
-                                className="object-cover opacity-40 contrast-[1.05] saturate-[0.8] blur-[2px]"
-                                quality={85}
-                                sizes="100vw"
+                                className="object-cover opacity-40 contrast-[1.05] saturate-[0.8]"
                             />
+                            <div className="absolute inset-0 backdrop-blur-[2px]" />
                         </div>
                         <div className="md:hidden absolute inset-0">
                             <Image
@@ -107,23 +110,25 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
                                 alt="Background"
                                 fill
                                 priority
-                                className="object-cover opacity-40 contrast-[1.05] saturate-[0.8] blur-[2px]"
-                                quality={85}
-                                sizes="100vw"
+                                className="object-cover opacity-40 contrast-[1.05] saturate-[0.8]"
                             />
+                            <div className="absolute inset-0 backdrop-blur-[2px]" />
                         </div>
                     </>
                 )}
             </div>
 
-            {/* Daytime/Nighttime Overlay Gradient (Subtle) */}
+            {/* Progressive Background Overlay - Smoother transition */}
             <div
-                className="absolute inset-0 transition-[background] duration-[3000ms] ease-in-out"
+                className={cn(
+                    "absolute inset-0 z-[1] transition-all duration-[2000ms] ease-in-out",
+                    ready ? "opacity-100" : "opacity-0 scale-105"
+                )}
                 style={{ background: theme.overlay }}
             />
 
-            {/* INTEGRATED MOON BACKDROP (Night Only) */}
-            {!isDay && (
+            {/* INTEGRATED MOON BACKDROP (Night Only) - Client Only to avoid hydration mismatch */}
+            {mounted && ready && !isDay && (
                 <svg
                     className="absolute inset-0 z-[0] w-full h-full opacity-[0.4] pointer-events-none transition-opacity duration-[3000ms]"
                     viewBox="0 0 1000 1000"
@@ -176,7 +181,7 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
             />
 
             {/* Minimalist Floating Elements (Hearts or Stars) */}
-            {elements.map((el) => (
+            {mounted && ready && isVisible && elements.map((el) => (
                 <div
                     key={el.id}
                     className="absolute animate-float"

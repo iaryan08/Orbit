@@ -57,22 +57,31 @@ export function LunaraDashboard({ initialData }: { initialData: any }) {
     }, [initialData])
 
     React.useEffect(() => {
+        if (!profile?.couple_id) return
+
         const channel = supabase
             .channel('lunara-dashboard-updates')
             .on(
                 'postgres_changes',
-                { event: '*', schema: 'public', filter: `couple_id=eq.${profile.couple_id}` },
-                () => {
-                    console.log('Realtime update received, refreshing...')
-                    router.refresh()
-                }
+                { event: '*', schema: 'public', table: 'cycle_profiles', filter: `user_id=eq.${profile.partner_id}` },
+                () => router.refresh()
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'cycle_logs', filter: `user_id=eq.${profile.partner_id}` },
+                () => router.refresh()
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'support_logs', filter: `couple_id=eq.${profile.couple_id}` },
+                () => router.refresh()
             )
             .subscribe()
 
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [router, profile?.couple_id])
+    }, [router, profile?.couple_id, profile?.partner_id])
 
     const getCycleDay = () => {
         if (!cycleProfile?.last_period_start) return null

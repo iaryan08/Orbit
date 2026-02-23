@@ -40,32 +40,74 @@ interface DashboardHeaderProps {
   userAvatar?: string | null
   partnerName?: string | null
   daysTogetherCount?: number
+  coupleId?: string | null
   unreadCounts?: {
     memories: number
     letters: number
   }
 }
 
+import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
+import { fetchUnreadCounts } from '@/lib/actions/auth'
+import { useBatteryOptimization } from '@/hooks/use-battery-optimization'
+
 export function DashboardHeader({
   userName,
   userAvatar,
   partnerName,
   daysTogetherCount,
-  unreadCounts = { memories: 0, letters: 0 }
+  coupleId,
+  unreadCounts: initialUnreadCounts = { memories: 0, letters: 0 }
 }: DashboardHeaderProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const [scrolled, setScrolled] = useState(false)
   const [hoveredPath, setHoveredPath] = useState<string | null>(null)
-  const [isVisible, setIsVisible] = useState(true)
+  const [counts, setCounts] = useState(initialUnreadCounts)
+  const supabase = createClient()
+  const { isVisible } = useBatteryOptimization()
+
+  useEffect(() => {
+    if (!coupleId || !isVisible) return
+
+    const refreshCounts = async () => {
+      const newCounts = await fetchUnreadCounts()
+      setCounts(newCounts)
+    }
+
+    refreshCounts()
+
+    const channel = supabase
+      .channel('header-sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'love_letters', filter: `couple_id=eq.${coupleId}` }, refreshCounts)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'memories', filter: `couple_id=eq.${coupleId}` }, refreshCounts)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `couple_id=eq.${coupleId}` }, () => {
+        // Refresh layout data (names, avatars)
+        router.refresh()
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [coupleId, isVisible])
+
+  const [isVisibleHeader, setIsVisibleHeader] = useState(true)
   const lastScrollYRef = useRef(0)
   const ticking = useRef(false)
 
   const [mounted, setMounted] = useState(false)
+  const [ready, setReady] = useState(false) // Defer animations
   const [isMobile, setIsMobile] = useState(false)
   const { mode } = useAppMode()
 
   useEffect(() => {
     setMounted(true)
+
+    // Defer animations to keep main thread free during hydration
+    const timer = setTimeout(() => setReady(true), 500)
+
     const handleScroll = () => {
       if (!ticking.current) {
         requestAnimationFrame(() => {
@@ -76,9 +118,9 @@ export function DashboardHeader({
 
           // Visibility logic (Hide on down, Show on up)
           if (currentScrollY > lastScrollYRef.current && currentScrollY > 100) {
-            setIsVisible(false)
+            setIsVisibleHeader(false)
           } else {
-            setIsVisible(true)
+            setIsVisibleHeader(true)
           }
           lastScrollYRef.current = currentScrollY
           ticking.current = false
@@ -96,6 +138,7 @@ export function DashboardHeader({
     window.addEventListener('scroll', handleScroll, { passive: true })
     window.addEventListener('resize', handleResize)
     return () => {
+      clearTimeout(timer)
       window.removeEventListener('scroll', handleScroll)
       window.removeEventListener('resize', handleResize)
     }
@@ -170,7 +213,7 @@ export function DashboardHeader({
         {isDesktopScrolled ? (
           <motion.nav
             key="dock-scrolled"
-            initial={{ x: -60, opacity: 0 }}
+            initial={isMobile || !ready ? false : { x: -60, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -20, opacity: 0, transition: { duration: 0.15 } }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
@@ -235,8 +278,8 @@ export function DashboardHeader({
                               )}
                             </AnimatePresence>
                             <item.icon className={cn("w-5 h-5 relative z-10 transition-transform group-hover:scale-110", isActive && "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]")} />
-                            {item.label === 'Memories' && unreadCounts.memories > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />}
-                            {item.label === 'Letters' && unreadCounts.letters > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />}
+                            {item.label === 'Memories' && counts.memories > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />}
+                            {item.label === 'Letters' && counts.letters > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />}
                           </motion.div>
                         </Link>
                       </TooltipTrigger>
@@ -308,7 +351,7 @@ export function DashboardHeader({
         ) : (
           <motion.nav
             key="dock-top"
-            initial={isMobile ? false : { y: -40, opacity: 0 }} // No animation on initial load for mobile
+            initial={isMobile || !ready ? false : { y: -40, opacity: 0 }} // No animation on initial load for mobile or if not ready
             animate={{ y: 0, opacity: 1 }}
             exit={isMobile ? undefined : { y: -20, opacity: 0, transition: { duration: 0.15 } }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
@@ -369,8 +412,8 @@ export function DashboardHeader({
                               )}
                             </AnimatePresence>
                             <item.icon className={cn("w-5 h-5 relative z-10 transition-transform group-hover:scale-110", isActive && "text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]")} />
-                            {item.label === 'Memories' && unreadCounts.memories > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />}
-                            {item.label === 'Letters' && unreadCounts.letters > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />}
+                            {item.label === 'Memories' && counts.memories > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />}
+                            {item.label === 'Letters' && counts.letters > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)] z-20" />}
                           </motion.div>
                         </Link>
                       </TooltipTrigger>
@@ -442,10 +485,10 @@ export function DashboardHeader({
       <motion.div
         className="fixed top-6 md:top-10 right-6 md:right-10 z-50 flex items-center gap-4"
         animate={{
-          x: !isVisible ? 160 : 0,
-          opacity: !isVisible ? 0 : 1,
-          scale: !isVisible ? 0.9 : 1,
-          pointerEvents: !isVisible ? 'none' : 'auto'
+          x: !isVisibleHeader ? 160 : 0,
+          opacity: !isVisibleHeader ? 0 : 1,
+          scale: !isVisibleHeader ? 0.9 : 1,
+          pointerEvents: !isVisibleHeader ? 'none' : 'auto'
         }}
         transition={{
           type: "spring",

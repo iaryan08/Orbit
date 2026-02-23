@@ -864,6 +864,7 @@ export async function updateLocation(data: { latitude?: number, longitude?: numb
     }
   }
 
-  revalidatePath('/dashboard')
+  // Surgical revalidation only - DO NOT use revalidatePath('/dashboard') here
+  // which causes an expensive full-tree re-render.
   return { success: true }
 }

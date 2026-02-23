@@ -34,9 +34,11 @@ export function AppModeProvider({
     const pathname = usePathname()
     const [mode, setMode] = useState<AppMode>('moon')
     const [mounted, setMounted] = useState(false)
-    const [profile] = useState(initialProfile || null)
-    const [coupleId] = useState(initialCoupleId || null)
     const [activeLunaraTab, setActiveLunaraTab] = useState<'dashboard' | 'insights' | 'partner'>('dashboard')
+
+    // Allow dynamic updates from server-to-client if provided later
+    const profile = initialProfile || null
+    const coupleId = initialCoupleId || null
 
     // Initialize Mode
     useEffect(() => {

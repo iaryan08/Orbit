@@ -81,6 +81,7 @@ export function DistanceTimeWidget({ userProfile, partnerProfile }: DistanceWidg
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 console.log("[Geolocation] Success:", position.coords.latitude, position.coords.longitude);
+                localStorage.setItem('location-permission', 'granted');
                 setIsBlocked(false)
                 const { latitude, longitude } = position.coords
 
@@ -101,6 +102,7 @@ export function DistanceTimeWidget({ userProfile, partnerProfile }: DistanceWidg
                 if (error.code === error.PERMISSION_DENIED) {
                     setIsBlocked(true)
                     msg = "Geolocation permission denied"
+                    localStorage.setItem('location-permission', 'denied');
                 } else if (error.code === error.POSITION_UNAVAILABLE) {
                     msg = "Geolocation position unavailable"
                 } else if (error.code === error.TIMEOUT) {

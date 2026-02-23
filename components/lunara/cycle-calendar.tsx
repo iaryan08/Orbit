@@ -20,12 +20,12 @@ interface CycleProfile {
 }
 
 interface CalendarProps {
-    cycleProfile: CycleProfile
+    cycleProfile: CycleProfile | null | undefined
 }
 
 // --- Logic ---
-function getDayStatus(date: Date, profile: CycleProfile) {
-    if (!profile.last_period_start) return { phase: 'unknown', cycleDay: 0 }
+function getDayStatus(date: Date, profile: CycleProfile | null | undefined) {
+    if (!profile || !profile.last_period_start) return { phase: 'unknown', cycleDay: 0 }
 
     const lastPeriod = startOfDay(new Date(profile.last_period_start))
     const targetDate = startOfDay(date)
@@ -71,6 +71,17 @@ function getDayStatus(date: Date, profile: CycleProfile) {
 export function CycleCalendar({ cycleProfile }: CalendarProps) {
     const scrollRef = useRef<HTMLDivElement>(null)
     const today = new Date()
+
+    if (!cycleProfile || !cycleProfile.last_period_start) {
+        return (
+            <div className="w-full flex flex-col items-center justify-center py-10 px-4 text-center space-y-3">
+                <CalendarDays className="w-8 h-8 text-purple-500/20" />
+                <p className="text-[10px] uppercase tracking-widest font-bold text-white/30">
+                    Sync your cycle to view calendar
+                </p>
+            </div>
+        )
+    }
 
     const days = Array.from({ length: 90 }, (_, i) => {
         const d = subDays(today, 30 - i)

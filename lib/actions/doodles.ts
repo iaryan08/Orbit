@@ -33,23 +33,27 @@ export async function saveDoodle(path: string) {
     return { success: true };
 }
 
-export async function getDoodle() {
+export async function getDoodle(providedCoupleId?: string) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
 
-    const { data: profile } = await supabase
-        .from("profiles")
-        .select("couple_id")
-        .eq("id", user.id)
-        .single();
+    let coupleId = providedCoupleId;
+    if (!coupleId) {
+        const { data: profile } = await supabase
+            .from("profiles")
+            .select("couple_id")
+            .eq("id", user.id)
+            .single();
+        coupleId = profile?.couple_id;
+    }
 
-    if (!profile?.couple_id) return null;
+    if (!coupleId) return null;
 
     const { data: doodle } = await supabase
         .from("doodles")
         .select("*")
-        .eq("couple_id", profile.couple_id)
+        .eq("couple_id", coupleId)
         .single();
 
     return doodle;

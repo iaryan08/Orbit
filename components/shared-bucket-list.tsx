@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { addBucketItem, toggleBucketItem, deleteBucketItem } from '@/lib/actions/bucket'
 import { useToast } from '@/hooks/use-toast'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import Link from 'next/link'
 
 export function SharedBucketList({ initialItems = [] }: { initialItems: any[] }) {
     const [items, setItems] = useState<any[]>(initialItems)
@@ -126,6 +127,8 @@ export function SharedBucketList({ initialItems = [] }: { initialItems: any[] })
     const completedCount = items.filter(i => i.is_completed).length
     const totalCount = items.length
     const progress = totalCount === 0 ? 0 : (completedCount / totalCount) * 100
+    const [showAll, setShowAll] = useState(false)
+    const displayItems = showAll ? sortedItems : sortedItems.slice(0, 15)
 
     return (
         <Card className="glass-card border-none overflow-hidden relative group">
@@ -203,7 +206,7 @@ export function SharedBucketList({ initialItems = [] }: { initialItems: any[] })
                 </form>
 
                 {/* List */}
-                <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-2 minimal-scrollbar">
+                <div className="space-y-2.5 max-h-[450px] overflow-y-auto pr-2 minimal-scrollbar">
                     <AnimatePresence initial={false} mode="popLayout">
                         {sortedItems.length === 0 ? (
                             <motion.div
@@ -214,61 +217,71 @@ export function SharedBucketList({ initialItems = [] }: { initialItems: any[] })
                                 No dreams yet. <br /> Start dreaming big! ✨
                             </motion.div>
                         ) : (
-                            sortedItems.map((item) => (
-                                <motion.div
-                                    key={item.id}
-                                    layout
-                                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
-                                    onClick={() => setSelectedItemId(prev => prev === item.id ? null : item.id)}
-                                    className={cn(
-                                        "group flex items-center gap-3 p-3.5 rounded-2xl border transition-[background-color,border-color,opacity,shadow,transform] duration-300 cursor-pointer active:scale-[0.99]",
-                                        item.is_completed
-                                            ? "bg-rose-500/5 border-rose-500/10 opacity-60"
-                                            : item.id === selectedItemId
-                                                ? "bg-white/5 border-rose-500/20 shadow-lg"
-                                                : "glass-card border-white/5 hover:border-rose-500/20 shadow-sm"
-                                    )}
-                                >
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); handleToggle(item.id, item.is_completed); }}
+                            <>
+                                {displayItems.map((item) => (
+                                    <motion.div
+                                        key={item.id}
+                                        layout
+                                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
+                                        onClick={() => setSelectedItemId(prev => prev === item.id ? null : item.id)}
                                         className={cn(
-                                            "w-6 h-6 rounded-full border flex items-center justify-center transition-[background-color,border-color,box-shadow,color] duration-300 flex-shrink-0",
+                                            "group flex items-center gap-3 p-3.5 rounded-2xl border transition-[background-color,border-color,opacity,shadow,transform] duration-300 cursor-pointer active:scale-[0.99]",
                                             item.is_completed
-                                                ? "bg-gradient-to-br from-rose-500 to-pink-600 border-rose-400 text-white shadow-[0_0_15px_rgba(244,63,94,0.4)]"
-                                                : "border-white/10 text-transparent hover:border-rose-400/50"
+                                                ? "bg-rose-500/5 border-rose-500/10 opacity-60"
+                                                : item.id === selectedItemId
+                                                    ? "bg-white/5 border-rose-500/20 shadow-lg"
+                                                    : "glass-card border-white/5 hover:border-rose-500/20 shadow-sm"
                                         )}
                                     >
-                                        <Check className="w-3.5 h-3.5" strokeWidth={3} />
-                                    </button>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleToggle(item.id, item.is_completed); }}
+                                            className={cn(
+                                                "w-6 h-6 rounded-full border flex items-center justify-center transition-[background-color,border-color,box-shadow,color] duration-300 flex-shrink-0",
+                                                item.is_completed
+                                                    ? "bg-gradient-to-br from-rose-500 to-pink-600 border-rose-400 text-white shadow-[0_0_15px_rgba(244,63,94,0.4)]"
+                                                    : "border-white/10 text-transparent hover:border-rose-400/50"
+                                            )}
+                                        >
+                                            <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                                        </button>
 
-                                    <span className={cn(
-                                        "flex-1 text-sm font-medium transition-[color,text-decoration-color] duration-300",
-                                        item.is_completed
-                                            ? "text-rose-100/40 line-through decoration-rose-500/40 decoration-2"
-                                            : "text-rose-50/90"
-                                    )}>
-                                        {item.title}
-                                    </span>
+                                        <span className={cn(
+                                            "flex-1 text-sm font-medium transition-[color,text-decoration-color] duration-300",
+                                            item.is_completed
+                                                ? "text-rose-100/40 line-through decoration-rose-500/40 decoration-2"
+                                                : "text-rose-50/90"
+                                        )}>
+                                            {item.title}
+                                        </span>
 
-                                    {item.is_completed && (
-                                        <Trophy className="w-4 h-4 text-amber-400/50 animate-pulse" />
-                                    )}
+                                        {item.is_completed && (
+                                            <Trophy className="w-4 h-4 text-amber-400/50 animate-pulse" />
+                                        )}
 
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
+                                            className={cn(
+                                                "p-2 rounded-xl text-rose-100/40 hover:text-red-400 hover:bg-red-500/10 transition-[opacity,transform,color,background-color] ml-1 shrink-0 duration-200",
+                                                item.id === selectedItemId
+                                                    ? "opacity-100 scale-100"
+                                                    : "opacity-0 scale-90 md:group-hover:opacity-100 md:group-hover:scale-100"
+                                            )}
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </motion.div>
+                                ))}
+                                {sortedItems.length > 15 && (
                                     <button
-                                        onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}
-                                        className={cn(
-                                            "p-2 rounded-xl text-rose-100/40 hover:text-red-400 hover:bg-red-500/10 transition-[opacity,transform,color,background-color] ml-1 shrink-0 duration-200",
-                                            item.id === selectedItemId
-                                                ? "opacity-100 scale-100"
-                                                : "opacity-0 scale-90 md:group-hover:opacity-100 md:group-hover:scale-100"
-                                        )}
+                                        onClick={() => setShowAll(!showAll)}
+                                        className="w-full text-center py-4 text-[10px] font-bold uppercase tracking-[0.2em] text-rose-300/40 hover:text-rose-300 transition-colors"
                                     >
-                                        <Trash2 className="w-4 h-4" />
+                                        {showAll ? "Collapse List" : `Show all ${sortedItems.length} dreams →`}
                                     </button>
-                                </motion.div>
-                            ))
+                                )}
+                            </>
                         )}
                     </AnimatePresence>
                 </div>

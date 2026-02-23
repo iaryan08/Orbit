@@ -1,61 +1,53 @@
-import { createClient } from '@/lib/supabase/server'
-
-import dynamic from 'next/dynamic'
-import { MapPin, Sparkles, Gamepad2 } from 'lucide-react'
-import Link from 'next/link'
-import type { MoodType } from '@/lib/constants'
-import { cn } from '@/lib/utils'
+import {
+    fetchCoreDashboardData
+} from '@/lib/actions/consolidated'
+import { getDashboardPolaroids, deletePolaroid } from '@/lib/actions/polaroids'
+import { getDoodle, saveDoodle } from '@/lib/actions/doodles'
 import { DashboardShell } from '@/components/dashboard-shell'
 import { ScrollReveal } from '@/components/scroll-reveal'
 import { QuickCreateButtons } from '@/components/quick-create-buttons'
-import { RelationshipStats } from '@/components/relationship-stats'
 import { IntimacyAlert } from '@/components/intimacy-alert'
+import { MoodCheckIn } from '@/components/mood-check-in'
+import { PartnerMood } from '@/components/partner-mood'
+import { WeatherBadge } from '@/components/weather-badge'
+import { PartnerStatus } from '@/components/partner-status'
+import { PartnerAvatarHeartbeat } from '@/components/partner-avatar-heartbeat'
+import {
+    BucketListWrapper,
+    OnThisDayWrapper,
+    DailyContentWrapper,
+    DashboardSkeleton
+} from '@/components/dashboard-wrappers'
+import { Suspense } from 'react'
+import dynamic from 'next/dynamic'
+import { MapPin, Sparkles } from 'lucide-react'
 
-// Dynamic Imports with Loading Skeletons
-const MoodCheckIn = dynamic<{ hasPartner: boolean; userMoods?: any[] }>(() => import('@/components/mood-check-in').then(mod => mod.MoodCheckIn), {
-    ssr: true,
-    loading: () => <div className="h-64 rounded-3xl bg-white/5 animate-pulse" />
+// Dynamic imports for heavy content components to reduce initial JS payload
+const StackedPolaroids = dynamic(() => import('@/components/stacked-polaroids').then(mod => mod.StackedPolaroids), {
+    loading: () => <DashboardSkeleton className="h-[400px]" />
 })
-const PartnerMood = dynamic(() => import('@/components/partner-mood').then(mod => mod.PartnerMood), {
-    ssr: true,
-    loading: () => <div className="h-40 rounded-3xl bg-white/5 animate-pulse" />
+const SharedDoodle = dynamic(() => import('@/components/shared-doodle').then(mod => mod.SharedDoodle), {
+    loading: () => <DashboardSkeleton className="h-[400px] lg:h-[340px]" />
 })
-const CouplePairing = dynamic(() => import('@/components/couple-pairing').then(mod => mod.CouplePairing), { ssr: true })
-const DailyContent = dynamic(() => import('@/components/daily-content').then(mod => mod.DailyContent), {
-    ssr: true,
-    loading: () => <div className="h-64 rounded-3xl bg-white/5 animate-pulse" />
+const RelationshipStats = dynamic(() => import('@/components/relationship-stats').then(mod => mod.RelationshipStats), {
+    loading: () => <DashboardSkeleton className="h-32" />
 })
-const OnThisDay = dynamic(() => import('@/components/on-this-day').then(mod => mod.OnThisDay), { ssr: true })
-const SharedBucketList = dynamic(() => import('@/components/shared-bucket-list').then(mod => mod.SharedBucketList), {
-    ssr: true,
-    loading: () => <div className="h-64 rounded-3xl bg-white/5 animate-pulse" />
-})
-const WeatherBadge = dynamic(() => import('@/components/weather-badge').then(mod => mod.WeatherBadge), { ssr: true })
 const DistanceTimeWidget = dynamic(() => import('@/components/distance-time-widget').then(mod => mod.DistanceTimeWidget), {
-    ssr: true,
-    loading: () => <div className="h-32 rounded-3xl bg-white/5 animate-pulse" />
+    loading: () => <DashboardSkeleton className="h-48" />
 })
-const PartnerStatus = dynamic(() => import('@/components/partner-status').then(mod => mod.PartnerStatus), { ssr: true })
-const PartnerAvatarHeartbeat = dynamic(() => import('@/components/partner-avatar-heartbeat').then(mod => mod.PartnerAvatarHeartbeat), { ssr: true })
-
-import { getDashboardPolaroids, deletePolaroid } from '@/lib/actions/polaroids'
-import { getDoodle, saveDoodle } from '@/lib/actions/doodles'
-import { PolaroidCard } from '@/components/polaroid-card'
-import { StackedPolaroids } from '@/components/stacked-polaroids'
-import { SharedDoodle } from '@/components/shared-doodle'
-import { fetchDashboardData } from '@/lib/actions/consolidated'
 
 export default async function DashboardPage() {
-    // 1. Fetch Consolidated Data (Pre-loading for both modes)
-    const result = await fetchDashboardData()
-    if (!result.success || !result.data) return null
-    const lunaraData = result.data
+    return (
+        <Suspense fallback={<DashboardLoadingSkeleton />}>
+            <AsyncDashboardContent />
+        </Suspense>
+    )
+}
 
-    // 2. Fetch Personal Atmospheric Elements
-    const [{ userPolaroid, partnerPolaroid }, doodle] = await Promise.all([
-        getDashboardPolaroids(),
-        getDoodle()
-    ])
+async function AsyncDashboardContent() {
+    // 1. Fetch Core Data (Fast Path for First Paint)
+    const result = await fetchCoreDashboardData()
+    if (!result.success || !result.data) return null
 
     const {
         profile,
@@ -64,34 +56,20 @@ export default async function DashboardPage() {
         userTodayMoods,
         partnerTodayMoods,
         memoriesCount,
-        lettersCount,
-        onThisDayMemories,
-        onThisDayMilestones,
-        bucketList
+        lettersCount
     } = result.data
 
-    const hasOnThisDay = (onThisDayMemories?.length || 0) > 0 || (onThisDayMilestones?.length || 0) > 0
-
+    const coupleId = couple?.id
     const hasPartner = !!couple
 
-
-
-    if (!hasPartner) {
-        return (
-            <div className="max-w-2xl mx-auto space-y-8 py-8">
-                <div className="text-center space-y-2">
-                    <h1 className="text-3xl font-serif font-semibold">Welcome to Your Love Space</h1>
-                    <p className="text-muted-foreground">
-                        Connect with your partner to unlock all features
-                    </p>
-                </div>
-                <CouplePairing userPairCode={couple?.couple_code} />
-            </div>
-        )
-    }
+    // 2. Parallel fetch for media/assets, injecting coupleId to avoid redundant profile lookups
+    const [{ userPolaroid, partnerPolaroid }, doodle] = await Promise.all([
+        getDashboardPolaroids(coupleId),
+        getDoodle(coupleId)
+    ])
 
     return (
-        <DashboardShell lunaraData={lunaraData}>
+        <DashboardShell lunaraData={result.data}>
             <div className="max-w-7xl mx-auto space-y-12 pt-24 pb-12 px-6 md:px-8">
                 {/* Refined Welcome Header */}
                 <ScrollReveal className="space-y-4 text-center lg:text-left">
@@ -117,23 +95,26 @@ export default async function DashboardPage() {
                                     </div>
                                 )}
                             </div>
-                            <div className="relative z-10">
-                                <PartnerAvatarHeartbeat partnerProfile={partnerProfile} coupleId={couple?.id} />
-                            </div>
-
+                            {hasPartner && (
+                                <div className="relative z-10">
+                                    <PartnerAvatarHeartbeat partnerProfile={partnerProfile} coupleId={coupleId} />
+                                </div>
+                            )}
                         </div>
                         <div className="flex flex-col items-center lg:items-start space-y-0.5">
                             <div className="flex items-center gap-2">
                                 <p className="text-rose-100/70 uppercase text-xs tracking-[0.2em] whitespace-nowrap">
-                                    Connected with <span className="text-rose-300 font-bold">{partnerProfile?.display_name || 'Partner'}</span>
+                                    {hasPartner ? (
+                                        <>Connected with <span className="text-rose-300 font-bold">{partnerProfile?.display_name || 'Partner'}</span></>
+                                    ) : (
+                                        "Waiting for partner"
+                                    )}
                                 </p>
-                                <PartnerStatus partnerId={partnerProfile?.id} />
+                                {hasPartner && <PartnerStatus partnerId={partnerProfile?.id} />}
                             </div>
 
-
-
                             <div className="flex items-center justify-center lg:justify-start">
-                                {partnerProfile && (
+                                {hasPartner && partnerProfile && (
                                     <WeatherBadge
                                         lat={partnerProfile.latitude}
                                         lon={partnerProfile.longitude}
@@ -153,46 +134,40 @@ export default async function DashboardPage() {
                     <QuickCreateButtons />
                 </ScrollReveal>
 
+                {/* Core Stats & Status */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8 md:mt-12">
-
-                    {/* 1. PRIMARY STATS: Together Counter (Priority #1) */}
-                    {/* 1. PRIMARY STATS: Together Counter (Priority #1) */}
                     <RelationshipStats
                         couple={couple}
                         lettersCount={lettersCount}
                         memoriesCount={memoriesCount}
                     />
 
-                    {/* 2. DYNAMIC LAYER: Heat Alert */}
-                    {/* 2. DYNAMIC LAYER: Heat Alert */}
                     <IntimacyAlert
                         lunaraData={result.data}
                         partnerProfile={partnerProfile}
                     />
 
-                    {/* 3. ATMOSPHERE LAYER: Partner Mood, Your Mood, Polaroid & Doodle */}
-                    {/* 3. ATMOSPHERE LAYER: Partner Mood, Your Mood, Polaroid & Doodle */}
-                    <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-2">
-                        {/* 1. Partner Mood - FIRST (Order 0) */}
+                    {/* Secondary Widgets Grid */}
+                    <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-2 auto-rows-min">
+                        {/* Top Row: Moods & Polaroids */}
                         <ScrollReveal className="lg:col-span-1" delay={0.1}>
                             <div className="glass-card p-1.5 h-full">
                                 <PartnerMood
                                     partnerName={partnerProfile?.display_name || 'Partner'}
                                     partnerAvatar={partnerProfile?.avatar_url}
                                     moods={partnerTodayMoods}
+                                    coupleId={coupleId}
                                 />
                             </div>
                         </ScrollReveal>
 
-                        {/* 2. Your Mood - SECOND (Order 0) */}
                         <ScrollReveal className="lg:col-span-1" delay={0.15}>
                             <div className="glass-card p-1.5 h-full">
                                 <MoodCheckIn hasPartner={hasPartner} userMoods={userTodayMoods} />
                             </div>
                         </ScrollReveal>
 
-                        {/* Polaroid - Center Column (Order 0) */}
-                        <ScrollReveal className="lg:col-span-1" delay={0.15}>
+                        <ScrollReveal className="lg:col-span-1" delay={0.2}>
                             <StackedPolaroids
                                 userPolaroid={userPolaroid}
                                 partnerPolaroid={partnerPolaroid}
@@ -204,8 +179,14 @@ export default async function DashboardPage() {
                             />
                         </ScrollReveal>
 
-                        {/* Doodle - Mobile: Pos 4 (Flow). Desktop: Pos 6 (Row 2 end) -> lg:order-6 */}
-                        <ScrollReveal className="lg:col-span-2 lg:order-6" delay={0.2}>
+                        <ScrollReveal className="lg:col-span-1 h-full" delay={0.25}>
+                            <div className="h-full">
+                                <DistanceTimeWidget userProfile={profile} partnerProfile={partnerProfile} />
+                            </div>
+                        </ScrollReveal>
+
+                        {/* Middle Row: Content & Creativity */}
+                        <ScrollReveal className="lg:col-span-2" delay={0.3}>
                             <div className="h-[400px] lg:h-[340px]">
                                 <SharedDoodle
                                     savedPath={doodle?.path_data}
@@ -217,41 +198,51 @@ export default async function DashboardPage() {
                             </div>
                         </ScrollReveal>
 
-                        {/* Daily Inspiration - Mobile: Pos 5. Desktop: Pos 5. lg:order-5 */}
-                        <ScrollReveal className="lg:col-span-2 lg:order-5" delay={0.3}>
-                            <div className="glass-card p-4 md:p-5 flex flex-col justify-between relative overflow-hidden group h-[400px] lg:h-[340px]">
-                                <DailyContent />
-                            </div>
-                        </ScrollReveal>
+                        <Suspense fallback={<DashboardSkeleton className="lg:col-span-2 h-[400px] lg:h-[340px]" />}>
+                            <DailyContentWrapper />
+                        </Suspense>
 
-                        {/* Distance - Mobile: Pos 6. Desktop: Pos 4 (Row 1 end) -> lg:order-4 */}
-                        <ScrollReveal className="lg:col-span-1 h-full lg:order-4" delay={0.35}>
-                            <div className="h-full">
-                                <DistanceTimeWidget userProfile={profile} partnerProfile={partnerProfile} />
-                            </div>
-                        </ScrollReveal>
-
-                        {/* MEMORY & FUTURE LAYER: On This Day & Bucket List */}
-                        {hasOnThisDay && (
-                            <ScrollReveal className="lg:col-span-2 h-full lg:order-7" delay={0.4}>
-                                <div className="h-full min-h-[400px]">
-                                    <OnThisDay
-                                        memories={onThisDayMemories}
-                                        milestones={onThisDayMilestones}
+                        {/* Dynamic Content: Bucket List & On This Day */}
+                        {hasPartner && coupleId && (
+                            <>
+                                <Suspense fallback={null}>
+                                    <OnThisDayWrapper
+                                        coupleId={coupleId}
                                         partnerName={partnerProfile?.display_name || 'Partner'}
                                     />
-                                </div>
-                            </ScrollReveal>
-                        )}
+                                </Suspense>
 
-                        <ScrollReveal className={cn("h-full lg:order-8", hasOnThisDay ? "lg:col-span-2" : "lg:col-span-4")} delay={0.45}>
-                            <div className="h-full min-h-[400px]">
-                                <SharedBucketList initialItems={bucketList} />
-                            </div>
-                        </ScrollReveal>
+                                <Suspense fallback={null}>
+                                    <BucketListWrapper coupleId={coupleId} />
+                                </Suspense>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
         </DashboardShell>
+    )
+}
+
+function DashboardLoadingSkeleton() {
+    return (
+        <div className="max-w-7xl mx-auto space-y-12 pt-24 pb-12 px-6 md:px-8">
+            <div className="space-y-4">
+                <DashboardSkeleton className="h-10 w-32 mx-auto lg:mx-0" />
+                <DashboardSkeleton className="h-24 w-full md:w-2/3 mx-auto lg:mx-0" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <DashboardSkeleton className="h-32" />
+                <DashboardSkeleton className="h-32" />
+                <DashboardSkeleton className="h-32" />
+                <DashboardSkeleton className="h-32" />
+                <div className="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <DashboardSkeleton className="lg:col-span-1 h-[400px]" />
+                    <DashboardSkeleton className="lg:col-span-1 h-[400px]" />
+                    <DashboardSkeleton className="lg:col-span-1 h-[400px]" />
+                    <DashboardSkeleton className="lg:col-span-1 h-[400px]" />
+                </div>
+            </div>
+        </div>
     )
 }
