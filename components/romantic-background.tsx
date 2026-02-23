@@ -12,7 +12,7 @@ interface RomanticBackgroundProps {
 export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
     const { isVisible } = useBatteryOptimization();
     const [elements, setElements] = useState<{ id: string | number; type: "star" | "heart"; style: React.CSSProperties }[]>([]);
-    const [bgImage, setBgImage] = useState<string | null>(initialImage || `/images/1.jpg`);
+    const [bgImage, setBgImage] = useState<string | null>(initialImage || `/images/1.webp`);
     const [theme, setTheme] = useState(getAtmosphereTheme());
     const [mounted, setMounted] = useState(false);
     const [ready, setReady] = useState(false); // New: Delayed ready state
@@ -99,17 +99,19 @@ export function RomanticBackground({ initialImage }: RomanticBackgroundProps) {
                                 src={bgImage}
                                 alt="Background"
                                 fill
-                                priority
+                                sizes="100vw"
+                                quality={55}
                                 className="object-cover opacity-40 contrast-[1.05] saturate-[0.8]"
                             />
                             <div className="absolute inset-0 backdrop-blur-[2px]" />
                         </div>
                         <div className="md:hidden absolute inset-0">
                             <Image
-                                src={bgImage.replace('.jpg', '-m.jpg')}
+                                src={bgImage.replace('.webp', '-m.webp')}
                                 alt="Background"
                                 fill
-                                priority
+                                sizes="100vw"
+                                quality={50}
                                 className="object-cover opacity-40 contrast-[1.05] saturate-[0.8]"
                             />
                             <div className="absolute inset-0 backdrop-blur-[2px]" />

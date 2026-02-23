@@ -1,11 +1,10 @@
-
-import { fetchDashboardData } from '@/lib/actions/consolidated'
+import { getDashboardData } from '@/lib/actions/consolidated'
 import { LunaraTabInsights } from '@/components/lunara/lunara-tab-insights'
 import { LunaraHeader } from '@/components/lunara/lunara-header'
 import { redirect } from 'next/navigation'
 
 export default async function LunaraInsightsPage() {
-    const result = await fetchDashboardData()
+    const result = await getDashboardData()
     if (!result.success || !result.data) {
         redirect('/dashboard')
     }
@@ -19,3 +18,5 @@ export default async function LunaraInsightsPage() {
         </div>
     )
 }
+
+export const dynamic = 'force-dynamic'

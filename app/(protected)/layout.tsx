@@ -1,11 +1,11 @@
 import React from "react"
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { DashboardHeader } from '@/components/dashboard-header'
 import { fetchUnreadCounts } from '@/lib/actions/auth'
 import { AppModeProvider } from '@/components/app-mode-context'
 import { AmbientTopLoader } from '@/components/ambient-top-loader'
-import { LocationTracker } from '@/components/location-tracker'
+import { DeferredLocationTracker } from '@/components/deferred-location-tracker'
+import { DeferredDashboardHeader } from '@/components/deferred-dashboard-header'
 import { Suspense } from 'react'
 
 
@@ -34,7 +34,7 @@ export default async function ProtectedLayout({
     return (
         <AppModeProvider initialProfile={profile} initialCoupleId={profile?.couple_id}>
             <AmbientTopLoader />
-            <LocationTracker />
+            <DeferredLocationTracker />
             <div className="relative min-h-screen">
                 {/* Top Viewport Fade Overlay */}
                 <div className="fixed top-0 left-0 right-0 h-32 bg-gradient-to-b from-background via-background/60 to-transparent z-[30] pointer-events-none" />
@@ -89,7 +89,7 @@ async function HeaderWrapper({ userId, email }: { userId: string, email?: string
     }
 
     return (
-        <DashboardHeader
+        <DeferredDashboardHeader
             userName={profile?.display_name || email?.split('@')[0] || 'User'}
             userAvatar={profile?.avatar_url}
             partnerName={partnerProfile?.display_name}

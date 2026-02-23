@@ -44,8 +44,16 @@ export function NotificationBell({ className }: { className?: string }) {
     const [selectedAnnouncement, setSelectedAnnouncement] = useState<Notification | null>(null)
     const router = useRouter()
     const supabase = createClient()
+    const COUNT_CACHE_KEY = 'orbit:notification_unread_count'
 
     useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const cached = localStorage.getItem(COUNT_CACHE_KEY)
+            if (cached && !Number.isNaN(Number(cached))) {
+                setCount(Number(cached))
+            }
+        }
+
         let channel: any;
 
         const setupRealtime = async () => {
@@ -65,7 +73,11 @@ export function NotificationBell({ className }: { className?: string }) {
                         filter: `recipient_id=eq.${user.id}`
                     },
                     (payload: { new: any }) => {
-                        setCount(prev => prev + 1)
+                        setCount(prev => {
+                            const next = prev + 1
+                            if (typeof window !== 'undefined') localStorage.setItem(COUNT_CACHE_KEY, String(next))
+                            return next
+                        })
                         setNotifications(prev => [payload.new as Notification, ...prev])
                     }
                 )
@@ -176,6 +188,7 @@ export function NotificationBell({ className }: { className?: string }) {
     const fetchCount = async () => {
         const c = await getUnreadCount()
         setCount(c)
+        if (typeof window !== 'undefined') localStorage.setItem(COUNT_CACHE_KEY, String(c))
     }
 
     const fetchNotifications = async () => {
@@ -193,7 +206,11 @@ export function NotificationBell({ className }: { className?: string }) {
     const handleMarkAsRead = async (id: string, url?: string, notification?: Notification) => {
         // Optimistic update
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
-        setCount(prev => Math.max(0, prev - 1))
+        setCount(prev => {
+            const next = Math.max(0, prev - 1)
+            if (typeof window !== 'undefined') localStorage.setItem(COUNT_CACHE_KEY, String(next))
+            return next
+        })
 
         await markAsRead(id)
 
@@ -216,7 +233,11 @@ export function NotificationBell({ className }: { className?: string }) {
         // If we deleted an unread one, decrease count
         const wasUnread = notifications.find(n => n.id === id)?.is_read === false
         if (wasUnread) {
-            setCount(prev => Math.max(0, prev - 1))
+            setCount(prev => {
+                const next = Math.max(0, prev - 1)
+                if (typeof window !== 'undefined') localStorage.setItem(COUNT_CACHE_KEY, String(next))
+                return next
+            })
         }
 
         await deleteNotification(id)
@@ -225,6 +246,7 @@ export function NotificationBell({ className }: { className?: string }) {
     const handleDeleteAll = async () => {
         setNotifications([])
         setCount(0)
+        if (typeof window !== 'undefined') localStorage.setItem(COUNT_CACHE_KEY, '0')
         await deleteAllNotifications()
     }
 

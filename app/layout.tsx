@@ -52,8 +52,8 @@ export const metadata: Metadata = {
 
 import { RomanticBackground } from '@/components/romantic-background'
 import { ScrollManager } from '@/components/scroll-manager'
+import { DeferredPushManager } from '@/components/deferred-push-manager'
 
-import PushNotificationManager from '@/components/PushNotificationManager'
 
 export default function RootLayout({
   children,
@@ -63,7 +63,7 @@ export default function RootLayout({
   // Server-side randomization for performance
   const bgIds = ["1", "2", "3", "4"];
   const randomId = bgIds[Math.floor(Math.random() * bgIds.length)];
-  const initialImage = `/images/${randomId}.jpg`;
+  const initialImage = `/images/${randomId}.webp`;
 
   return (
     <html lang="en" className="dark" data-scroll-behavior="smooth">
@@ -74,8 +74,8 @@ export default function RootLayout({
           {children}
         </div>
         <Toaster />
-        <PushNotificationManager />
-        <Analytics />
+        <DeferredPushManager />
+        {process.env.NODE_ENV === 'production' ? <Analytics /> : null}
       </body>
     </html>
   )

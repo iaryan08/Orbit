@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { sendPushNotification } from '@/lib/push-server';
 import { NextResponse } from 'next/server';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 export async function POST() {
     try {

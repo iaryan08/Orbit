@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar, Heart, MapPin, Sparkles, Flame } from "lucide-react"
@@ -99,12 +99,19 @@ const CATEGORY_CONFIG: Record<string, { label: string, emoji: string, color: str
         gradient: "from-pink-900/40 to-black/60",
         text: "Truth spoken from the heart"
     },
+    confession: {
+        label: "Confession",
+        emoji: "💌",
+        color: "text-pink-300",
+        gradient: "from-pink-900/40 to-black/60",
+        text: "Truth spoken from the heart"
+    },
     first_promise: {
         label: "First Promise",
         emoji: "🤞",
         color: "text-cyan-300",
         gradient: "from-cyan-900/40 to-black/60",
-        text: "A vow kep, a bond strengthened"
+        text: "A vow kept, a bond strengthened"
     },
     first_night_together: {
         label: "First Night Apart",
@@ -303,7 +310,7 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
                                                     currentItem.isOwnDate ? "You received this surprise" : `You surprised ${partnerName}`
                                                 )}
                                                 {currentItem.category === 'first_memory' && (
-                                                    currentItem.isOwnDate ? "✨ Your special memory" : `✨ ${partnerName}'s special memory`
+                                                    currentItem.isOwnDate ? "âœ¨ Your special memory" : `âœ¨ ${partnerName}'s special memory`
                                                 )}
                                             </p>
                                         )}
@@ -316,7 +323,7 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
                                     </div>
 
                                     <div className="pointer-events-auto">
-                                        <LinkButton href="/dashboard/intimacy" label="Relive This Memory" />
+                                        <LinkButton href="/intimacy" label="Relive This Memory" />
                                     </div>
                                 </div>
                             </div>
@@ -364,3 +371,4 @@ function LinkButton({ href, label }: { href: string, label: string }) {
         </a>
     )
 }
+

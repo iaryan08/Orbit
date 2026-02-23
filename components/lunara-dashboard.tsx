@@ -14,7 +14,7 @@ const LunaraOnboarding = dynamic(() => import('./lunara-onboarding').then(m => m
 })
 import { createClient } from '@/lib/supabase/client'
 import { saveLunaraOnboarding, toggleLunaraSharing, logPeriodStart, logSymptoms } from '@/lib/actions/auth'
-import { fetchDashboardData } from '@/lib/actions/consolidated'
+import { getDashboardData } from '@/lib/actions/consolidated'
 import { getTodayIST } from '@/lib/utils'
 import { Loader2, Share2, Shield, UserCheck, Flame } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'

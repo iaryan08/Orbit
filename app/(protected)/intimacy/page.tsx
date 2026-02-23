@@ -22,9 +22,7 @@ import {
     Sparkles,
     BedDouble
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { MilestoneCard } from "@/components/intimacy/milestone-card";
 import { logIntimacyMilestone } from "@/lib/actions/intimacy";
 
@@ -151,27 +149,46 @@ export default function IntimacyPage() {
 
     const init = async () => {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) {
+            setLoading(false);
+            return;
+        }
         setUser(user);
 
         const { data: profile } = await supabase.from("profiles").select("couple_id").eq("id", user.id).single();
-        if (profile?.couple_id) {
-            setCoupleId(profile.couple_id);
-            const { data: couple } = await supabase.from("couples").select("*").eq("id", profile.couple_id).single();
-            if (couple) {
-                setUser1Id(couple.user1_id);
-                // Fetch partner profile
-                const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id;
-                if (partnerId) {
-                    const { data: partnerProfile } = await supabase.from("profiles").select("display_name").eq("id", partnerId).single();
-                    if (partnerProfile) {
-                        setPartner(partnerProfile);
-                    }
+        if (!profile?.couple_id) {
+            setLoading(false);
+            return;
+        }
+
+        const cid = profile.couple_id;
+        setCoupleId(cid);
+
+        const [{ data: couple }, { data: milestoneData }] = await Promise.all([
+            supabase.from("couples").select("*").eq("id", cid).single(),
+            supabase.from("milestones").select("*").eq("couple_id", cid)
+        ]);
+
+        if (couple) {
+            setUser1Id(couple.user1_id);
+            const partnerId = couple.user1_id === user.id ? couple.user2_id : couple.user1_id;
+            if (partnerId) {
+                const { data: partnerProfile } = await supabase.from("profiles").select("display_name").eq("id", partnerId).single();
+                if (partnerProfile) {
+                    setPartner(partnerProfile);
                 }
             }
-            await fetchMilestones(profile.couple_id);
-            subscribe(profile.couple_id);
         }
+
+        if (milestoneData) {
+            const map: Record<string, any> = {};
+            milestoneData.forEach((m: any) => {
+                map[m.category] = m;
+            });
+            setMilestones(map);
+        }
+
+        subscribe(cid);
         setLoading(false);
     };
 
@@ -187,7 +204,7 @@ export default function IntimacyPage() {
     const subscribe = (cid: string) => {
         supabase.channel("milestones-realtime")
             .on("postgres_changes", { event: "*", schema: "public", table: "milestones", filter: `couple_id=eq.${cid}` },
-                (payload) => {
+                (_payload: any) => {
                     fetchMilestones(cid);
                 })
             .subscribe();
@@ -217,11 +234,6 @@ export default function IntimacyPage() {
         }
     };
 
-    const { scrollY } = useScroll();
-    const opacity = useTransform(scrollY, [0, 50], [1, 0]);
-
-    if (loading) return <div className="p-10 text-center text-rose-200">Loading intimacy mode...</div>;
-
     return (
         <div className="container mx-auto px-4 py-8 max-w-4xl space-y-8 pb-20 pt-24">
             <div className="flex items-center justify-start gap-3 z-10">
@@ -235,25 +247,29 @@ export default function IntimacyPage() {
             </div>
 
             <div className="grid gap-6">
-                {questions.map((q) => (
-                    <MilestoneCard
-                        key={q.id}
-                        id={q.id}
-                        label={q.label}
-                        question={q.q.replace("{{partner}}", partner?.display_name || "your partner")}
-                        partnerName={partner?.display_name || "Partner"}
-                        icon={q.icon}
-                        image={q.image}
-                        milestone={milestones[q.id]}
-                        myContentField={myContentField}
-                        partnerContentField={partnerContentField}
-                        myDateField={myDateField}
-                        partnerDateField={partnerDateField}
-                        isOpen={activeQuestion === q.id}
-                        onToggle={() => setActiveQuestion(activeQuestion === q.id ? null : q.id)}
-                        onSave={handleSave}
-                    />
-                ))}
+                {loading
+                    ? questions.slice(0, 4).map((q) => (
+                        <div key={q.id} className="h-44 rounded-2xl border border-white/10 bg-white/5 animate-pulse" />
+                    ))
+                    : questions.map((q) => (
+                        <MilestoneCard
+                            key={q.id}
+                            id={q.id}
+                            label={q.label}
+                            question={q.q.replace("{{partner}}", partner?.display_name || "your partner")}
+                            partnerName={partner?.display_name || "Partner"}
+                            icon={q.icon}
+                            image={q.image}
+                            milestone={milestones[q.id]}
+                            myContentField={myContentField}
+                            partnerContentField={partnerContentField}
+                            myDateField={myDateField}
+                            partnerDateField={partnerDateField}
+                            isOpen={activeQuestion === q.id}
+                            onToggle={() => setActiveQuestion(activeQuestion === q.id ? null : q.id)}
+                            onSave={handleSave}
+                        />
+                    ))}
             </div>
         </div>
     );

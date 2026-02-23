@@ -3,16 +3,25 @@
 import { createClient } from '@/lib/supabase/server'
 import { getTodayIST } from '@/lib/utils'
 
-// Standalone fetchers for reliability
-export async function fetchCoreDashboardData() {
+/**
+ * CONSOLIDATED DATA FETCHERS v2
+ * High-performance, streaming-compatible server actions for the Orbit Dashboard.
+ */
+
+export async function getDashboardData() {
+    return await getCoreDashboardData()
+}
+
+export async function getCoreDashboardData() {
     try {
+        console.log('[Orbit-Dashboard] Fetching core data (v2.1)...')
         const supabase = await createClient()
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return { error: 'Not authenticated' }
 
         const selectFields = 'id, partner_id, couple_id, gender, display_name, avatar_url, city, timezone, latitude, longitude, location_source, updated_at'
 
-        // 1. Fetch Profile
+        // 1. Fetch authenticated user's profile
         const { data: profile, error: pError } = await supabase
             .from('profiles')
             .select(selectFields)
@@ -20,16 +29,29 @@ export async function fetchCoreDashboardData() {
             .single()
 
         if (pError || !profile) {
-            console.error('[fetchCoreDashboardData] Profile error:', pError)
+            console.error('[getCoreDashboardData] User profile error:', pError)
             return { error: 'Profile not found' }
         }
 
         let partnerId = profile.partner_id
         const coupleId = profile.couple_id
 
+        // 2. Partner Discovery Logic (Crucial for image/data loading)
+        if (!partnerId && coupleId) {
+            const { data: coupleData } = await supabase
+                .from('couples')
+                .select('user1_id, user2_id')
+                .eq('id', coupleId)
+                .single()
+
+            if (coupleData) {
+                partnerId = (coupleData.user1_id === user.id) ? coupleData.user2_id : coupleData.user1_id
+            }
+        }
+
         const rolling24hStart = new Date(Date.now() - 24 * 60 * 60 * 1000)
 
-        // Parallel Fetch for all dashboard content
+        // 3. Parallel fetching of all related dashboard data
         const [pProfileRes, coupleRes, pMoodsRes, uMoodsRes, countsRes, userCycleRes, partnerCycleRes, cycleLogsRes, supportLogsRes] = await Promise.all([
             partnerId ? supabase.from('profiles').select(selectFields).eq('id', partnerId).single() : Promise.resolve({ data: null, error: null }),
             coupleId ? supabase.from('couples').select('id, user1_id, user2_id, anniversary_date, paired_at, couple_code').eq('id', coupleId).single() : Promise.resolve({ data: null, error: null }),
@@ -39,7 +61,6 @@ export async function fetchCoreDashboardData() {
                 supabase.from('memories').select('*', { count: 'exact', head: true }).eq('couple_id', coupleId),
                 supabase.from('love_letters').select('*', { count: 'exact', head: true }).eq('couple_id', coupleId)
             ]) : Promise.resolve([{ count: 0 }, { count: 0 }]),
-            // Lunara Data (Resilient queries - select * to handle date vs log_date variations)
             supabase.from('cycle_profiles').select('*').eq('user_id', user.id).maybeSingle(),
             partnerId ? supabase.from('cycle_profiles').select('*').eq('user_id', partnerId).maybeSingle() : Promise.resolve({ data: null, error: null }),
             coupleId ? supabase.from('cycle_logs').select('*').eq('couple_id', coupleId).limit(30) : Promise.resolve({ data: [], error: null }),
@@ -49,15 +70,14 @@ export async function fetchCoreDashboardData() {
         const memoriesCount = (countsRes as any)[0]?.count || 0
         const lettersCount = (countsRes as any)[1]?.count || 0
 
-        // Handle field name variations in logs (log_date vs date)
         const normalizedCycleLogs = (cycleLogsRes?.data || []).map((l: any) => ({
             ...l,
-            log_date: l.log_date || l.date // fallback
+            log_date: l.log_date || l.date || l.created_at
         })).sort((a: any, b: any) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime())
 
         const normalizedSupportLogs = (supportLogsRes?.data || []).map((l: any) => ({
             ...l,
-            log_date: l.log_date || l.date // fallback
+            log_date: l.log_date || l.date || l.created_at
         })).sort((a: any, b: any) => new Date(b.log_date).getTime() - new Date(a.log_date).getTime())
 
         return {
@@ -78,7 +98,7 @@ export async function fetchCoreDashboardData() {
             }
         }
     } catch (e: any) {
-        console.error('[fetchCoreDashboardData] critical error:', e)
+        console.error('[getCoreDashboardData] Critical Exception:', e)
         return { error: e.message }
     }
 }
@@ -86,7 +106,6 @@ export async function fetchCoreDashboardData() {
 export async function fetchBucketListData(coupleId: string) {
     try {
         const supabase = await createClient()
-        // select(*) to be schema-agnostic during migration shifts
         const { data, error } = await supabase
             .from('bucket_list')
             .select('*')
@@ -97,13 +116,12 @@ export async function fetchBucketListData(coupleId: string) {
             return []
         }
 
-        // Resilient mapping for is_done / is_completed variations
         return (data || []).map((item: any) => ({
             ...item,
             is_completed: item.is_completed ?? item.is_done ?? false
         })).sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     } catch (e) {
-        console.error('[fetchBucketListData] internal error:', e)
+        console.error('[fetchBucketListData] Exception:', e)
         return []
     }
 }
@@ -111,9 +129,10 @@ export async function fetchBucketListData(coupleId: string) {
 export async function fetchOnThisDayData(coupleId: string) {
     try {
         const supabase = await createClient()
-        const istDate = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }))
-        const month = istDate.getMonth() + 1
-        const day = istDate.getDate()
+        const todayIST = getTodayIST() // YYYY-MM-DD
+        const [y, m, d] = todayIST.split('-').map(Number)
+        const month = m
+        const day = d
 
         const [memoriesRes, milestonesRes] = await Promise.all([
             supabase.rpc('get_on_this_day_memories', {
@@ -128,17 +147,79 @@ export async function fetchOnThisDayData(coupleId: string) {
             })
         ])
 
+        const rpcMemories = memoriesRes.data || []
+        const rpcMilestones = milestonesRes.data || []
+        if (rpcMemories.length > 0 || rpcMilestones.length > 0) {
+            return {
+                memories: rpcMemories,
+                milestones: rpcMilestones
+            }
+        }
+
+        // Fallback path: handle schema/date variations when RPC returns empty.
+        const [memoryFallbackRes, milestoneFallbackRes] = await Promise.all([
+            supabase
+                .from('memories')
+                .select('id, title, description, image_urls, location, memory_date, created_at')
+                .eq('couple_id', coupleId),
+            supabase
+                .from('milestones')
+                .select('id, couple_id, category, milestone_date, date_user1, date_user2, content_user1, content_user2, created_at')
+                .eq('couple_id', coupleId)
+        ])
+
+        const normalizeDate = (v: any) => {
+            if (!v) return null
+            const s = String(v)
+            const iso = s.includes('T') ? s : `${s}T12:00:00`
+            const dt = new Date(iso)
+            if (Number.isNaN(dt.getTime())) return null
+            return dt
+        }
+
+        const sameMonthDay = (dt: Date | null) => !!dt && (dt.getMonth() + 1) === month && dt.getDate() === day
+
+        const fallbackMemories = (memoryFallbackRes.data || [])
+            .filter((row: any) => sameMonthDay(normalizeDate(row.memory_date || row.created_at)))
+
+        const fallbackMilestonesRaw = (milestoneFallbackRes.data || [])
+        const fallbackMilestones: any[] = []
+
+        for (const row of fallbackMilestonesRaw) {
+            const primaryDate = normalizeDate(row.milestone_date)
+            if (sameMonthDay(primaryDate)) {
+                fallbackMilestones.push({
+                    ...row,
+                    milestone_date: row.milestone_date || row.created_at
+                })
+                continue
+            }
+
+            const date1 = normalizeDate(row.date_user1)
+            if (sameMonthDay(date1)) {
+                fallbackMilestones.push({
+                    ...row,
+                    milestone_date: row.date_user1,
+                    isOwnDate: true
+                })
+            }
+
+            const date2 = normalizeDate(row.date_user2)
+            if (sameMonthDay(date2)) {
+                fallbackMilestones.push({
+                    ...row,
+                    milestone_date: row.date_user2,
+                    isOwnDate: false
+                })
+            }
+        }
+
         return {
-            memories: memoriesRes.data || [],
-            milestones: milestonesRes.data || []
+            memories: fallbackMemories,
+            milestones: fallbackMilestones
         }
     } catch (e) {
-        console.error('[fetchOnThisDayData] error:', e)
+        console.error('[fetchOnThisDayData] Exception:', e)
         return { memories: [], milestones: [] }
     }
-}
-
-// Main entry point - Now plain and reliable (No unstable_cache for now to clear blockers)
-export async function fetchDashboardData() {
-    return await fetchCoreDashboardData()
 }

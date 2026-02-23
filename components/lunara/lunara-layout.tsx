@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sparkles, LayoutDashboard, Heart, BookOpen } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { fetchDashboardData } from '@/lib/actions/consolidated'
+import { getDashboardData } from '@/lib/actions/consolidated'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -28,7 +28,7 @@ export function LunaraLayout({ initialData }: { initialData?: any }) {
         const loadData = async () => {
             // Only fetch if we don't have initial data or we want to force refresh
             if (!initialData || !data) {
-                const result = await fetchDashboardData()
+                const result = await getDashboardData()
                 if (result.success && result.data) {
                     setData(result.data)
                     setLoading(false)
