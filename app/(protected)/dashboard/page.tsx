@@ -63,9 +63,9 @@ async function AsyncDashboardContent() {
 
     return (
         <DashboardShell lunaraData={result.data}>
-            <div className="max-w-7xl mx-auto space-y-12 pt-24 pb-12 px-6 md:px-8">
+            <div className="max-w-7xl mx-auto space-y-6 md:space-y-12 pt-16 md:pt-24 pb-12 px-6 md:px-8">
                 {/* Refined Welcome Header */}
-                <ScrollReveal className="space-y-4 text-center lg:text-left">
+                <ScrollReveal className="space-y-2 md:space-y-4 text-center lg:text-left">
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-amber-200/90 text-[10px] uppercase tracking-[0.3em] font-bold backdrop-blur-md text-glow-gold">
                         <Sparkles className="w-3 h-3 text-amber-400/80" />
                         Moonbetweenus
