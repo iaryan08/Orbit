@@ -21,6 +21,7 @@ import { PartnerAvatarHeartbeat } from '@/components/partner-avatar-heartbeat'
 import { DashboardHeroEnhancements } from '@/components/dashboard-hero-enhancements'
 import { MoodCheckIn } from '@/components/mood-check-in'
 import { PartnerMood } from '@/components/partner-mood'
+import { PartnerNamePresence } from '@/components/partner-name-presence'
 
 export default async function DashboardPage() {
     return <AsyncDashboardContent />
@@ -81,18 +82,12 @@ async function AsyncDashboardContent() {
                             coupleId={coupleId || ""}
                         />
                         <div className="flex flex-col items-center md:items-start justify-center">
-                            <p className="text-rose-100/60 text-[10px] md:text-[12px] tracking-[0.1em] font-medium whitespace-nowrap">
-                                {hasPartner ? (
-                                    <>
-                                        <span className="font-serif italic mr-1 text-[11px] md:text-[13px]">Connected with</span>
-                                        <span className="font-pinyon text-[18px] md:text-[24px] text-rose-300/90 lowercase leading-none">
-                                            {partnerProfile?.display_name}
-                                        </span>
-                                    </>
-                                ) : (
-                                    "Waiting for partner"
-                                )}
-                            </p>
+                            <PartnerNamePresence
+                                hasPartner={hasPartner}
+                                partnerProfile={partnerProfile}
+                                coupleId={coupleId}
+                                userId={profile?.id}
+                            />
                         </div>
                     </div>
                     <DashboardHeroEnhancements

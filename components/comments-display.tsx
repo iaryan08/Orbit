@@ -210,7 +210,6 @@ export function CommentsDisplay({
                                         {editingId === comment.id ? (
                                             <div className="flex flex-col gap-2 w-full mt-1">
                                                 <textarea
-                                                    autoFocus
                                                     value={editContent}
                                                     onChange={(e) => setEditContent(e.target.value)}
                                                     onKeyDown={(e) => {

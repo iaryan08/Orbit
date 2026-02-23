@@ -84,6 +84,32 @@ interface UseCoupleChannelOptions {
     onPresenceChange?: PresenceHandler
 }
 
+let visibilityHandlerAdded = false
+
+function setupVisibilityHandler() {
+    if (typeof document === 'undefined' || visibilityHandlerAdded) return
+    visibilityHandlerAdded = true
+
+    document.addEventListener('visibilitychange', () => {
+        const supabase = createClient()
+        if (document.hidden) {
+            for (const entry of registry.values()) {
+                supabase.removeChannel(entry.channel)
+                // Instantly mark offline for local UI when tab is hidden
+                entry.presenceHandlers.forEach(h => h([]))
+            }
+        } else {
+            for (const [coupleId, entry] of registry.entries()) {
+                const fresh = createEntry(coupleId, entry.userId)
+                fresh.refCount = entry.refCount
+                fresh.vibrateHandlers = entry.vibrateHandlers
+                fresh.presenceHandlers = entry.presenceHandlers
+                registry.set(coupleId, fresh)
+            }
+        }
+    })
+}
+
 export function useCoupleChannel({ coupleId, userId, onVibrate, onPresenceChange }: UseCoupleChannelOptions) {
     const onVibrateRef = useRef(onVibrate)
     const onPresenceRef = useRef(onPresenceChange)
@@ -103,6 +129,7 @@ export function useCoupleChannel({ coupleId, userId, onVibrate, onPresenceChange
 
     useEffect(() => {
         if (!coupleId || !userId) return
+        setupVisibilityHandler()
 
         // ── Acquire shared channel ────────────────────────────────────
         let entry = registry.get(coupleId)
@@ -115,28 +142,9 @@ export function useCoupleChannel({ coupleId, userId, onVibrate, onPresenceChange
         if (onVibrate) entry.vibrateHandlers.add(stableVibrate.current)
         if (onPresenceChange) entry.presenceHandlers.add(stablePresence.current)
 
-        // ── Pause / resume on visibility change ───────────────────────
         const supabase = createClient()
 
-        const handleVisibility = () => {
-            const e = registry.get(coupleId)
-            if (!e) return
-            if (document.hidden) {
-                supabase.removeChannel(e.channel)
-            } else {
-                // Recreate & reuse entry (replace channel object)
-                const fresh = createEntry(coupleId, userId)
-                fresh.refCount = e.refCount
-                fresh.vibrateHandlers = e.vibrateHandlers
-                fresh.presenceHandlers = e.presenceHandlers
-                registry.set(coupleId, fresh)
-            }
-        }
-
-        document.addEventListener('visibilitychange', handleVisibility)
-
         return () => {
-            document.removeEventListener('visibilitychange', handleVisibility)
 
             const e = registry.get(coupleId)
             if (!e) return

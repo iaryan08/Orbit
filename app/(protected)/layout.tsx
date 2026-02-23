@@ -7,7 +7,7 @@ import { AmbientTopLoader } from '@/components/ambient-top-loader'
 import { DeferredLocationTracker } from '@/components/deferred-location-tracker'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { Suspense } from 'react'
-
+import { ConnectionSync } from '@/components/connection-sync'
 
 export default async function ProtectedLayout({
     children,
@@ -35,6 +35,7 @@ export default async function ProtectedLayout({
         <AppModeProvider initialProfile={profile} initialCoupleId={profile?.couple_id}>
             <AmbientTopLoader />
             <DeferredLocationTracker />
+            {profile?.couple_id && <ConnectionSync coupleId={profile.couple_id} userId={user.id} />}
             <div className="relative min-h-screen">
                 <Suspense fallback={<div className="h-20" />}>
                     <HeaderWrapper userId={user.id} email={email} />

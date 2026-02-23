@@ -2,7 +2,6 @@
 
 import { useAppMode } from './app-mode-context'
 import { LunaraLayout } from './lunara/lunara-layout'
-import { ConnectionSync } from './connection-sync'
 
 export function DashboardShell({ children, lunaraData }: { children: React.ReactNode, lunaraData?: any }) {
     const { mode } = useAppMode()
@@ -13,10 +12,6 @@ export function DashboardShell({ children, lunaraData }: { children: React.React
 
     return (
         <>
-            {/* ConnectionSync piggybacks on the shared couple channel — no extra WS */}
-            {userId && coupleId && (
-                <ConnectionSync coupleId={coupleId} userId={userId} />
-            )}
             {mode === 'lunara' ? <LunaraLayout initialData={lunaraData} /> : children}
         </>
     )

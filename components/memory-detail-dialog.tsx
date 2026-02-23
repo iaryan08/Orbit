@@ -300,7 +300,7 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
 
                         {memory.image_urls.length > 1 && (
                             <>
-                                <div className="absolute top-1/2 left-4 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                                <div className="hidden md:flex absolute top-1/2 left-4 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-50">
                                     <Button
                                         variant="ghost"
                                         size="icon"
@@ -310,7 +310,7 @@ export function MemoryDetailDialog({ memory, isOpen, onClose }: MemoryDetailDial
                                         <Heart className="h-4 w-4 -rotate-90 text-rose-300" />
                                     </Button>
                                 </div>
-                                <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-50">
+                                <div className="hidden md:flex absolute top-1/2 right-4 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity z-50">
                                     <Button
                                         variant="ghost"
                                         size="icon"

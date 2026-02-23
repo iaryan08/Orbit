@@ -32,113 +32,113 @@ const CATEGORY_CONFIG: Record<string, { label: string, emoji: string, color: str
     first_talk: {
         label: "First Talk",
         emoji: "💬",
-        color: "text-blue-300",
-        gradient: "from-blue-900/40 to-black/60",
+        color: "text-cyan-200",
+        gradient: "from-cyan-900/80 via-blue-900/50 to-black/80",
         text: "The moment words started our story"
     },
     first_hug: {
         label: "First Hug",
         emoji: "🫂",
-        color: "text-amber-300",
-        gradient: "from-amber-900/40 to-black/60",
+        color: "text-amber-200",
+        gradient: "from-orange-900/80 via-amber-900/50 to-black/80",
         text: "The warmth that felt like home"
     },
     first_kiss: {
         label: "First Kiss",
         emoji: "😘",
-        color: "text-rose-400",
-        gradient: "from-rose-900/40 to-black/60",
+        color: "text-rose-200",
+        gradient: "from-rose-900/80 via-pink-900/50 to-black/80",
         text: "A spark that set souls on fire"
     },
     first_french_kiss: {
         label: "First French Kiss",
         emoji: "💋",
-        color: "text-red-400",
-        gradient: "from-red-900/40 to-black/60",
+        color: "text-red-200",
+        gradient: "from-red-900/80 via-rose-900/50 to-black/80",
         text: "Passion ignited, drifting away"
     },
     first_sex: {
         label: "First Intimacy",
         emoji: "💞",
-        color: "text-purple-400",
-        gradient: "from-purple-900/40 to-black/60",
+        color: "text-fuchsia-200",
+        gradient: "from-fuchsia-900/80 via-purple-900/50 to-black/80",
         text: "Two bodies, one soul, infinite love"
     },
     first_oral: {
         label: "Deep Intimacy",
         emoji: "🌊",
-        color: "text-indigo-400",
-        gradient: "from-indigo-900/40 to-black/60",
+        color: "text-indigo-200",
+        gradient: "from-indigo-900/80 via-blue-900/50 to-black/80",
         text: "Exploring the depths of desire"
     },
     first_time_together: {
         label: "First Night Together",
         emoji: "🌙",
-        color: "text-slate-300",
-        gradient: "from-slate-900/40 to-black/60",
+        color: "text-amber-100",
+        gradient: "from-indigo-900/80 via-violet-900/50 to-black/80",
         text: "Waking up next to you was a dream"
     },
     first_surprise: {
         label: "First Surprise",
         emoji: "🎁",
-        color: "text-emerald-300",
-        gradient: "from-emerald-900/40 to-black/60",
+        color: "text-emerald-200",
+        gradient: "from-emerald-900/80 via-teal-900/50 to-black/80",
         text: "Unexpected joy, forever cherished"
     },
     first_memory: {
         label: "First Memory",
         emoji: "✨",
         color: "text-yellow-200",
-        gradient: "from-yellow-900/40 to-black/60",
+        gradient: "from-yellow-700/80 via-amber-900/50 to-black/80",
         text: "where it all began..."
     },
     first_confession: {
         label: "First Confession",
         emoji: "💌",
-        color: "text-pink-300",
-        gradient: "from-pink-900/40 to-black/60",
+        color: "text-pink-200",
+        gradient: "from-pink-900/80 via-rose-900/50 to-black/80",
         text: "Truth spoken from the heart"
     },
     confession: {
         label: "Confession",
         emoji: "💌",
-        color: "text-pink-300",
-        gradient: "from-pink-900/40 to-black/60",
+        color: "text-pink-200",
+        gradient: "from-pink-900/80 via-rose-900/50 to-black/80",
         text: "Truth spoken from the heart"
     },
     first_promise: {
         label: "First Promise",
         emoji: "🤞",
-        color: "text-cyan-300",
-        gradient: "from-cyan-900/40 to-black/60",
+        color: "text-cyan-200",
+        gradient: "from-cyan-900/80 via-teal-900/50 to-black/80",
         text: "A vow kept, a bond strengthened"
     },
     first_night_together: {
         label: "First Night Apart",
         emoji: "🛌",
-        color: "text-gray-400",
-        gradient: "from-gray-900/40 to-black/60",
+        color: "text-blue-200",
+        gradient: "from-slate-800/80 via-blue-950/50 to-black/80",
         text: "Missing you was the only feeling"
     },
     first_time_alone: {
         label: "First Time Alone",
         emoji: "🤫",
-        color: "text-violet-300",
-        gradient: "from-violet-900/40 to-black/60",
+        color: "text-violet-200",
+        gradient: "from-violet-900/80 via-purple-900/50 to-black/80",
         text: "Just us, against the world"
     },
     first_movie_date: {
         label: "First Movie Date",
         emoji: "🎬",
-        color: "text-orange-300",
-        gradient: "from-orange-900/40 to-black/60",
+        color: "text-orange-200",
+        gradient: "from-orange-900/80 via-red-900/50 to-black/80",
         text: "Cinema lights and holding hands"
     },
     first_intimate_moment: {
         label: "First Intimate Moment",
         emoji: "🌹",
-        color: "text-rose-300",
-        gradient: "from-rose-950/40 to-black/60",
+        color: "text-rose-200",
+        gradient: "from-rose-800/80 via-red-950/50 to-black/80",
         text: "Closer than ever before"
     }
 }
@@ -257,7 +257,7 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
                                 </div>
                             </div>
 
-                            <div className="absolute bottom-6 left-6 right-6 pointer-events-none">
+                            <div className="absolute bottom-6 left-14 right-14 pointer-events-none">
                                 <h3 className="text-xl font-bold text-white leading-tight drop-shadow-md">{currentItem.title}</h3>
                                 <div className="flex items-center gap-3 mt-1.5 text-[10px] uppercase tracking-[0.2em] font-bold text-white/70">
                                     <span>{currentItem.memory_date ? format(new Date(currentItem.memory_date + "T12:00:00"), "yyyy") : ""}</span>
@@ -277,20 +277,20 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
                         </div>
                     ) : (
                         // MILESTONE CARD VIEW
-                        <div className={`w-full h-full relative flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br ${config?.gradient}`}>
+                        <div className={`w-full h-full relative flex flex-col items-center justify-center px-14 py-8 text-center bg-gradient-to-br ${config?.gradient}`}>
                             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 pointer-events-none" />
 
-                            <div className="relative z-10 space-y-3 select-none mt-8">
-                                <div className={`w-14 h-14 rounded-full bg-white/5 flex items-center justify-center mx-auto border border-white/10 shadow-lg backdrop-blur-sm ${config?.color} text-2xl`}>
+                            <div className="relative z-10 space-y-3 select-none mt-4 max-w-[280px]">
+                                <div className={`w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto border border-white/10 shadow-lg backdrop-blur-sm ${config?.color} text-xl`}>
                                     {config?.emoji}
                                 </div>
 
-                                <div className="space-y-1">
-                                    <h3 className={`text-2xl md:text-3xl font-serif font-bold text-white leading-tight ${config?.color} drop-shadow-sm`}>
+                                <div className="space-y-1.5 pt-1">
+                                    <h3 className={`text-xl md:text-2xl font-serif font-bold text-white leading-tight ${config?.color} drop-shadow-sm`}>
                                         {config?.label}
                                     </h3>
-                                    <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest">
+                                    <p className="text-white/60 text-[9px] font-bold uppercase tracking-[0.2em] leading-relaxed">
                                         {config?.text}
                                     </p>
                                     {/* Personalized date context for dual-date milestones */}
@@ -325,7 +325,7 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
             </AnimatePresence>
 
             {/* Static Header Layered Over Content */}
-            <CardHeader className="relative z-20 pb-2 pt-5 px-5 pointer-events-none">
+            <CardHeader className="absolute top-0 left-0 right-0 z-20 pb-2 pt-3 md:pt-5 px-5 pointer-events-none border-none">
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-xl font-serif text-white flex items-center gap-2 drop-shadow-lg">
                         <Calendar className="h-5 w-5 text-amber-200" />
@@ -340,7 +340,7 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
             {/* Navigation Buttons Layered Over */}
             {items.length > 1 && (
                 <>
-                    <div className="absolute top-1/2 left-3 -translate-y-1/2 z-20">
+                    <div className="hidden md:flex absolute top-1/2 left-3 -translate-y-1/2 z-20">
                         <button
                             onClick={prevItem}
                             className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center text-white/50 hover:text-white hover:bg-black/60 transition-[color,background-color] cursor-pointer border border-white/10 shadow-lg"
@@ -348,7 +348,7 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
                             <Heart className="h-4 w-4 -rotate-90" />
                         </button>
                     </div>
-                    <div className="absolute top-1/2 right-3 -translate-y-1/2 z-20">
+                    <div className="hidden md:flex absolute top-1/2 right-3 -translate-y-1/2 z-20">
                         <button
                             onClick={nextItem}
                             className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center text-white/50 hover:text-white hover:bg-black/60 transition-[color,background-color] cursor-pointer border border-white/10 shadow-lg"

@@ -51,6 +51,7 @@ export function NotificationBell({ className }: { className?: string }) {
     const [announcementModalOpen, setAnnouncementModalOpen] = useState(false)
     const [selectedAnnouncement, setSelectedAnnouncement] = useState<Notification | null>(null)
     const [permissionsDialogOpen, setPermissionsDialogOpen] = useState(false)
+    const [hasPromptedInitial, setHasPromptedInitial] = useState(false)
     const router = useRouter()
     const supabase = createClient()
     const COUNT_CACHE_KEY = 'orbit:notification_unread_count'
@@ -141,19 +142,15 @@ export function NotificationBell({ className }: { className?: string }) {
     }
 
     useEffect(() => {
-        if (!checkingPush) {
-            const needsPrompt = (isPushSupported && permission === 'default') || locationPermission === 'prompt';
+        if (!checkingPush && !hasPromptedInitial) {
+            const needsPrompt = (isPushSupported && permission !== 'granted') || locationPermission !== 'granted';
 
             if (needsPrompt && !isIncognito) {
-                const hasPrompted = sessionStorage.getItem('orbit_permissions_prompted');
-                // Only prompt automatically once per session
-                if (!hasPrompted) {
-                    setPermissionsDialogOpen(true);
-                    sessionStorage.setItem('orbit_permissions_prompted', 'true');
-                }
+                setPermissionsDialogOpen(true);
             }
+            setHasPromptedInitial(true);
         }
-    }, [checkingPush, permission, locationPermission, isPushSupported, isIncognito])
+    }, [checkingPush, permission, locationPermission, isPushSupported, isIncognito, hasPromptedInitial])
 
     const handleAllowPermissions = async () => {
         if (isPushSupported && permission === 'default') {
@@ -494,21 +491,29 @@ export function NotificationBell({ className }: { className?: string }) {
                     </DialogHeader>
 
                     <div className="flex flex-col gap-3 py-4">
-                        {locationPermission === 'prompt' && (
-                            <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10">
-                                <MapPin className="text-amber-400 w-5 h-5 shrink-0" />
+                        {locationPermission !== 'granted' && (
+                            <div className={cn("flex items-center gap-3 p-3 rounded-xl border transition-colors", locationPermission === 'denied' ? "bg-red-500/10 border-red-500/30" : "bg-white/5 border-white/10")}>
+                                {locationPermission === 'denied' ? <X className="text-red-400 w-5 h-5 shrink-0" /> : <MapPin className="text-amber-400 w-5 h-5 shrink-0" />}
                                 <div className="flex flex-col">
-                                    <span className="text-sm font-medium">Location Tracking</span>
-                                    <span className="text-[10px] text-white/50">To show distance between you two</span>
+                                    <span className={cn("text-sm font-medium", locationPermission === 'denied' ? "text-red-100" : "")}>
+                                        {locationPermission === 'denied' ? 'Location Blocked' : 'Location Tracking'}
+                                    </span>
+                                    <span className={cn("text-[10px]", locationPermission === 'denied' ? "text-red-200/60" : "text-white/50")}>
+                                        {locationPermission === 'denied' ? 'Please enable location in your browser settings' : 'To show distance between you two'}
+                                    </span>
                                 </div>
                             </div>
                         )}
-                        {isPushSupported && permission === 'default' && (
-                            <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10">
-                                <Bell className="text-amber-400 w-5 h-5 shrink-0" />
+                        {isPushSupported && permission !== 'granted' && (
+                            <div className={cn("flex items-center gap-3 p-3 rounded-xl border transition-colors", permission === 'denied' ? "bg-red-500/10 border-red-500/30" : "bg-white/5 border-white/10")}>
+                                {permission === 'denied' ? <BellOff className="text-red-400 w-5 h-5 shrink-0" /> : <Bell className="text-amber-400 w-5 h-5 shrink-0" />}
                                 <div className="flex flex-col">
-                                    <span className="text-sm font-medium">Push Notifications</span>
-                                    <span className="text-[10px] text-white/50">To get instantly notified of new messages</span>
+                                    <span className={cn("text-sm font-medium", permission === 'denied' ? "text-red-100" : "")}>
+                                        {permission === 'denied' ? 'Notifications Blocked' : 'Push Notifications'}
+                                    </span>
+                                    <span className={cn("text-[10px]", permission === 'denied' ? "text-red-200/60" : "text-white/50")}>
+                                        {permission === 'denied' ? 'Please allow notifications in your browser settings' : 'To get instantly notified of new messages'}
+                                    </span>
                                 </div>
                             </div>
                         )}
