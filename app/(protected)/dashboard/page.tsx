@@ -5,20 +5,22 @@ import { deletePolaroid } from '@/lib/actions/polaroids'
 import { saveDoodle } from '@/lib/actions/doodles'
 import { DashboardShell } from '@/components/dashboard-shell'
 import { ScrollReveal } from '@/components/scroll-reveal'
-import { MoodCheckIn } from '@/components/mood-check-in'
-import { PartnerMood } from '@/components/partner-mood'
-import { DashboardHeroEnhancements } from '@/components/dashboard-hero-enhancements'
-import { PartnerAvatarHeartbeat } from '@/components/partner-avatar-heartbeat'
+import { Suspense } from 'react'
 import {
     CoupleMomentsWrapper,
     DailyContentWrapper,
     DashboardSkeleton
 } from '@/components/dashboard-wrappers'
-import { Suspense } from 'react'
-import { StackedPolaroids } from '@/components/stacked-polaroids'
-import { SharedDoodle } from '@/components/shared-doodle'
-import { DistanceTimeWidget } from '@/components/distance-time-widget'
 import { Sparkles, Flame, Heart, Image as ImageIcon, PenLine } from 'lucide-react'
+import {
+    StackedPolaroids,
+    SharedDoodle,
+    DistanceTimeWidget,
+} from '@/components/lazy-widgets'
+import { PartnerAvatarHeartbeat } from '@/components/partner-avatar-heartbeat'
+import { DashboardHeroEnhancements } from '@/components/dashboard-hero-enhancements'
+import { MoodCheckIn } from '@/components/mood-check-in'
+import { PartnerMood } from '@/components/partner-mood'
 
 export default async function DashboardPage() {
     return <AsyncDashboardContent />

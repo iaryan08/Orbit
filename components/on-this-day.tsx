@@ -212,147 +212,152 @@ export function OnThisDay({ memories, milestones, partnerName = "Partner" }: { m
     }
 
     return (
-        <Card className="glass-card canvas-card-border overflow-hidden h-full group relative">
-            <CardHeader className="pb-2 relative z-10">
+        <Card className="glass-card overflow-hidden h-[380px] relative group border-white/5 shadow-2xl">
+            {/* Sliding Layer */}
+            <AnimatePresence initial={false} custom={direction}>
+                <motion.div
+                    key={currentItem.id}
+                    custom={direction}
+                    variants={variants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    drag="x"
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.2}
+                    onDragStart={() => { isDraggingRef.current = true }}
+                    onDragEnd={(e, { offset, velocity }) => {
+                        setTimeout(() => { isDraggingRef.current = false }, 150)
+                        const swipe = offset.x
+                        if (swipe < -50) nextItem()
+                        else if (swipe > 50) prevItem()
+                    }}
+                    className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing"
+                >
+                    {currentItem.type === 'memory' ? (
+                        // MEMORY CARD VIEW
+                        <div
+                            className="w-full h-full relative cursor-pointer group/item pointer-events-auto"
+                            onClick={handleItemClick}
+                        >
+                            <Image
+                                src={currentItem.image_urls[0] || "/placeholder.svg"}
+                                alt={currentItem.title}
+                                fill
+                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                className="object-cover transition-transform duration-700 group-hover/item:scale-110"
+                                draggable={false}
+                            />
+                            {/* Gradients to ensure text readability */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-black/60 group-hover/item:bg-black/60 transition-[background-color] duration-500" />
+
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/item:opacity-100 transition-opacity">
+                                <div className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-bold uppercase tracking-widest">
+                                    View Story
+                                </div>
+                            </div>
+
+                            <div className="absolute bottom-6 left-6 right-6 pointer-events-none">
+                                <h3 className="text-xl font-bold text-white leading-tight drop-shadow-md">{currentItem.title}</h3>
+                                <div className="flex items-center gap-3 mt-1.5 text-[10px] uppercase tracking-[0.2em] font-bold text-white/70">
+                                    <span>{currentItem.memory_date ? format(new Date(currentItem.memory_date + "T12:00:00"), "yyyy") : ""}</span>
+                                    {currentItem.location && (
+                                        <span className="flex items-center gap-1 text-white/50">
+                                            <MapPin className="h-3 w-3" />
+                                            {currentItem.location}
+                                        </span>
+                                    )}
+                                </div>
+                                {currentItem.description && (
+                                    <p className="text-xs text-white/80 mt-2.5 line-clamp-2 italic drop-shadow-sm">
+                                        "{currentItem.description}"
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    ) : (
+                        // MILESTONE CARD VIEW
+                        <div className={`w-full h-full relative flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br ${config?.gradient}`}>
+                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 pointer-events-none" />
+
+                            <div className="relative z-10 space-y-3 select-none mt-8">
+                                <div className={`w-14 h-14 rounded-full bg-white/5 flex items-center justify-center mx-auto border border-white/10 shadow-lg backdrop-blur-sm ${config?.color} text-2xl`}>
+                                    {config?.emoji}
+                                </div>
+
+                                <div className="space-y-1">
+                                    <h3 className={`text-2xl md:text-3xl font-serif font-bold text-white leading-tight ${config?.color} drop-shadow-sm`}>
+                                        {config?.label}
+                                    </h3>
+                                    <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest">
+                                        {config?.text}
+                                    </p>
+                                    {/* Personalized date context for dual-date milestones */}
+                                    {currentItem.isOwnDate !== undefined && (
+                                        <p className="text-xs text-amber-200/80 font-medium mt-2">
+                                            {currentItem.category === 'first_kiss' && (
+                                                currentItem.isOwnDate ? `You kissed ${partnerName}` : `${partnerName} kissed you`
+                                            )}
+                                            {currentItem.category === 'first_surprise' && (
+                                                currentItem.isOwnDate ? "You received this surprise" : `You surprised ${partnerName}`
+                                            )}
+                                            {currentItem.category === 'first_memory' && (
+                                                currentItem.isOwnDate ? "✨ Your special memory" : `✨ ${partnerName}'s special memory`
+                                            )}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="pt-2 flex flex-col items-center gap-2">
+                                    <span className="px-3 py-1 rounded-full bg-black/40 border border-white/10 text-[10px] uppercase font-bold text-amber-200/90 tracking-widest backdrop-blur-md">
+                                        {format(new Date(currentItem.milestone_date + "T12:00:00"), "MMMM do, yyyy")}
+                                    </span>
+                                </div>
+
+                                <div className="pointer-events-auto pt-2">
+                                    <LinkButton href="/intimacy" label="Relive This Memory" />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </motion.div>
+            </AnimatePresence>
+
+            {/* Static Header Layered Over Content */}
+            <CardHeader className="relative z-20 pb-2 pt-5 px-5 pointer-events-none">
                 <div className="flex items-center justify-between">
-                    <CardTitle className="text-xl font-serif text-white flex items-center gap-2">
+                    <CardTitle className="text-xl font-serif text-white flex items-center gap-2 drop-shadow-lg">
                         <Calendar className="h-5 w-5 text-amber-200" />
                         On This Day
                     </CardTitle>
-                    <div className="px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-[10px] uppercase tracking-widest text-primary font-bold">
+                    <div className="px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-[10px] uppercase tracking-widest text-white font-bold shadow-xl">
                         {currentIndex + 1} / {items.length}
                     </div>
                 </div>
             </CardHeader>
-            <CardContent className="space-y-4 p-0 h-[300px] flex flex-col relative overflow-hidden">
-                <AnimatePresence initial={false} custom={direction}>
-                    <motion.div
-                        key={currentItem.id}
-                        custom={direction}
-                        variants={variants}
-                        initial="enter"
-                        animate="center"
-                        exit="exit"
-                        drag="x"
-                        dragConstraints={{ left: 0, right: 0 }}
-                        dragElastic={0.2}
-                        onDragStart={() => { isDraggingRef.current = true }}
-                        onDragEnd={(e, { offset, velocity }) => {
-                            setTimeout(() => { isDraggingRef.current = false }, 150)
-                            const swipe = offset.x
-                            if (swipe < -50) nextItem()
-                            else if (swipe > 50) prevItem()
-                        }}
-                        className="w-full h-full absolute inset-0 cursor-grab active:cursor-grabbing"
-                    >
-                        {currentItem.type === 'memory' ? (
-                            // MEMORY CARD VIEW
-                            <div
-                                className="w-full h-full relative cursor-pointer group/item pointer-events-auto"
-                                onClick={handleItemClick}
-                            >
-                                <Image
-                                    src={currentItem.image_urls[0] || "/placeholder.svg"}
-                                    alt={currentItem.title}
-                                    fill
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                    className="object-cover transition-transform duration-700 group-hover/item:scale-110"
-                                    draggable={false}
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent group-hover/item:from-black/90 transition-[background-color]" />
-                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/item:opacity-100 transition-opacity">
-                                    <div className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-bold uppercase tracking-widest">
-                                        View Story
-                                    </div>
-                                </div>
-                                <div className="absolute bottom-4 left-4 right-4 pointer-events-none">
-                                    <h3 className="text-lg font-bold text-white leading-tight drop-shadow-md">{currentItem.title}</h3>
-                                    <div className="flex items-center gap-3 mt-1 text-[10px] uppercase tracking-[0.2em] font-bold text-white/60">
-                                        <span>{currentItem.memory_date ? format(new Date(currentItem.memory_date + "T12:00:00"), "yyyy") : ""}</span>
-                                        {currentItem.location && (
-                                            <span className="flex items-center gap-1">
-                                                <MapPin className="h-3 w-3" />
-                                                {currentItem.location}
-                                            </span>
-                                        )}
-                                    </div>
-                                    {currentItem.description && (
-                                        <p className="text-xs text-white/80 mt-2 line-clamp-2 italic">
-                                            "{currentItem.description}"
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        ) : (
-                            // MILESTONE CARD VIEW
-                            <div className={`w-full h-full relative flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br ${config?.gradient}`}>
-                                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20" />
 
-                                <div className="relative z-10 space-y-4 select-none">
-                                    <div className={`w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto border border-white/10 shadow-lg backdrop-blur-sm ${config?.color} text-3xl`}>
-                                        {config?.emoji}
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <h3 className={`text-2xl md:text-3xl font-serif font-bold text-white leading-tight ${config?.color} drop-shadow-sm`}>
-                                            {config?.label}
-                                        </h3>
-                                        <p className="text-white/60 text-sm font-medium uppercase tracking-widest">
-                                            {config?.text}
-                                        </p>
-                                        {/* Personalized date context for dual-date milestones */}
-                                        {currentItem.isOwnDate !== undefined && (
-                                            <p className="text-xs text-amber-200/80 font-medium mt-2">
-                                                {currentItem.category === 'first_kiss' && (
-                                                    currentItem.isOwnDate ? `You kissed ${partnerName}` : `${partnerName} kissed you`
-                                                )}
-                                                {currentItem.category === 'first_surprise' && (
-                                                    currentItem.isOwnDate ? "You received this surprise" : `You surprised ${partnerName}`
-                                                )}
-                                                {currentItem.category === 'first_memory' && (
-                                                    currentItem.isOwnDate ? "âœ¨ Your special memory" : `âœ¨ ${partnerName}'s special memory`
-                                                )}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <div className="pt-4 flex flex-col items-center gap-2">
-                                        <span className="px-4 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-amber-200">
-                                            {format(new Date(currentItem.milestone_date + "T12:00:00"), "MMMM do, yyyy")}
-                                        </span>
-                                    </div>
-
-                                    <div className="pointer-events-auto">
-                                        <LinkButton href="/intimacy" label="Relive This Memory" />
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </motion.div>
-                </AnimatePresence>
-
-                {items.length > 1 && (
-                    <>
-                        <div className="absolute top-1/2 left-2 -translate-y-1/2 z-20">
-                            <button
-                                onClick={prevItem}
-                                className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center text-white/30 hover:text-white hover:bg-black/40 transition-[color,background-color] cursor-pointer border border-white/5"
-                            >
-                                <Heart className="h-4 w-4 -rotate-90" />
-                            </button>
-                        </div>
-                        <div className="absolute top-1/2 right-2 -translate-y-1/2 z-20">
-                            <button
-                                onClick={nextItem}
-                                className="w-8 h-8 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center text-white/30 hover:text-white hover:bg-black/40 transition-[color,background-color] cursor-pointer border border-white/5"
-                            >
-                                <Heart className="h-4 w-4 rotate-90" />
-                            </button>
-                        </div>
-                    </>
-                )}
-            </CardContent>
-
+            {/* Navigation Buttons Layered Over */}
+            {items.length > 1 && (
+                <>
+                    <div className="absolute top-1/2 left-3 -translate-y-1/2 z-20">
+                        <button
+                            onClick={prevItem}
+                            className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center text-white/50 hover:text-white hover:bg-black/60 transition-[color,background-color] cursor-pointer border border-white/10 shadow-lg"
+                        >
+                            <Heart className="h-4 w-4 -rotate-90" />
+                        </button>
+                    </div>
+                    <div className="absolute top-1/2 right-3 -translate-y-1/2 z-20">
+                        <button
+                            onClick={nextItem}
+                            className="w-10 h-10 rounded-full bg-black/30 backdrop-blur-md flex items-center justify-center text-white/50 hover:text-white hover:bg-black/60 transition-[color,background-color] cursor-pointer border border-white/10 shadow-lg"
+                        >
+                            <Heart className="h-4 w-4 rotate-90" />
+                        </button>
+                    </div>
+                </>
+            )}
             <MemoryDetailDialog
                 isOpen={isDetailOpen}
                 memory={selectedMemory}

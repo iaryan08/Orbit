@@ -8,6 +8,14 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { getUnreadCount, getNotifications, markAsRead, deleteNotification, deleteAllNotifications } from '@/lib/actions/notifications'
 import { formatDistanceToNow } from 'date-fns'
@@ -42,6 +50,7 @@ export function NotificationBell({ className }: { className?: string }) {
     const [permission, setPermission] = useState<NotificationPermission>('default')
     const [announcementModalOpen, setAnnouncementModalOpen] = useState(false)
     const [selectedAnnouncement, setSelectedAnnouncement] = useState<Notification | null>(null)
+    const [permissionsDialogOpen, setPermissionsDialogOpen] = useState(false)
     const router = useRouter()
     const supabase = createClient()
     const COUNT_CACHE_KEY = 'orbit:notification_unread_count'
@@ -131,6 +140,41 @@ export function NotificationBell({ className }: { className?: string }) {
         }
     }
 
+    useEffect(() => {
+        if (!checkingPush) {
+            const needsPrompt = (isPushSupported && permission === 'default') || locationPermission === 'prompt';
+
+            if (needsPrompt && !isIncognito) {
+                const hasPrompted = sessionStorage.getItem('orbit_permissions_prompted');
+                // Only prompt automatically once per session
+                if (!hasPrompted) {
+                    setPermissionsDialogOpen(true);
+                    sessionStorage.setItem('orbit_permissions_prompted', 'true');
+                }
+            }
+        }
+    }, [checkingPush, permission, locationPermission, isPushSupported, isIncognito])
+
+    const handleAllowPermissions = async () => {
+        if (isPushSupported && permission === 'default') {
+            await handleSubscribe()
+        }
+
+        if (locationPermission === 'prompt' && navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                () => setLocationPermission('granted'),
+                (error) => {
+                    if (error.code === error.PERMISSION_DENIED) {
+                        setLocationPermission('denied')
+                    } else {
+                        setLocationPermission('granted')
+                    }
+                }
+            )
+        }
+
+        setPermissionsDialogOpen(false)
+    }
 
     const handleSubscribe = async () => {
         try {
@@ -439,6 +483,47 @@ export function NotificationBell({ className }: { className?: string }) {
                     </ScrollArea>
                 </PopoverContent >
             </Popover >
+
+            <Dialog open={permissionsDialogOpen} onOpenChange={setPermissionsDialogOpen}>
+                <DialogContent className="sm:max-w-md bg-[#0f0510]/95 backdrop-blur-xl border-white/10 text-white shadow-2xl">
+                    <DialogHeader>
+                        <DialogTitle className="font-serif italic text-2xl text-rose-100">Enhance Your Experience</DialogTitle>
+                        <DialogDescription className="text-white/60">
+                            Allow permissions to unlock real-time distance tracking and receive live updates from your partner.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="flex flex-col gap-3 py-4">
+                        {locationPermission === 'prompt' && (
+                            <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10">
+                                <MapPin className="text-amber-400 w-5 h-5 shrink-0" />
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium">Location Tracking</span>
+                                    <span className="text-[10px] text-white/50">To show distance between you two</span>
+                                </div>
+                            </div>
+                        )}
+                        {isPushSupported && permission === 'default' && (
+                            <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/10">
+                                <Bell className="text-amber-400 w-5 h-5 shrink-0" />
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-medium">Push Notifications</span>
+                                    <span className="text-[10px] text-white/50">To get instantly notified of new messages</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <DialogFooter className="flex gap-2 sm:gap-0 mt-2">
+                        <Button variant="ghost" onClick={() => setPermissionsDialogOpen(false)} className="text-white/40 hover:text-white">
+                            Maybe Later
+                        </Button>
+                        <Button onClick={handleAllowPermissions} className="bg-gradient-to-r from-amber-500/80 to-rose-500/80 hover:from-amber-500 hover:to-rose-500 text-white border-0 shadow-lg shadow-rose-500/20">
+                            Allow Access
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             <AnnouncementModal
                 isOpen={announcementModalOpen}

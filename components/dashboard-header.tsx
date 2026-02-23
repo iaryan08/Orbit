@@ -233,7 +233,7 @@ export function DashboardHeader({
       {/* We use isDesktopScrolled to determine which dock to show. 
           On Mobile (isMobile=true), isDesktopScrolled will always be false, so standard dock shows always. 
       */}
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {isDesktopScrolled ? (
           <motion.nav
             key="dock-scrolled"

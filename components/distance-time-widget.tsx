@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
 import { MapPin, Clock, Navigation, Globe } from 'lucide-react'
 import { updateLocation } from '@/lib/actions/auth'
 import { cn } from '@/lib/utils'

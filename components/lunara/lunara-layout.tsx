@@ -114,7 +114,7 @@ export function LunaraLayout({ initialData }: { initialData?: any }) {
                         </button>
                     </div>
                 ) : (
-                    <AnimatePresence mode="wait">
+                    <AnimatePresence mode="wait" initial={false}>
                         <motion.div
                             key={activeTab}
                             initial={{ opacity: 0, y: 10 }}
